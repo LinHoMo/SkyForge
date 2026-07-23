@@ -795,7 +795,7 @@ REPAIR_MAX_TOKENS=4096
 2. 输入规则编号或关键词搜索
 3. 查看规则详情与示例
 
-**MISRA自动修复规则**：系统支持 **57条** MISRA 规则的自动修复。
+**MISRA自动修复规则**：系统支持 **130条** MISRA 规则的自动修复。
 
 **支持的查询方式**：
 - 按规则编号：`Rule 8.13`
@@ -1327,7 +1327,7 @@ docker compose up -d --build
 
 #### 10.1 工具鉴定概述
 
-根据 DO-178C §12.2 和 DO-330 标准，SkyForge 作为机载软件开发工具，需要进行工具鉴定（Tool Qualification）。鉴定计划与合规草案统一收录在 [`../developer-docs/DO178C_COMPLIANCE_PACKAGE.md`](../developer-docs/DO178C_COMPLIANCE_PACKAGE.md)。
+根据 DO-178C §12.2 和 DO-330 标准，SkyForge 作为机载软件开发工具，需要进行工具鉴定（Tool Qualification）。鉴定计划见 [TQP](./compliance/TQP.md)，操作需求与总结见 [TOR](./compliance/TOR.md) / [TAS](./compliance/TAS.md)。
 
 #### 10.2 工具链合规检查
 
@@ -1343,9 +1343,11 @@ make do178c-check
 
 | 文档 | 路径 | 用途 |
 |------|------|------|
-| PSAC / SDP / SVP / SCMP / SQAP | `../developer-docs/DO178C_COMPLIANCE_PACKAGE.md` | 软件计划、开发、验证、配置管理与质量保证草案 |
-| TQP / TOR / TAS | `../developer-docs/DO178C_COMPLIANCE_PACKAGE.md` | DO-330 工具鉴定计划、操作需求与总结草案 |
+| PSAC / SDP / SVP / SCMP / SQAP | `docs/compliance/{PSAC,SDP,SVP,SCMP,SQAP}.md` | 软件计划、开发、验证、配置管理与质量保证草案 |
+| TQP / TOR / TAS | `docs/compliance/{TQP,TOR,TAS}.md` | DO-330 工具鉴定计划、操作需求与总结草案 |
 | 合规矩阵 | `docs/COMPLIANCE_MATRIX.csv` | DO-178C 目标覆盖矩阵 |
+
+> 8 份合规文档均位于 [`docs/compliance/`](./compliance/PSAC.md)。
 
 #### 10.4 安全部署检查清单
 

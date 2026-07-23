@@ -9,8 +9,8 @@
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Vue 3](https://img.shields.io/badge/Vue-3-42B883.svg?logo=vue.js&logoColor=white)](https://vuejs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![DO-178C](https://img.shields.io/badge/DO--178C-Engineering%20Support-red.svg)](../developer-docs/DO178C_COMPLIANCE_PACKAGE.md)
-[![MISRA-C:2012](https://img.shields.io/badge/MISRA--C-2012-AutoFix-orange.svg)](../developer-docs/DO178C_COMPLIANCE_PACKAGE.md)
+[![DO-178C](https://img.shields.io/badge/DO--178C-Engineering%20Support-red.svg)](./docs/compliance/PSAC.md)
+[![MISRA-C:2012](https://img.shields.io/badge/MISRA--C-2012-AutoFix-orange.svg)](./docs/USER_GUIDE.md)
 [![Z3](https://img.shields.io/badge/Formal-Z3-purple.svg)](./src/skyforge_engine/tools/z3_verifier.py)
 [![CBMC](https://img.shields.io/badge/Verify-CBMC-teal.svg)](./src/skyforge_engine/tools/cbmc_verifier.py)
 [![Multi-Agent](https://img.shields.io/badge/Multi--Agent-8%2B-green.svg)](#-multi-agent-协同管道)
@@ -350,17 +350,17 @@ SkyForge/
 
 ## 🛡️ DO-178C 合规状态
 
-SkyForge 提供 DO-178C 工程辅助证据，不宣称工具本身已经完成适航鉴定。合规草案详见 [DO-178C 合规包](../developer-docs/DO178C_COMPLIANCE_PACKAGE.md)。
+SkyForge 提供 DO-178C 工程辅助证据，不宣称工具本身已经完成适航鉴定。合规草案详见 [DO-178C 合规文档](./docs/compliance/PSAC.md)（PSAC/SDP/SVP/SCMP/SQAP/TQP/TOR/TAS 共 8 份）。
 
 ### 五大核心过程覆盖
 
 | DO-178C 过程 | 章节 | 文档 | 状态 |
 |-------------|------|------|------|
-| **计划过程** | §4 | [PSAC](../developer-docs/DO178C_COMPLIANCE_PACKAGE.md) / [SDP](../developer-docs/DO178C_COMPLIANCE_PACKAGE.md) / [SVP](../developer-docs/DO178C_COMPLIANCE_PACKAGE.md) | ⚠️ 工程草案 (8/8 文档) |
+| **计划过程** | §4 | [PSAC](./docs/compliance/PSAC.md) / [SDP](./docs/compliance/SDP.md) / [SVP](./docs/compliance/SVP.md) | ⚠️ 工程草案 (8/8 文档) |
 | **开发过程** | §5 | HLR / LLR 层级 + 契约式设计 + MISRA-C 代码生成 | ⚠️ 工程辅助实现，需真实项目审查 |
 | **验证过程** | §6 | Cppcheck + 契约校验 + 数字孪生 + V3.3 覆盖分析器 | ⚠️ 部分满足；真实覆盖率依赖 GCC/lcov |
-| **配置管理** | §7 | [SCMP](../developer-docs/DO178C_COMPLIANCE_PACKAGE.md) + Git + PR 系统 + 基线管理 | ⚠️ 需真实隔离分支 PR/review |
-| **质量保证** | §8 | [SQAP](../developer-docs/DO178C_COMPLIANCE_PACKAGE.md) + CI 自动检查 (Ruff/Biome/Pyright) | ⚠️ 需独立人工/CI provenance |
+| **配置管理** | §7 | [SCMP](./docs/compliance/SCMP.md) + Git + PR 系统 + 基线管理 | ⚠️ 需真实隔离分支 PR/review |
+| **质量保证** | §8 | [SQAP](./docs/compliance/SQAP.md) + CI 自动检查 (Ruff/Biome/Pyright) | ⚠️ 需独立人工/CI provenance |
 
 ### DAL 等级目标覆盖
 
@@ -380,9 +380,9 @@ DO-178C 共 **19 项可判定目标**(OBJ-1 ~ OBJ-19),涵盖问题报告、配�
 
 | 工具 | TQL 级别 | 状态 | 文档 |
 |------|---------|------|------|
-| Agent Pipeline | TQL-1 | ✅ 草案完成 | [TQP](../developer-docs/DO178C_COMPLIANCE_PACKAGE.md) |
-| LLM 推理引擎 | TQL-1 | ✅ 草案完成 | [TOR](../developer-docs/DO178C_COMPLIANCE_PACKAGE.md) |
-| Contract Checker | TQL-2 | ✅ 草案完成 | [TAS](../developer-docs/DO178C_COMPLIANCE_PACKAGE.md) |
+| Agent Pipeline | TQL-1 | ✅ 草案完成 | [TQP](./docs/compliance/TQP.md) |
+| LLM 推理引擎 | TQL-1 | ✅ 草案完成 | [TOR](./docs/compliance/TOR.md) |
+| Contract Checker | TQL-2 | ✅ 草案完成 | [TAS](./docs/compliance/TAS.md) |
 | 工具链验证 | — | ✅ 已实施 | [`tool_chain_validator.py`](./src/skyforge_engine/tools/tool_chain_validator.py) |
 | Cppcheck / GCC | TQL-3 / TQL-1 | 可引用已有 | 工业标准工具 |
 
@@ -444,7 +444,7 @@ Copyright (c) 2026 SkyForge Contributors
 1. **六层引擎架构** — 从基础设施协议到编排层，每层职责清晰、可独立部署替换
 2. **多 Agent 协同架构** — 8+ Agent 闭环,从需求到修复全自动
 3. **DO-178C 工程辅助** — 生成工程报告与需求追溯矩阵，提供 19 项可判定目标检查，不替代适航审定
-4. **MISRA-C 智能修复** — Cppcheck 扫描 + Agent 智能修复 + 契约校验闭环(57 条自动修复规则)
+4. **MISRA-C 智能修复** — Cppcheck 扫描 + Agent 智能修复 + 契约校验闭环(130 条自动修复规则)
 5. **可插拔编码标准** — Registry 插件化架构,支持 MISRA-C / MISRA C++ / Python 安全标准动态注册
 6. **形式化验证** — Z3 SMT 求解 + CBMC 模型检测双引擎,VerifierChain 可插拔验证链
 7. **数字孪生仿真** — 虚拟传感器 / MCU + 5 类故障注入测试(bias / signal_loss / noise / stuck / step)
