@@ -84,7 +84,7 @@ class RepairLoopStage:
                 f"第 {iteration} 轮：修复完成 actions={len(repair_result.actions)}",
             )
 
-            # ---- 不退步检测：修复后重新扫描，防止引入新违规 ----
+            # 不退步检测：修复后重新扫描，防止引入新违规
             sync_cb2, pending_logs2 = _make_sync_log_collector()
             post_repair_violations = scanner.scan(repair_result.code, language=language)
             await _flush_collected_logs(hook, pending_logs2)
@@ -118,7 +118,7 @@ class RepairLoopStage:
                 }
                 repair_history.append(history_entry_degraded)
                 break
-            # ---- 不退步检测结束 ----
+            # 不退步检测结束
 
             if contract:
                 await hook("SYSTEM", "info", f"第 {iteration} 轮：契约校验")

@@ -19,9 +19,7 @@ from skyforge_engine.core.adapters import (
 from skyforge_engine.core.protocols import HILAdapterProtocol
 
 
-# ---------------------------------------------------------------------------
 # 协议合规性
-# ---------------------------------------------------------------------------
 
 
 class TestProtocolCompliance:
@@ -43,9 +41,7 @@ class TestProtocolCompliance:
         assert adapter.adapter_type == "virtual_mcu"
 
 
-# ---------------------------------------------------------------------------
 # SerialHIL
-# ---------------------------------------------------------------------------
 
 
 class TestSerialHIL:
@@ -114,9 +110,7 @@ class TestSerialHIL:
             assert data == b"response"
 
 
-# ---------------------------------------------------------------------------
 # QEMUAdapter
-# ---------------------------------------------------------------------------
 
 
 class TestQEMUAdapterLayer:
@@ -165,9 +159,7 @@ class TestQEMUAdapterLayer:
             adapter.receive()
 
 
-# ---------------------------------------------------------------------------
 # VirtualMCUAdapter
-# ---------------------------------------------------------------------------
 
 
 class TestVirtualMCUAdapter:
@@ -229,9 +221,7 @@ class TestVirtualMCUAdapter:
         assert adapter.receive() == b""
 
 
-# ---------------------------------------------------------------------------
 # 工厂类
-# ---------------------------------------------------------------------------
 
 
 class TestHILAdapterFactory:
@@ -288,9 +278,7 @@ class TestHILAdapterFactory:
         del HILAdapterFactory._registry["custom"]
 
 
-# ---------------------------------------------------------------------------
 # 向后兼容
-# ---------------------------------------------------------------------------
 
 
 class TestBackwardCompatibility:

@@ -30,9 +30,7 @@ from skyforge_engine.core.stages import (
 )
 
 
-# ---------------------------------------------------------------------------
 # Dummy Stage 辅助类
-# ---------------------------------------------------------------------------
 
 class DummyStage:
     """测试用 dummy stage，可配置名称和行为。"""
@@ -80,9 +78,7 @@ class AddStage:
         return StageResult(artifact=artifact, status="success")
 
 
-# ---------------------------------------------------------------------------
 # Orchestrator 基础测试
-# ---------------------------------------------------------------------------
 
 class TestPipelineOrchestrator:
     def test_empty_stages(self):
@@ -210,9 +206,7 @@ class TestPipelineOrchestrator:
         assert any(r.status == "failure" for r in results)
 
 
-# ---------------------------------------------------------------------------
 # Stage 协议合规测试
-# ---------------------------------------------------------------------------
 
 class TestStageProtocolCompliance:
     def test_requirement_parse_stage_protocol(self):
@@ -271,9 +265,7 @@ class TestStageProtocolCompliance:
         assert stage.name == "report_gen"
 
 
-# ---------------------------------------------------------------------------
 # HILCheckpointStage 行为测试
-# ---------------------------------------------------------------------------
 
 class TestHILCheckpointStage:
     @pytest.mark.asyncio
@@ -303,9 +295,7 @@ class TestHILCheckpointStage:
         assert "contract_review rejected" in result.errors
 
 
-# ---------------------------------------------------------------------------
 # 向后兼容测试
-# ---------------------------------------------------------------------------
 
 class TestBackwardCompatibility:
     def test_run_pipeline_signature_unchanged(self):
@@ -360,9 +350,7 @@ class TestBackwardCompatibility:
             assert "deprecated" in str(deprecation_warnings[0].message).lower()
 
 
-# ---------------------------------------------------------------------------
 # Pipeline 集成测试（mock Agent）
-# ---------------------------------------------------------------------------
 
 class TestPipelineIntegration:
     def test_run_pipeline_mock_mode(self):

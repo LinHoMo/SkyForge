@@ -9,7 +9,6 @@ export type LocaleModuleKey =
 	| "compose"
 	| "misra"
 	| "hitl"
-	| "anchor"
 	| "architecture"
 	| "compliance"
 	| "settings"

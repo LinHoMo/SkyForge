@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Clock3, Database, RotateCcw, Search, Trash2, X } from "@lucide/vue";
+import { Clock3, Database, Loader2, RotateCcw, Search, Trash2, X } from "@lucide/vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -176,7 +176,7 @@ watch(() => execution.profileId, load);
 </script>
 
 <template>
-  <main class="min-h-[calc(100vh-64px)] bg-background px-6 py-9 md:px-[7vw] lg:px-[100px]">
+  <main class="min-h-[calc(100vh-60px)] bg-background px-6 py-9 md:px-[7vw] lg:px-[100px]">
     <div class="mx-auto max-w-6xl">
       <header class="mb-6 flex items-end justify-between">
         <div>
@@ -194,7 +194,8 @@ watch(() => execution.profileId, load);
         <LiveMetrics />
       </section>
 
-      <section v-if="loading" class="flex min-h-[220px] items-center justify-center rounded-component-md border border-dashed border-border bg-card">
+      <section v-if="loading" class="flex min-h-[220px] items-center justify-center gap-3 rounded-component-md border border-dashed border-border bg-card">
+        <Loader2 :size="20" class="animate-spin text-muted-foreground" />
         <span class="text-muted-foreground">{{ $t("records.loading") }}</span>
       </section>
 

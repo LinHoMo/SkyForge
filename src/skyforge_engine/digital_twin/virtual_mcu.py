@@ -540,7 +540,7 @@ class VirtualMCU:
                 bin_path = Path(tmpdir) / "sim"
 
             # 编译命令：gcc -O2 -std=c11 -Wall -Wextra -o sim test_harness.c -lm
-            # V0.4 P5: 启用 GCC Sanitizers (ASan + UBSan) 运行时错误检测
+            # 启用 GCC Sanitizers (ASan + UBSan) 运行时错误检测
             # Note: Sanitizers not available on Windows MSYS2, skip on win32
             import sys
             use_sanitizers = sys.platform != "win32"

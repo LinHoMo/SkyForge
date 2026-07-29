@@ -135,7 +135,7 @@ def test_patch2_report_generator_renders_coverage():
         "mcdc_satisfied": 1,
         "mcdc_total": 2,
         "dal": "A",
-        "version": "V0.4-Real+Static",
+        "version": "V1.0-Real+Static",
         "fault_injected": True,
         "decision_points": [
             {

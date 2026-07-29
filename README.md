@@ -1,457 +1,157 @@
 # SkyForge (天锻)
 
-> **SkyForge** — AI 驱动的航空机载软件工程平台，面向 DO-178C 开发活动提供需求、代码、验证与追溯辅助证据；不宣称工具本身已完成适航鉴定。
-> *AI-Powered Aviation Software Development Platform for DO-178C Compliance.*
+面向 DO-178C 的机载软件工具链。把需求解析、LLR、代码生成、MISRA 修复、形式化验证、仿真和报告串成一条流水线，中间产物之间留追溯。先说清楚：工具本身没过适航鉴定，出来的是工程辅助证据，不能直接当审定材料用。
 
-**多语言支持**: C / C++ / Python | **安全标准**: DO-178C Level A | **编码规范**: MISRA-C / MISRA C++ / JSF AV C++ / 军工Python指南
+支持 C / C++ / Python，编码规范走 MISRA-C、MISRA C++、JSF AV C++，外加一套 Python 安全子集。
 
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB.svg?logo=python&logoColor=white)](https://www.python.org/)
 [![Vue 3](https://img.shields.io/badge/Vue-3-42B883.svg?logo=vue.js&logoColor=white)](https://vuejs.org/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![DO-178C](https://img.shields.io/badge/DO--178C-Engineering%20Support-red.svg)](./docs/compliance/PSAC.md)
-[![MISRA-C:2012](https://img.shields.io/badge/MISRA--C-2012-AutoFix-orange.svg)](./docs/USER_GUIDE.md)
-[![Z3](https://img.shields.io/badge/Formal-Z3-purple.svg)](./src/skyforge_engine/tools/z3_verifier.py)
-[![CBMC](https://img.shields.io/badge/Verify-CBMC-teal.svg)](./src/skyforge_engine/tools/cbmc_verifier.py)
-[![Multi-Agent](https://img.shields.io/badge/Multi--Agent-8%2B-green.svg)](#-multi-agent-协同管道)
 
----
+## 现在的状态
 
-## 📊 当前可复现状态 (2026-08-07)
+后端 pytest 281 个用例通过（5 个 warning），全仓 pytest 加 vitest 大约八百多项。主源码 9 万多行（src + studio/app + 前端 src，不含 node_modules 和 .venv）。MISRA 自动修复规则 130 条左右，配置表驱动那套重构方案还躺在 `docs/REFACTORING_MISRA_FIXES.md` 里，没动手。
 
-| 指标 | 数值 | 说明 |
-|------|------|------|
-| 后端测试 | **281 passed (5 warnings)** | `uv run pytest src/skyforge_engine/tests/ -q` |
-| 全仓库测试 | **461+ passed** | 含前端 180 passed (15 test files) |
-| Pipeline Stage | **12/12 全部完成** | 零崩溃，含修复闭环+退步检测 |
-| MISRA 修复规则 | **130 条规则** | 通用修复器 + 配置表（重构后减少 1934 行） |
-| 代码总量 | **~35,000 行** | Python + TypeScript/Vue |
-| 跨平台 | **Windows / macOS / Linux** | 全平台适配完成 |
-| LLM 支持 | DeepSeek V4 Flash (API) + Mock 模式 | 双模式切换 |
+DAL-A 这边几个目标只是部分满足：OBJ-2 契约验证、OBJ-10 独立性、OBJ-17 独立验证都缺真实人工审查和硬件平台，OBJ-12 跟着 OBJ-2 走；OBJ-20 数据耦合、OBJ-21 控制耦合各有一两个全局变量的警告。OBJ-13/14/15 这三项（语句、判定、MC/DC 覆盖率）目前是静态估算，没接上真 GCC + gcov/lcov 之前不算实测，别拿这个数字去充数。
 
-### DAL-A 未完全达标项（如实说明）
+## 架构
 
-| 目标 | 状态 | 原因 |
-|------|------|------|
-| OBJ-2 契约验证 | 部分满足 | 契约语义与生成代码不完全匹配（需真实 LLM） |
-| OBJ-10 独立性 | 部分满足 | 缺少真实人工审查（HITL 禁用，无硬件平台） |
-| OBJ-12 契约违约 | 部分满足 | 与 OBJ-2 联动 |
-| OBJ-17 独立验证 | 部分满足 | 缺少独立人工/CI 审查（HITL 禁用） |
-| OBJ-20 数据耦合 | 部分满足 | 2 个 static 全局变量产生 2 个警告 |
-| OBJ-21 控制耦合 | 部分满足 | init/apply 无调用方（单模块天然孤立） |
+引擎分六层，自底向上：
 
----
+- **L0 协议层**：抽象基类、数据 schema、模式守卫，Provider 靠依赖注进去
+- **L1 LLM 客户端**：云 API / 本地 / 离线三档，多供应商路由、响应缓存、输入输出清洗和审计
+- **L2 仿真验证**：SIL 用虚拟传感器、虚拟 MCU 和故障注入；PIL 走 QEMU（STM32F103 / F407）；HIL 支持串口 UART、JTAG-SWD 和 ARINC 653 分区调度
+- **L3 验证链**：Z3 / CBMC / Cppcheck / GCC 可插拔，VerifierChain 负责编排和结果聚合
+- **L4 Agent 策略层**：需求解析、LLR 生成、架构设计、契约生成、代码生成、代码修复，外加 MISRA 适配和 Python 适配
+- **L5 编排层**：PipelineOrchestrator 调度，11 个 Stage 类（装配 10 个实例，含 3 个人工审查检查点），支持串行、并行组和失败重试
 
-## 🏗️ 架构概览
+细节看 [ARCHITECTURE.md](./docs/ARCHITECTURE.md)，怎么扩插件看 [PLUGIN_DEVELOPMENT.md](./docs/PLUGIN_DEVELOPMENT.md)。
 
-SkyForge 采用**六层引擎架构**(Layer 0-5),自底向上逐层增强,每一层职责清晰,可独立部署与替换。
-
-```
-┌──────────────────────────────────────────────────────────────────┐
-│  Layer 5: Orchestration (编排层)                                  │  ← Pipeline 全流程调度
-│  - PipelineOrchestrator: 串行/并行组/失败策略/产物传递           │
-│  - 12 个 Stage: 需求解析→LLR→架构→契约→代码→修复→验证→仿真→报告 │
-├──────────────────────────────────────────────────────────────────┤
-│  Layer 4: Agent Strategy (Agent 策略层)                           │  ← 多 Agent 协同
-│  - 8+ Agent: 需求解析/LLR生成/架构设计/契约生成/代码生成/修复     │
-│  - MISRA 适配 / Python 适配 / 多语言代码生成                      │
-├──────────────────────────────────────────────────────────────────┤
-│  Layer 3: Verifier Chain (验证工具链层)                            │  ← 形式化与静态分析
-│  - Z3 / CBMC / Cppcheck / GCC / Contract Checker 可插拔链        │
-│  - VerifierChain: 多验证器编排与结果聚合                          │
-├──────────────────────────────────────────────────────────────────┤
-│  Layer 2: Simulation & Verification (仿真验证层 SIL/PIL/HIL)      │  ← 仿真验证全覆盖
-│  - SIL: VirtualSensor / VirtualMCU / FaultInjector / 仿真引擎     │
-│  - PIL: QEMU 处理器仿真（STM32F103/F407）                        │
-│  - HIL: 串口 UART / JTAG-SWD / ARINC 653 分区调度                 │
-├──────────────────────────────────────────────────────────────────┤
-│  Layer 1: LLM Client (LLM 客户端层)                               │  ← LLM 适配与路由
-│  - 离线模式 / 云 API / 本地 OpenAI 兼容客户端                      │
-│  - 多供应商路由 / 缓存 / 安全审计 / 输入输出清洗                  │
-├──────────────────────────────────────────────────────────────────┤
-│  Layer 0: Protocols (基础设施协议层)                               │  ← 协议/抽象基类/模式守卫
-│  - Protocol 抽象基类 / 数据模式 / 类型守卫                        │
-│  - 跨层依赖反转: Provider 注入模式                                │
-└──────────────────────────────────────────────────────────────────┘
-```
-
-> 详见 [架构详解](./docs/ARCHITECTURE.md) | [插件开发](./docs/PLUGIN_DEVELOPMENT.md)
-
----
-
-## 🚀 快速开始(3 步走)
-
-### 方式一：一键部署（推荐）
+## 跑起来
 
 ```bash
-# macOS / Linux / Windows Git Bash
 sh start.sh
 ```
 
-### 方式二：手动部署
+手动装：
 
 ```bash
-# 第 1 步:安装依赖(推荐 uv,也可用 pip)
 cd SkyForge
-uv sync                          # 使用 uv workspace(推荐)
-# 或
-pip install -e ".[dev]"
-
-# 第 2 步:启动后端 + 前端(一键启动)
-make dev                         # 启动 FastAPI (8000) + Vite (5173)
-# 若无 make 环境,Linux/Mac 可直接: bash start.sh
-
-# 第 3 步:浏览器访问
-# 前端 UI:         http://localhost:5173
-# API 文档(Swagger): http://localhost:8000/docs
+uv sync                 # 也可以 pip install -e ".[dev]"
+make dev                # FastAPI 在 8000，Vite 在 5173
 ```
 
-### macOS 特别说明
+起来之后前端 http://localhost:5173 ，Swagger http://localhost:8000/docs 。
+
+macOS 先 `brew install uv node@18`，Cppcheck 和 CBMC 也是 brew 装。缺工具不会报错，自动退到 mock 模式。
+
+Docker：
 
 ```bash
-# 1. 安装 Homebrew (如未安装)
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-# 2. 安装 uv (Python 包管理器)
-brew install uv
-
-# 3. 安装 Node.js 18+
-brew install node@18
-
-# 4. 一键启动
-sh start.sh
-```
-
-> **注意**: macOS 上 Cppcheck 可通过 `brew install cppcheck` 安装，CBMC 可通过 `brew install cbmc` 安装。缺失时自动降级到 Mock 模式。
-
-### 方式三：Docker 部署
-
-```bash
-# Docker Compose 一键部署
 docker compose up --build
-
-# 或使用开发模式（支持热重载）
+# 开发模式热重载
 docker compose -f docker-compose.dev.yml up
 ```
 
-> 💡 **前端模拟模式开箱即用且完全离线**。界面和报告始终标记为 `simulated`；外部工具缺失不会被解释为"零违规"或"验证通过"。
+### 工具链（可选）
 
-### 🧰 工具链安装（可选,离线模式无需安装）
+离线模式什么外部工具都不用装，要做真验证才需要这几个。`start.sh` 启动时会自己检测，缺了就打安装提示，新用户首次启动会自动 `pip install z3-solver`。
 
-`start.sh` 启动时会自动检测下列工具,缺失时打印安装提示。新用户首次启动会自动 `pip install z3-solver`。
+| 工具 | 干什么 | Linux / macOS | Windows |
+|------|--------|---------------|---------|
+| z3-solver | 契约 SMT | pip install（自动） | 同左 |
+| cbmc | C 有界模型检查 | apt / brew install cbmc | 双击 `tools/cbmc-6.9.0-win64.msi` |
+| cppcheck | MISRA-C 静态扫描 | apt install cppcheck | choco install cppcheck |
+| gcc | 编译、覆盖率插桩 | 系统自带 | MinGW / MSYS2 |
 
-| 工具 | 用途 | Linux/macOS | Windows |
-|------|------|-------------|---------|
-| **z3-solver** | 契约形式化验证(SMT) | `pip install z3-solver`(`start.sh` 自动) | `pip install z3-solver`(`start.sh` 自动) |
-| **cbmc** | C 代码有界模型检查 | `apt install cbmc` / `brew install cbmc` | 双击 `tools/cbmc-6.9.0-win64.msi`(管理员权限,装到 `C:\Program Files\cbmc\bin\`) |
-| **cppcheck** | MISRA-C 静态扫描 | `apt install cppcheck` | `choco install cppcheck` 或官方安装包 |
-| **gcc** | 代码编译 / 覆盖率插桩 | 系统自带 | MinGW / MSYS2 |
+Windows 上 cbmc 默认装到 `C:\Program Files\cbmc\bin\`，检测会额外看这个路径。cppcheck 的 MISRA addon 用 venv 里的 `sys.executable` 跑，不靠 `which python`。
 
-> 后端 z3 检测使用 `import z3`(Python 包);cbmc 检测优先 `shutil.which`,Windows 上额外检查 `C:\Program Files\cbmc\bin\cbmc.exe`。
-> cppcheck MISRA addon 在 Windows 上使用 `sys.executable`(venv 内 Python)而非 `shutil.which("python")`。
+### 离线模式
 
-### 🛡️ 离线运行模式
+没接外部依赖时的行为：LLM 走关键词匹配加模板拼接（`src/skyforge_llm/local.py`）；GCC 不可用就标 `simulated` 或 `unavailable`，不记编译通过；Cppcheck 没有扫描器就标 `unavailable`；Z3 / CBMC 直接跳过；Redis 没装就退回内存队列。日志里带 `[Mock]` 的就是这一步没用真工具。
 
-SkyForge 支持完全离线运行，无需外部 API 或本地模型。界面和报告会标注数据来源（`simulated` / `live`），便于区分模拟与真实执行。
+报告和界面上每个结果都会标数据来源：`observed`（真工具跑的）、`simulated`（离线模拟的）、`unavailable`（工具缺了跳过）、`failed`（验证没过）。
 
-| 外部依赖 | 离线时的行为 | 实现位置 |
-|----------|----------------|----------|
-| LLM (LM Studio / OpenAI / Anthropic) | 关键词匹配 + 模板拼接 | `src/skyforge_llm/local.py` |
-| GCC 编译器 | 标记 `simulated` 或 `unavailable`，不记录真实编译通过 | `src/skyforge_engine/digital_twin/virtual_mcu.py` |
-| Cppcheck 静态扫描 | 模式扫描标记 `simulated`；无扫描器则 `unavailable` | `src/skyforge_engine/tools/cppcheck_scanner.py` |
-| Z3 / CBMC 形式化验证 | 跳过并标记 `unavailable` | `src/skyforge_engine/tools/contract_formal_verifier.py` |
-| Redis 任务队列 | 内存队列回退 | `studio/app/services/redis_manager.py` |
+### HITL 人工审查
 
-> 运行日志中会出现 `[Mock]` 标记,表示该步骤未使用外部工具。详见 [部署说明](./docs/USER_GUIDE.md)。
+HITL（Human-in-the-Loop）在需求、契约、代码这几个检查点停住等人拍板。默认关，免得卡自动化流程；`HIL_ENABLED=true` 或者调 `POST /api/hil/toggle` 打开，运行时切不用重启。页面上 Generate 那栏也有个开关。注意 HIL 三个字这里只指硬件在环，跟 HITL 是两码事，旧的 `/api/hil/*` 路径留了一版兼容。
 
-### 🤝 HITL 人工审查
-
-HITL (Human-in-the-Loop) 在需求、契约和代码检查点等待人工决定。`HIL` 仅表示 Hardware-in-the-Loop。
-
-| 配置 | 默认值 | 说明 |
-|------|--------|------|
-| `HIL_ENABLED` 环境变量 | **`false`** | `start.sh` 默认禁用,避免阻塞自动化流程 |
-| `POST /api/hil/toggle` | — | 兼容路径：运行时切换 HITL 启用状态（无需重启后端） |
-| `GET /api/hil/pending` | — | 兼容路径：查询待人工审查任务与 HITL 状态 |
-| Generate 页面 HITL 开关 | 关 / 开 | "开始生成"按钮左侧的 UserCheck 图标按钮，关=灰色 / 开=琥珀色 |
-
-> 旧 `/api/hil/*` 路径保留一版兼容；新产品文案和页面统一使用 HITL。
-
----
-
-## 🔗 链上证据锚定 (Evidence Anchoring)
-
-将 DO-178C 验证证据包的 SHA-256 哈希锚定到 **Ethereum Sepolia** 测试网，
-为适航追溯证据提供不可篡改的链上时间戳与可审计提交者来源。
-
-- 合约: [`contracts/EvidenceAnchor.sol`](./contracts/EvidenceAnchor.sol)（开放写入 + 链上校验）
-- 后端: [`skyforge_engine/chain/evidence_anchor.py`](./src/skyforge_engine/chain/evidence_anchor.py) — canonical SHA-256 哈希计算
-- API: `POST /api/evidence/anchor-info` — 返回锚定哈希与链信息（计算免费，上链需钱包签名）
-- 前端: `/anchor` 页面（链上锚定）— 计算哈希 / MetaMask 上链 / 链上校验
-- 部署: `cd scripts && npm install && node deploy_anchor.mjs`（需 Sepolia 测试 ETH）
-
-```bash
-# 验证锚定哈希计算
-uv run pytest src/skyforge_engine/tests/test_evidence_anchor.py -q
-```
-
----
-
-## 📁 目录结构
+## 目录
 
 ```
-SkyForge/
-├── README.md                          ← 你正在看的文件
-├── LICENSE                            ← MIT License
-├── ThirdParty.md                      ← 第三方组件说明(根目录)
-├── Makefile                           ← 一键命令入口(dev/test/lint/benchmark)
-├── pyproject.toml                     ← Python 项目配置(uv workspace)
-├── start.sh                            ← 一键启动脚本
-│
-├── src/                               ← 源代码(六层引擎架构)
-│   ├── skyforge_engine/               ← 核心引擎(L0-L5 引擎层)
-│   │   ├── core/                      ←   L5 编排层: orchestrator.py, stages/(12个阶段)
-│   │   ├── agents/                    ←   L4 Agent策略层: 8+ Agent (需求/LLR/架构/契约/代码/修复等)
-│   │   ├── verifiers/                 ←   L3 验证工具链层: VerifierChain + Z3/CBMC/Cppcheck/GCC
-│   │   ├── adapters/                  ←   L2 仿真验证层(SIL/PIL/HIL): QEMU/串口/ARINC653/仿真引擎
-│   │   ├── protocols/                 ←   L0 协议层: 抽象基类/模式守卫/Provider协议
-│   │   ├── chain/                     ←   链上证据锚定: canonical SHA-256 + ABI 常量
-│   │   ├── strategies/                ←   LLM策略: 离线策略/云API策略/本地策略
-│   │   ├── standards/                 ←   可插拔编码标准(MISRA-C / MISRA C++ / Python)
-│   │   ├── renderers/                 ←   报告渲染器
-│   │   ├── coding_standards/          ←   编码标准插件(MISRA-C / JSF AV C++ / Python)
-│   │   ├── tools/                     ←   工具链(Cppcheck / Z3 / CBMC / Contract)
-│   │   ├── digital_twin/              ←   数字孪生(虚拟传感器/MCU/故障注入/仿真引擎)
-│   │   ├── composable/                ←   组件组合验证
-│   │   ├── rag/                       ←   RAG知识库(MISRA-C语义搜索)
-│   │   ├── report/                    ←   DO-178C报告 + 19项合规目标
-│   │   ├── scade/                     ←   SCADE G-Lustre解析器(ANTLR4)
-│   │   ├── dal/                       ←   DAL目标覆盖(gcov/mcdc)
-│   │   ├── streaming/                 ←   流处理: 任务流注册表
-│   │   ├── schemas/                   ←   数据模型
-│   │   ├── tests/                     ←   引擎单元测试
-│   │   ├── pipeline.py                ←   Pipeline 编排入口
-│   │   └── execution.py               ←   ExecutionProfile / ExecutionContext
-│   │
-│   ├── skyforge_llm/                  ← L1 LLM客户端层 ⭐ 可选剥离
-│   │   ├── providers/                 ←   OpenAI / Anthropic / 本地
-│   │   ├── security/                  ←   输入清洗 + 审计 + 验证
-│   │   ├── client.py                  ←   统一LLM客户端
-│   │   ├── router.py                  ←   多供应商路由
-│   │   ├── cache.py                   ←   LLM响应缓存
-│   │   ├── local.py                   ←   本地GGUF模型
-│   │   └── types.py                   ←   类型定义
-│   │
-│   └── skyforge_core/                 ← CLI 工具 ⭐ 命令行入口
-│       └── cli.py
-│
-├── studio/                            ← Web Studio (FastAPI + Vue 3)
-│   ├── app/                           ← FastAPI 后端
-│   │   ├── api/routes/                ←   API路由(兼容API + V1唯一任务协议)
-│   │   ├── services/                  ←   服务层(Redis + WebSocket管理)
-│   │   ├── core/                      ←   核心层(HITL / LLM / Streaming)
-│   │   ├── schemas/                   ←   Pydantic数据模型
-│   │   ├── rag/                       ←   MISRA-C检索
-│   │   ├── tests/                     ←   FastAPI/任务协议/设置/回归测试
-│   │   └── main.py                    ←   FastAPI入口
-│   └── frontend/                      ← Vue 3 前端
-│       ├── src/
-│       │   ├── pages/                 ←   路由页面(10个页面)
-│       │   │   └── dashboard/         ←     首页(/)
-│   │   ├── views/                 ←   页面视图(Generate / Compose / HITLPage / RecordDetail / Records / Lab / Settings / ArchitectureView)
-│   │   ├── views/ChainAnchor.vue  ←   链上证据锚定页(/anchor, MetaMask 上链)
-│       │   ├── components/            ←   40+ UI组件 + shadcn-vue
-│       │   ├── stores/                ←   Pinia状态(5个store)
-│       │   ├── services/              ←   API 调用 / 离线模式 + 任务网关
-│       │   └── utils/                 ←   工具函数 + 契约模板
-│       ├── package.json
-│       └── Dockerfile
-│
-├── docs/                              ← 文档中心
-│   ├── ARCHITECTURE.md                ← 架构详解
-│   ├── ROADMAP.md                     ← 项目路线图
-│   ├── PLUGIN_DEVELOPMENT.md          ← 插件开发指南
-│   ├── MULTI_LANGUAGE_GUIDE.md        ← 多语言支持指南
-│   ├── USER_GUIDE.md                  ← 用户指南
-│   ├── COMPLIANCE_MATRIX.csv          ← DO-178C 合规矩阵
-│   └── compliance/                    ← DO-178C 合规文档(PSAC/SDP/SVP/SQAP/SCMP/TQP/TOR/TAS)
-│
-├── examples/                          ← 示例代码库(12 + 5完整案例)
-├── config/                            ← 集中配置(.env/pyright)
-├── docker/                            ← Docker部署
-└── .github/                           ← CI/CD工作流
+src/
+  skyforge_engine/        核心引擎，L0-L5 都在这
+    agents/               代码生成、修复、契约、MISRA 这些 Agent
+    core/stages/          流水线各 Stage
+    tools/                cppcheck / z3 / cbmc / contract 扫描器
+    digital_twin/         虚拟 MCU、虚拟传感器、故障注入、仿真引擎
+    report/               DO-178C 报告和合规目标
+    rag/                  MISRA 规则语义检索
+    composable/           组件组合验证
+    scade/                SCADE G-Lustre 解析器（递归下降，没用 ANTLR 运行时）
+  skyforge_llm/           LLM 客户端、路由、缓存、安全清洗
+  skyforge_core/          CLI 入口
+studio/
+  app/                    FastAPI 后端
+  frontend/               Vue 3 前端
+docs/                     文档，compliance/ 下是 8 份 DO-178C 草案
+examples/                 示例工程
 ```
 
-### 前端路由(11个页面)
+前端主要页面：
 
-| 路径 | 页面 | 文件 |
-|------|------|------|
-| `/` | 首页 | `pages/dashboard/index.vue` |
-| `/architecture` | 六层架构 | `views/ArchitectureView.vue` |
-| `/generate` | 代码生成 | `views/Generate.vue` |
-| `/records` | 运行记录 | `views/RunRecords.vue` |
-| `/records/:taskId` | 记录详情 | `views/RecordDetail.vue` |
-| `/lab` | 能力实验室 | `views/CapabilityLab.vue` |
-| `/settings` | 系统设置 | `views/SystemSettings.vue` |
-| `/compose` | 组件组合验证 | `views/Compose.vue` |
-| `/misra` | MISRA规则搜索 | `pages/misra/index.vue` |
-| `/hitl` | HITL人工审查 | `views/HITLPage.vue` |
-| `/anchor` | 链上证据锚定 | `views/ChainAnchor.vue` |
-
-### 顶部导航栏(7个)
-
-1. 首页 (`/`)
-2. 六层架构 (`/architecture`)
-3. 代码生成 (`/generate`)
-4. 运行记录 (`/records`)
-5. 能力实验室 (`/lab`)
-6. 系统设置 (`/settings`)
-7. 链上锚定 (`/anchor`)
-
-### 三种执行模式 Profile
-
-| Profile | 模式 | 说明 |
-|---------|------|------|
-| `mock` | simulated | 前端模拟,完全离线可用 |
-| `cloud` | live | 云模型,后端真实运行 |
-| `local` | live/replay | 本地模型,支持已验证回放 |
-
-### 证据状态规则
-
-统一使用四种证据状态:`observed` / `simulated` / `unavailable` / `failed`
-
-| 状态 | 含义 |
+| 路径 | 页面 |
 |------|------|
-| `observed` | 真实工具观测结果 |
-| `simulated` | 离线模式结果,非真实验证 |
-| `unavailable` | 工具缺失,跳过验证 |
-| `failed` | 验证失败/违规 |
+| `/` | 首页 |
+| `/architecture` | 六层架构 |
+| `/generate` | 代码生成 |
+| `/records` | 运行记录 |
+| `/records/:taskId` | 记录详情 |
+| `/lab` | 能力实验室 |
+| `/settings` | 系统设置 |
+| `/compose` | 组件组合验证 |
+| `/misra` | MISRA 规则搜索 |
+| `/hitl` | 人工审查 |
 
----
+三种执行 Profile：`mock` 纯离线模拟；`cloud` 接云模型真跑；`local` 本地模型，支持已验证回放。
 
-## 🔌 REST API 概览
+## API
 
-端点数量以自动生成报告为准，完整接口文档见 http://localhost:8000/docs。
+完整接口在 Swagger，这里列主要几块：
 
-| 模块 | 端点数 | 路由文件 | 代表接口 |
-|------|--------|----------|----------|
-| 健康检查 + 统计 | 2 | `routes/common.py` | `GET /api/health` · `GET /api/stats` |
-| V1 代码生成任务 | 动态统计 | `routes/tasks_v1.py` | `POST /api/v1/tasks` · `WS /api/v1/tasks/{id}/events` |
-| 兼容生成 + 修复 + 仿真 + 验证 | 7 | `routes/pipeline.py` | `POST /api/generate` · `POST /api/repair` · `POST /api/simulate` |
-| DO-178C 报告 | 2 | `routes/reports.py` | `POST /api/report` · `GET /api/report/download` |
-| 组件组合验证 | 2 | `routes/composition.py` | `POST /api/compose` · `POST /api/check-compatibility` |
-| HITL 人工审查 | 5 | `routes/hitl.py` | `GET /api/hil/pending` · `POST /api/hil/approve` · `POST /api/hil/toggle` |
-| 模型管理 + MISRA 规则检索 | 9 | `routes/models.py` | `GET /api/models` · `GET /api/misra/rules` |
-| 兼容 WebSocket | 2 | `routes/generate.py` / `routes/task_ws.py` | `/ws/agent-stream` · `/task/{task_id}` |
+| 模块 | 路由文件 | 代表接口 |
+|------|----------|----------|
+| 健康检查 | routes/common.py | `GET /api/health` |
+| V1 任务 | routes/tasks_v1.py | `POST /api/v1/tasks`，`WS /api/v1/tasks/{id}/events` |
+| 生成/修复/仿真 | routes/pipeline.py | `POST /api/generate`，`/api/repair`，`/api/simulate` |
+| 报告 | routes/reports.py | `POST /api/report` |
+| 组件组合 | routes/composition.py | `POST /api/compose` |
+| HITL | routes/hitl.py | `GET /api/hil/pending` |
+| 模型 / MISRA 检索 | routes/models.py | `GET /api/models`，`/api/misra/rules` |
 
-完整 API 列表与参数说明参见 [部署说明](./docs/USER_GUIDE.md)。
+## DO-178C
 
----
+合规草案在 `docs/compliance/`，一共 8 份：PSAC、SDP、SVP、SCMP、SQAP、TQP、TOR、TAS。DO-178C 那 21 个可判定目标（OBJ-1~21，OBJ-20/21 是数据耦合和控制耦合）的实现在 `src/skyforge_engine/report/do178_objectives.py`。
 
-## 🛡️ DO-178C 合规状态
-
-SkyForge 提供 DO-178C 工程辅助证据，不宣称工具本身已经完成适航鉴定。合规草案详见 [DO-178C 合规文档](./docs/compliance/PSAC.md)（PSAC/SDP/SVP/SCMP/SQAP/TQP/TOR/TAS 共 8 份）。
-
-### 五大核心过程覆盖
-
-| DO-178C 过程 | 章节 | 文档 | 状态 |
-|-------------|------|------|------|
-| **计划过程** | §4 | [PSAC](./docs/compliance/PSAC.md) / [SDP](./docs/compliance/SDP.md) / [SVP](./docs/compliance/SVP.md) | ⚠️ 工程草案 (8/8 文档) |
-| **开发过程** | §5 | HLR / LLR 层级 + 契约式设计 + MISRA-C 代码生成 | ⚠️ 工程辅助实现，需真实项目审查 |
-| **验证过程** | §6 | Cppcheck + 契约校验 + 数字孪生 + V3.3 覆盖分析器 | ⚠️ 部分满足；真实覆盖率依赖 GCC/lcov |
-| **配置管理** | §7 | [SCMP](./docs/compliance/SCMP.md) + Git + PR 系统 + 基线管理 | ⚠️ 需真实隔离分支 PR/review |
-| **质量保证** | §8 | [SQAP](./docs/compliance/SQAP.md) + CI 自动检查 (Ruff/Biome/Pyright) | ⚠️ 需独立人工/CI provenance |
-
-### DAL 等级目标覆盖
-
-DO-178C 共 **19 项可判定目标**(OBJ-1 ~ OBJ-19),涵盖问题报告、配置标识、追溯矩阵、语句 / 判定 / MC/DC 覆盖、HLR/LLR 追溯、独立验证、正式 PR、工具鉴定等。代码实现见 [`src/skyforge_engine/report/do178_objectives.py`](./src/skyforge_engine/report/do178_objectives.py)。
-
-| DAL | 等级含义 | 目标满足率 | 关键要求 | 实现位置 |
-|-----|---------|-----------|----------|---------|
-| A | 灾难性 | 部分满足 | MC/DC 必须 | 需真实 GCC/lcov + 独立审查 + PR 证据 |
-| B | 危险 | 部分满足 | 判定覆盖必须 | 需真实覆盖率与独立审查 |
-| C | 重大 | 部分满足 | 语句覆盖必须 | 需真实语句覆盖率证据 |
-| D | 轻微 | 工程辅助覆盖 | 基础验证 | 仍需项目级审查 |
-
-> 目标状态以 `do178_objectives.py` 和证据包中的真实字段为准；模拟数据、静态估算、HIL 禁用/超时、main 直合 PR 不计入满足。
-> 完整合规矩阵详见 [`COMPLIANCE_MATRIX.csv`](./docs/COMPLIANCE_MATRIX.csv) (19 OBJ × 5 DAL)。
-
-### 工具鉴定(TQL)
-
-| 工具 | TQL 级别 | 状态 | 文档 |
-|------|---------|------|------|
-| Agent Pipeline | TQL-1 | ✅ 草案完成 | [TQP](./docs/compliance/TQP.md) |
-| LLM 推理引擎 | TQL-1 | ✅ 草案完成 | [TOR](./docs/compliance/TOR.md) |
-| Contract Checker | TQL-2 | ✅ 草案完成 | [TAS](./docs/compliance/TAS.md) |
-| 工具链验证 | — | ✅ 已实施 | [`tool_chain_validator.py`](./src/skyforge_engine/tools/tool_chain_validator.py) |
-| Cppcheck / GCC | TQL-3 / TQL-1 | 可引用已有 | 工业标准工具 |
+计划、开发、验证、配置管理、质量保证这五大过程都有对应文档兜底，但都是工程草案，真上项目还得过人工审查。DAL-A 的 MC/DC 覆盖率必须靠真 GCC + gcov/lcov 才有数，模拟和静态估算不算。工具鉴定那块，Agent Pipeline 和 LLM 引擎定 TQL-1，Contract Checker 定 TQL-2，Cppcheck / GCC 直接引用现成工业工具。
 
 ```bash
-# 运行 DO-178C 合规检查
 make do178c-check
 ```
 
----
+## 文档
 
-## 📚 文档导航
+- [USER_GUIDE.md](./docs/USER_GUIDE.md) — 部署和功能说明
+- [ARCHITECTURE.md](./docs/ARCHITECTURE.md) — 架构细节
+- [ROADMAP.md](./docs/ROADMAP.md) — 后续计划
+- [PLUGIN_DEVELOPMENT.md](./docs/PLUGIN_DEVELOPMENT.md) — 二次开发、编码标准插件
+- [MULTI_LANGUAGE_GUIDE.md](./docs/MULTI_LANGUAGE_GUIDE.md) — C/C++/Python 多语言
+- [COMPLIANCE_MATRIX.csv](./docs/COMPLIANCE_MATRIX.csv) — 合规矩阵
 
-| 文档 | 路径 | 用途 |
-|------|------|------|
-| **用户指南** | [docs/USER_GUIDE.md](./docs/USER_GUIDE.md) | 功能模块详解、部署说明与操作指南 |
-| **架构详解** | [docs/ARCHITECTURE.md](./docs/ARCHITECTURE.md) | 六层架构设计深度剖析 |
-| **项目路线图** | [docs/ROADMAP.md](./docs/ROADMAP.md) | 后续规划 |
-| **插件开发** | [docs/PLUGIN_DEVELOPMENT.md](./docs/PLUGIN_DEVELOPMENT.md) | 二次开发扩展指南(含编码标准插件) |
-| **多语言支持** | [docs/MULTI_LANGUAGE_GUIDE.md](./docs/MULTI_LANGUAGE_GUIDE.md) | C/C++/Python 多语言支持指南 |
-| **合规矩阵** | [docs/COMPLIANCE_MATRIX.csv](./docs/COMPLIANCE_MATRIX.csv) | 19 OBJ × 5 DAL 合规矩阵 |
+## 第三方
 
----
+后端 FastAPI、Pydantic、Redis、Z3、httpx、loguru、click、numpy、uvicorn、websockets；前端 Vue 3、Vite、Pinia、Vue Router、shadcn-vue、Tailwind、Biome；外部可选 Cppcheck、GCC、CBMC、LM Studio。带许可证的完整清单见 [ThirdParty.md](./ThirdParty.md)。
 
-## 📦 第三方组件
+## License
 
-**Python 后端**:
-[FastAPI](https://fastapi.tiangolo.com/) · [Pydantic](https://docs.pydantic.dev/) · [Redis](https://redis.io/) · [PyYAML](https://pyyaml.org/) · [Z3 Solver](https://github.com/Z3Prover/z3) · [psutil](https://psutil.readthedocs.io/) · [httpx](https://www.python-httpx.org/) · [loguru](https://loguru.readthedocs.io/) · [click](https://click.palletsprojects.com/) · [numpy](https://numpy.org/) · [uvicorn](https://www.uvicorn.org/) · [websockets](https://websockets.readthedocs.io/)
-
-**Frontend**:
-[Vue 3](https://vuejs.org/) · [Vite](https://vitejs.dev/) · [Pinia](https://pinia.vuejs.org/) · [Vue Router](https://router.vuejs.org/) · [shadcn-vue](https://www.shadcn-vue.com/) · [Tailwind CSS](https://tailwindcss.com/) · [Radix Vue](https://www.radix-vue.com/) · [Vitest](https://vitest.dev/) · [Biome](https://biomejs.dev/)
-
-**外部工具**(可选,缺失时自动切换到离线模式):
-[Cppcheck](https://cppcheck.sourceforge.io/) · [GCC](https://gcc.gnu.org/) · [CBMC](https://www.cprover.org/cbmc/) · [LM Studio](https://lmstudio.ai/)
-
-完整第三方组件清单(含许可证信息):
-- 📄 [ThirdParty.md(根目录)](./ThirdParty.md)
-
----
-
-## 📄 许可证
-
-本项目采用 [**MIT License**](./LICENSE) 开源协议。
-
-Copyright (c) 2026 SkyForge Contributors
-
----
-
-## 💬 联系与反馈
-
-| 渠道 | 地址 |
-|------|------|
-| **GitHub 仓库** | [github.com/linskadi/SkyForge](https://github.com/linskadi/SkyForge) |
-| **项目路线图** | [docs/ROADMAP.md](./docs/ROADMAP.md) |
-
----
-
-### 🎯 项目创新点
-
-1. **六层引擎架构** — 从基础设施协议到编排层，每层职责清晰、可独立部署替换
-2. **多 Agent 协同架构** — 8+ Agent 闭环,从需求到修复全自动
-3. **DO-178C 工程辅助** — 生成工程报告与需求追溯矩阵，提供 19 项可判定目标检查，不替代适航审定
-4. **MISRA-C 智能修复** — Cppcheck 扫描 + Agent 智能修复 + 契约校验闭环(130 条自动修复规则)
-5. **可插拔编码标准** — Registry 插件化架构,支持 MISRA-C / MISRA C++ / Python 安全标准动态注册
-6. **形式化验证** — Z3 SMT 求解 + CBMC 模型检测双引擎,VerifierChain 可插拔验证链
-7. **数字孪生仿真** — 虚拟传感器 / MCU + 5 类故障注入测试(bias / signal_loss / noise / stuck / step)
-8. **HITL 人工审查** — Redis-based 关键检查点人工审批工作流，默认禁用，可通过 UI 或兼容 API 开启；HIL 仅指真实硬件在环
-9. **SCADE 集成** — ANTLR4 解析 G-Lustre 模型自动转需求与契约
-10. **Pipeline 编排系统** — PipelineOrchestrator 支持串行执行、并行组、失败策略、产物传递，12 个 Stage 全流程调度
-
----
-
-> **SkyForge** — *Forging the Future of Aviation Software, One Agent at a Time.* 🛩️
+MIT，Copyright (c) 2026 SkyForge Contributors。仓库：github.com/linskadi/SkyForge。

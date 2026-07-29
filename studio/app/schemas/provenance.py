@@ -26,7 +26,7 @@ class EvidenceChain(BaseModel):
     """完整证据链：从需求到证据的追溯链路。"""
 
     task_id: str = Field(description="关联的任务ID")
-    nodes: list[ProvenanceNode] = Field(default_factory=list, description="追溯链上的所有节点")
+    nodes: list[ProvenanceNode] = Field(default_factory=list, description="追溯链中的所有节点")
     edges: list[tuple[str, str]] = Field(default_factory=list, description="节点间的有向边 (from_id, to_id)")
     generated_at: str = Field(default_factory=lambda: datetime.now().isoformat())
 

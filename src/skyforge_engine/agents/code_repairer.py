@@ -116,7 +116,7 @@ class CodeRepairerAgent:
             input_type="repair",
         )
         if not result.success:
-            # V0.5: LLM 修复失败时优雅降级为 Mock 修复，不再抛出异常
+            # LLM 修复失败时优雅降级为 Mock 修复，不再抛出异常
             logger.warning(
                 f"CodeRepairerAgent: LLM 修复失败 ({result.warnings[0] if result.warnings else 'unknown'})，"
                 f"降级为基于规则模板的 Mock 修复"

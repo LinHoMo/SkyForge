@@ -43,7 +43,9 @@
 			"pipelineIdle": "Pipeline Standby",
 			"hint": "Enter a requirement on the left and click Generate",
 			"noResult": "No Results",
-			"resultHint": "Generated results will be shown here once the pipeline completes"
+			"resultHint": "Generated results will be shown here once the pipeline completes",
+			"generating": "Generating result...",
+			"generatingDesc": "The Agent pipeline is running; results will appear here"
 		},
 		"result": {
 			"title": "Generated Result",

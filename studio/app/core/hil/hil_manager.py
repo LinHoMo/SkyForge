@@ -175,9 +175,7 @@ class HILManager:
         # 锁保护内部字典操作
         self._lock = asyncio.Lock()
 
-    # ------------------------------------------------------------------ #
     # Redis 初始化
-    # ------------------------------------------------------------------ #
 
     async def _ensure_redis(self) -> bool:
         """确保 Redis 连接可用，首次调用时初始化并加载持久化数据。"""
@@ -314,9 +312,7 @@ class HILManager:
         except Exception as e:
             logger.warning(f"HILManager:Redis 监听异常: {e}")
 
-    # ------------------------------------------------------------------ #
     # 公共 API
-    # ------------------------------------------------------------------ #
 
     async def request_approval(
         self,
@@ -412,7 +408,7 @@ class HILManager:
             }
         except asyncio.TimeoutError:
             # 超时不再自动批准，避免 system 自己批准自己。
-            # V0.5: HITL_AUTO_APPROVE=true 时超时自动批准（开发调试用）
+            # HITL_AUTO_APPROVE=true 时超时自动批准（开发调试用）
             auto_approve = os.getenv("HITL_AUTO_APPROVE", "").lower() == "true"
             if auto_approve:
                 logger.info(
@@ -553,9 +549,7 @@ class HILManager:
         self._requests.clear()
         self._history.clear()
 
-    # ------------------------------------------------------------------ #
     # 内部方法
-    # ------------------------------------------------------------------ #
 
     async def _resolve(
         self,
@@ -658,9 +652,7 @@ def reset_hil_manager() -> None:
     _hil_manager = None
 
 
-# ============================================================================
 # 审查模板、意见追踪、统计
-# ============================================================================
 
 from app.schemas.hitl import (  # noqa: E402
     HITLStats,

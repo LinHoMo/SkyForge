@@ -28,9 +28,7 @@ from skyforge_engine.rag.misra_searcher import MisraRuleSearcher
 from skyforge_engine.utils.log_util import logger
 
 
-# ---------------------------------------------------------------------------
 # 常量
-# ---------------------------------------------------------------------------
 
 # 语义搜索默认配置
 _DEFAULT_MODEL_NAME = "paraphrase-multilingual-MiniLM-L12-v2"
@@ -62,9 +60,7 @@ _QUERY_EXPANSIONS: dict[str, list[str]] = {
 }
 
 
-# ---------------------------------------------------------------------------
 # 可选依赖检测
-# ---------------------------------------------------------------------------
 
 _HAS_SENTENCE_TRANSFORMERS = False
 _HAS_CHROMADB = False
@@ -84,9 +80,7 @@ except ImportError:
     pass
 
 
-# ---------------------------------------------------------------------------
 # 结果数据类
-# ---------------------------------------------------------------------------
 
 @dataclass
 class SemanticSearchResult:
@@ -107,9 +101,7 @@ class SemanticSearchResult:
         )
 
 
-# ---------------------------------------------------------------------------
 # 查询预处理
-# ---------------------------------------------------------------------------
 
 def _preprocess_query(query: str) -> str:
     """预处理查询：去除冗余字符、规范化空白。"""
@@ -159,9 +151,7 @@ def _build_rule_text(rule: MisraRule) -> str:
     return " ".join(parts)
 
 
-# ---------------------------------------------------------------------------
 # SemanticMisraSearcher
-# ---------------------------------------------------------------------------
 
 class SemanticMisraSearcher:
     """MISRA-C 规则语义搜索引擎。
@@ -312,9 +302,7 @@ class SemanticMisraSearcher:
             f"SemanticMisraSearcher:已索引 {len(self._rules)} 条规则到内存"
         )
 
-    # -------------------------------------------------------------------
     # 搜索 API
-    # -------------------------------------------------------------------
 
     def search(
         self,
@@ -459,9 +447,7 @@ class SemanticMisraSearcher:
             for r in keyword_results
         ]
 
-    # -------------------------------------------------------------------
     # 精确查找
-    # -------------------------------------------------------------------
 
     def get_rule(self, rule_id: str) -> Optional[MisraRule]:
         """按规则 ID 精确查找（兼容 MisraRuleSearcher 接口）。
@@ -501,9 +487,7 @@ class SemanticMisraSearcher:
             return []
         return [r for r in self._rules if r.category == category.lower()]
 
-    # -------------------------------------------------------------------
     # 上下文感知推荐
-    # -------------------------------------------------------------------
 
     def context_recommend(
         self,
@@ -563,9 +547,7 @@ class SemanticMisraSearcher:
         results.sort(key=lambda x: x.score, reverse=True)
         return results[:top_k]
 
-    # -------------------------------------------------------------------
     # 索引管理
-    # -------------------------------------------------------------------
 
     def rebuild_index(self) -> None:
         """重建向量索引（当规则文件更新后调用）。"""
@@ -594,9 +576,7 @@ class SemanticMisraSearcher:
             stats["memory_indexed"] = len(getattr(self, "_memory_rules", []))
         return stats
 
-    # -------------------------------------------------------------------
     # 魔术方法
-    # -------------------------------------------------------------------
 
     def __len__(self) -> int:
         return len(self._rules)

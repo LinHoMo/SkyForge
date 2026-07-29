@@ -10,5 +10,5 @@ SLOC: ~10,000
 
 from skyforge_engine.pipeline import run_pipeline, run_full_pipeline, repair_loop
 
-__version__ = "0.4.0"
+__version__ = "1.0.0"
 __all__ = ["run_pipeline", "run_full_pipeline", "repair_loop"]

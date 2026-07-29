@@ -735,13 +735,13 @@ def generate_report(pipeline_result: dict[str, Any]) -> str:
     """
     logger.info("ReportGenerator:开始生成 DO-178C 合规报告")
 
-    # ---- 1) 构建追溯矩阵 ----
+    # 1) 构建追溯矩阵
     trace_matrix: list[TraceEntry] = build_matrix(pipeline_result)
 
-    # ---- 2) 检查 DO-178C 目标 ----
+    # 2) 检查 DO-178C 目标
     objectives: list[ObjectiveResult] = check_objectives(pipeline_result)
 
-    # ---- 3) 提取封面元信息 ----
+    # 3) 提取封面元信息
     requirement = pipeline_result.get("requirement") or {}
     project_name = (
         requirement.get("module_name") or requirement.get("module") or "skyforge_module"
@@ -755,7 +755,7 @@ def generate_report(pipeline_result: dict[str, Any]) -> str:
     gen_time = now.strftime("%H:%M:%S")
     gen_timestamp = now.strftime("%Y%m%d%H%M%S")
 
-    # ---- 4) 提取仿真摘要 ----
+    # 4) 提取仿真摘要
     sim = pipeline_result.get("simulation_result") or {}
     sim_stats = sim.get("statistics", {}) or {} if isinstance(sim, dict) else {}
     sim_input_min = _fmt_float(sim_stats.get("input_min"))
@@ -767,7 +767,7 @@ def generate_report(pipeline_result: dict[str, Any]) -> str:
     sim_input_preview = _preview_waveform(sim.get("input_waveform", []))
     sim_output_preview = _preview_waveform(sim.get("output_waveform", []))
 
-    # ---- 5) 提取 MISRA 摘要 ----
+    # 5) 提取 MISRA 摘要
     cppcheck_result = pipeline_result.get("cppcheck_result", []) or []
     cppcheck_count = len(cppcheck_result)
     repair_history = pipeline_result.get("repair_history", []) or []
@@ -780,10 +780,10 @@ def generate_report(pipeline_result: dict[str, Any]) -> str:
     final_violations_count = len(final_violations)
     final_code = pipeline_result.get("final_code") or pipeline_result.get("code") or ""
 
-    # ---- 6) 契约校验结果 ----
+    # 6) 契约校验结果
     contract_check_result = pipeline_result.get("contract_check_result")
 
-    # ---- 7) 渲染 HTML ----
+    # 7) 渲染 HTML
     html = _REPORT_TEMPLATE.render(
         # 封面
         project_name=project_name,

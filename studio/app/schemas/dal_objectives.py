@@ -221,7 +221,7 @@ ALL_OBJECTIVES: list[DALObjectiveDefinition] = [
         do178_table="—",
         applicable_dals={DAL.A, DAL.B, DAL.C},
     ),
-    # ---- Phase 3 新增 ----
+    # Phase 3 新增
     DALObjectiveDefinition(
         obj_id="OBJ-13",
         name="语句覆盖率",

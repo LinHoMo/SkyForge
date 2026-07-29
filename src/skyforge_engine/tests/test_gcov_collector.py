@@ -20,9 +20,7 @@ from skyforge_engine.dal.gcov_collector import (
 )
 
 
-# ---------------------------------------------------------------------------
 # 版本解析
-# ---------------------------------------------------------------------------
 
 
 def test_parse_version_extracts_semver():
@@ -50,9 +48,7 @@ def test_get_tool_version_failure():
         assert _get_tool_version("gcc") is None
 
 
-# ---------------------------------------------------------------------------
 # GCC / lcov 查找与版本检测
-# ---------------------------------------------------------------------------
 
 
 def test_find_gcc_missing():
@@ -114,9 +110,7 @@ def test_find_lcov_version_exact():
         assert _find_lcov() == "/usr/bin/lcov"
 
 
-# ---------------------------------------------------------------------------
 # _is_real_enabled
-# ---------------------------------------------------------------------------
 
 
 def test_is_real_enabled_default():
@@ -134,9 +128,7 @@ def test_is_real_enabled_explicit_true():
         assert _is_real_enabled() is True
 
 
-# ---------------------------------------------------------------------------
 # collect_coverage 严格模式异常
-# ---------------------------------------------------------------------------
 
 
 def test_collect_coverage_raises_when_disabled():
@@ -169,9 +161,7 @@ def test_collect_coverage_when_lcov_missing_proceeds():
             collect_coverage("int main() { return 0; }")
 
 
-# ---------------------------------------------------------------------------
 # _parse_lcov_info
-# ---------------------------------------------------------------------------
 
 
 def test_parse_lcov_info_basic():
@@ -205,9 +195,7 @@ def test_parse_lcov_info_empty():
     assert result["conditions_total"] == 0
 
 
-# ---------------------------------------------------------------------------
 # 集成：模拟完整成功流程
-# ---------------------------------------------------------------------------
 
 
 def test_collect_coverage_success_with_mocked_tools(tmp_path):

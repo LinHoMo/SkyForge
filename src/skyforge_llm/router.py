@@ -95,9 +95,7 @@ class ModelRouter:
         # 当前手动选择的模型（API /api/models/select 可设置）
         self._manual_selection: Optional[str] = None
 
-    # ------------------------------------------------------------------ #
     # 公共 API
-    # ------------------------------------------------------------------ #
 
     def select_model(self, task_type: str) -> str:
         """根据任务类型选择模型 ID。

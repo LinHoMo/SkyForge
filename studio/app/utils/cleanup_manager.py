@@ -183,7 +183,7 @@ class CleanupManager:
         """注册一个临时目录，进程退出时自动清理。"""
         self._registered_temp_dirs.append(path)
 
-    # ==================== 各类清理方法 ====================
+    # 各类清理方法
 
     def run_full_cleanup(self) -> CleanupStats:
         """执行完整清理：工作目录 + 日志 + 证据包 + 临时目录 + pycache。"""

@@ -32,7 +32,7 @@ class LustreVisitor(ABC):
         """默认访问方法。"""
         raise NotImplementedError(f"No visit method for {type(node).__name__}")
 
-    # ==================== 程序 ====================
+    # 程序
 
     def visit_LustreProgram(self, node: LustreProgram):
         """访问程序节点。"""
@@ -51,7 +51,7 @@ class LustreVisitor(ABC):
         """访问导入声明。"""
         pass
 
-    # ==================== 定义 ====================
+    # 定义
 
     def visit_NodeDecl(self, node: NodeDecl):
         """访问节点声明。"""
@@ -89,7 +89,7 @@ class LustreVisitor(ABC):
         """访问类型别名声明。"""
         self.visit(node.type)
 
-    # ==================== 参数和变量 ====================
+    # 参数和变量
 
     def visit_ParamNode(self, node: ParamNode):
         """访问参数节点。"""
@@ -103,7 +103,7 @@ class LustreVisitor(ABC):
         """访问结构体字段节点。"""
         self.visit(node.type)
 
-    # ==================== 类型 ====================
+    # 类型
 
     def visit_TypeNode(self, node: TypeNode):
         """访问类型节点。"""
@@ -126,7 +126,7 @@ class LustreVisitor(ABC):
         for field in node.fields:
             self.visit(field)
 
-    # ==================== 语句 ====================
+    # 语句
 
     def visit_EquationNode(self, node: EquationNode):
         """访问等式节点。"""
@@ -136,7 +136,7 @@ class LustreVisitor(ABC):
         """访问断言节点。"""
         self.visit(node.expr)
 
-    # ==================== 表达式 ====================
+    # 表达式
 
     def visit_IntLiteralNode(self, node: IntLiteralNode):
         """访问整数字面量。"""

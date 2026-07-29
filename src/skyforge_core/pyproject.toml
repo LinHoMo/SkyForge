@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "skyforge-core"
-version = "0.4.0"
+version = "1.0.0"
 description = "SkyForge Core — AI 驱动的机载软件轻量化开发工具（核心引擎）"
 readme = "README.md"
 license = {text = "MIT"}

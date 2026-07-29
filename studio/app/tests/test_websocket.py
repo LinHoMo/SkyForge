@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock
 
 from fastapi.testclient import TestClient
 
-# ---- 在导入 app 之前设置环境变量，避免触发真实 LM Studio 调用 ----
+# 在导入 app 之前设置环境变量，避免触发真实 LM Studio 调用
 os.environ["USE_LLM"] = "false"
 os.environ["LOCAL_LLM_BASE_URL"] = "http://localhost:9999/v1"
 os.environ["HIL_ENABLED"] = "false"
@@ -303,7 +303,7 @@ class TestStreamManager(unittest.TestCase):
         sm = StreamManager()
         self.assertEqual(sm.count(), 0)
 
-        # ---- 注册 2 个 mock 连接 ----
+        # 注册 2 个 mock 连接
         ws1 = AsyncMock()
         ws2 = AsyncMock()
         id1 = asyncio.run(sm.register(ws1))
@@ -312,7 +312,7 @@ class TestStreamManager(unittest.TestCase):
         self.assertNotEqual(id1, id2)
         self.assertEqual(len(id1), 32)  # uuid4 hex 长度
 
-        # ---- 定向推送 ----
+        # 定向推送
         ok = asyncio.run(sm.send_to(id1, {"hello": "ws1"}))
         self.assertTrue(ok)
         ws1.send_json.assert_awaited_once_with({"hello": "ws1"})
@@ -322,14 +322,14 @@ class TestStreamManager(unittest.TestCase):
         ok = asyncio.run(sm.send_to("nonexistent-id", {"x": 1}))
         self.assertFalse(ok)
 
-        # ---- 广播 ----
+        # 广播
         n = asyncio.run(sm.broadcast({"event": "ping"}))
         self.assertEqual(n, 2)
         # 两个连接都应收到
         ws1.send_json.assert_awaited_with({"event": "ping"})
         ws2.send_json.assert_awaited_with({"event": "ping"})
 
-        # ---- 注销 ----
+        # 注销
         asyncio.run(sm.unregister(id1))
         self.assertEqual(sm.count(), 1)
         # 注销后广播应只送达剩余连接
@@ -341,7 +341,7 @@ class TestStreamManager(unittest.TestCase):
         asyncio.run(sm.unregister(id1))
         self.assertEqual(sm.count(), 1)
 
-        # ---- 自动清理断开的连接 ----
+        # 自动清理断开的连接
         # ws2 模拟 send_json 抛 RuntimeError
         ws2.send_json.side_effect = RuntimeError("connection closed")
         ok = asyncio.run(sm.send_to(id2, {"will": "fail"}))

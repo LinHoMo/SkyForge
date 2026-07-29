@@ -21,7 +21,7 @@ from skyforge_engine.utils.log_util import logger
 from skyforge_engine.utils.cleanup_util import safe_tempdir
 
 
-# ==================== 数据类定义 ====================
+# 数据类定义
 
 @dataclass
 class CheckItem:
@@ -60,7 +60,7 @@ class CheckResult:
     cppcheck_violations: list[dict[str, str]] = field(default_factory=list)
 
 
-# ==================== 置信度评分常量 ====================
+# 置信度评分常量
 
 class ConfidenceLevel:
     """置信度评分等级。"""
@@ -72,7 +72,7 @@ class ConfidenceLevel:
     DEFINITIVE = 1.0    # 确定性（Cppcheck 确认）
 
 
-# ==================== C 代码 AST 分析器 ====================
+# C 代码 AST 分析器
 
 class CCodeAnalyzer:
     """C 代码结构分析器，提取代码结构信息用于语义检查。"""
@@ -338,7 +338,7 @@ class CCodeAnalyzer:
         return results
 
 
-# ==================== Cppcheck 集成 ====================
+# Cppcheck 集成
 
 class CppcheckVerifier:
     """Cppcheck 集成验证器，利用静态分析工具验证代码。"""
@@ -490,7 +490,7 @@ class CppcheckVerifier:
         return [v for v in violations if v.get("rule_id") in relevant_rules]
 
 
-# ==================== 语义检查引擎 ====================
+# 语义检查引擎
 
 class SemanticChecker:
     """语义检查引擎，执行具体的契约验证。"""
@@ -838,7 +838,7 @@ class SemanticChecker:
         return "\n".join(evidence)
 
 
-# ==================== 主检查函数 ====================
+# 主检查函数
 
 def check(code: str, contract_yaml: str, cid: str = "CON-001", *, language: str = "c") -> CheckResult:
     """契约校验主入口（语义分析版）。

@@ -56,11 +56,7 @@ const routes: {
 		component: () => import("@/views/HITLPage.vue"),
 		meta: { locale: "hitl", title: "hitl" },
 	},
-	{
-		path: "/anchor",
-		component: () => import("@/views/ChainAnchor.vue"),
-		meta: { locale: "anchor", title: "anchor" },
-	},
+
 	{
 		path: "/architecture",
 		name: "Architecture",

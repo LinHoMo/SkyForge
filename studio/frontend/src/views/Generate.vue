@@ -12,6 +12,7 @@ import {
 	Check,
 	Copy,
 	Download,
+	FileCode2,
 	Loader2,
 	Play,
 	RotateCcw,
@@ -768,7 +769,7 @@ watch(
               />
             </div>
             <div v-else class="empty-state">
-              <div class="empty-state-icon">▶</div>
+              <Play :size="32" class="empty-state-icon" />
               <p class="empty-state-title">{{ $t("generate.empty.pipelineIdle") }}</p>
               <p class="empty-state-desc">{{ $t("generate.empty.hint") }}</p>
             </div>
@@ -977,9 +978,16 @@ watch(
               </div>
             </div>
 
+            <!-- 加载态：generating 时结果面板显示加载指示 -->
+            <div v-else-if="status === 'generating'" class="empty-state">
+              <Loader2 :size="32" class="empty-state-icon animate-spin" />
+              <p class="empty-state-title">{{ $t("generate.empty.generating") }}</p>
+              <p class="empty-state-desc">{{ $t("generate.empty.generatingDesc") }}</p>
+            </div>
+
             <!-- 空状态 -->
             <div v-else class="empty-state">
-              <div class="empty-state-icon">◆</div>
+              <FileCode2 :size="32" class="empty-state-icon" />
               <p class="empty-state-title">{{ $t("generate.empty.noResult") }}</p>
               <p class="empty-state-desc">{{ $t("generate.empty.resultHint") }}</p>
             </div>

@@ -143,7 +143,7 @@ class ReportGenStage:
             except Exception as fault_err:
                 logger.debug(f"Pipeline:故障注入仿真跳过: {fault_err}")
 
-        # ===== 补丁1: 覆盖率分析闭环 =====
+        # 补丁1: 覆盖率分析闭环
         # 调用 coverage_analyzer.analyze_code_coverage() 收集真实 GCC 14.2+ lcov 覆盖率，
         # 工具不可用时自动回退 mcdc_calculator 静态分析，结果写入 pipeline_result["coverage_result"]
         try:
@@ -195,7 +195,7 @@ class ReportGenStage:
             logger.warning(f"ReportGenStage:覆盖率收集失败: {cov_err}")
             artifact["coverage_result"] = {}
 
-        # ===== V0.5.0 P0: 数据耦合与控制耦合分析 =====
+        # V0.5.0 P0: 数据耦合与控制耦合分析
         # 调用 coupling_analyzer.analyze_coupling() 提取函数调用图和全局变量读写关系，
         # 结果写入 pipeline_result["coupling_result"]，供 DO-178C OBJ-20/OBJ-21 检查
         try:

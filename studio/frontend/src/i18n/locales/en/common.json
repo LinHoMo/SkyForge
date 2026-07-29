@@ -13,7 +13,6 @@
 		"lab": "Simulation Lab",
 		"compose": "Composition",
 		"hitl": "HITL Review",
-		"anchor": "Chain Anchor",
 		"architecture": "Docs",
 		"settings": "Settings"
 	},
@@ -25,7 +24,6 @@
 		"compose": "Composition",
 		"misra": "Compliance",
 		"hitl": "HITL Review",
-		"anchor": "Chain Anchor",
 		"architecture": "Six-Layer Architecture",
 		"compliance": "Compliance Audit",
 		"settings": "Settings"

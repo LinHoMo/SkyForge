@@ -22,7 +22,7 @@ from skyforge_engine.report import (
 )
 
 
-# ---- 测试 fixture：构造一份与 /api/generate 返回结构一致的 pipeline_result ----
+# 测试 fixture：构造一份与 /api/generate 返回结构一致的 pipeline_result
 
 SAMPLE_PIPELINE_RESULT: dict = {
     "requirement": {

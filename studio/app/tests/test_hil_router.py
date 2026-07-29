@@ -33,9 +33,7 @@ from app.core.llm.model_router import (
 from skyforge_engine.pipeline import run_pipeline
 
 
-# --------------------------------------------------------------------------- #
 # 测试辅助
-# --------------------------------------------------------------------------- #
 
 
 def _reset_singletons() -> None:
@@ -45,9 +43,7 @@ def _reset_singletons() -> None:
     lmstudio_module._unified_client = None
 
 
-# --------------------------------------------------------------------------- #
 # ModelRouter 测试
-# --------------------------------------------------------------------------- #
 
 
 class TestModelRouter(unittest.TestCase):
@@ -155,9 +151,7 @@ class TestModelRouter(unittest.TestCase):
             router.select_model("requirement_parse")
 
 
-# --------------------------------------------------------------------------- #
 # HILManager 测试
-# --------------------------------------------------------------------------- #
 
 
 class TestHILManager(unittest.TestCase):
@@ -407,9 +401,7 @@ class TestHILManager(unittest.TestCase):
         self.assertIn("不存在", result["error"])
 
 
-# --------------------------------------------------------------------------- #
 # Pipeline HIL 集成测试
-# --------------------------------------------------------------------------- #
 
 
 class TestPipelineHILIntegration(unittest.TestCase):

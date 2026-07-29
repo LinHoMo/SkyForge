@@ -155,10 +155,10 @@ TEST(freertos_scheduler, priority_inheritance_prevents_inversion) [PASS]
 | QUEUE_FULL      | 队列满                            | 丢弃新消息，递增丢包计数器                 |
 | MUTEX_DEADLOCK  | Mutex 超时 (死锁)                  | 释放 Mutex，记录日志                      |
 
-## 6. 与比赛评审维度的对应
+## 6. 覆盖的能力点
 
-- **赛道契合度 (+5分)**: 本示例完整演示 SkyForge 在航空运行时场景 (FreeRTOS 实时任务调度) 的代码生成能力，符合 DO-178C DAL-B 与 MISRA-C:2012 标准
-- **形式化验证**: contract.yaml 通过 z3 验证所有 21 条约束
-- **可追溯性**: requirement.txt → contract.yaml → expected_code.c 三层可追溯
-- **行业落地**: 直接对应真实飞控系统 (FreeRTOS-based FCS) 的任务调度场景
-- **数字孪生集成**: 生成的代码可部署到 Virtual MCU 仿真验证
+- 航空运行时：完整演示 FreeRTOS 实时任务调度场景下的代码生成，符合 DO-178C DAL-B 与 MISRA-C:2012
+- 形式化验证：contract.yaml 通过 z3 验证全部 21 条约束
+- 可追溯性：requirement.txt → contract.yaml → expected_code.c 三层可追溯
+- 行业落地：对应基于 FreeRTOS 的飞控任务调度场景
+- 数字孪生集成：生成的代码可部署到 Virtual MCU 仿真验证

@@ -16,7 +16,6 @@ const nav = [
 	{ labelKey: "nav.lab", to: "/lab" },
 	{ labelKey: "nav.compose", to: "/compose" },
 	{ labelKey: "nav.hitl", to: "/hitl" },
-	{ labelKey: "nav.anchor", to: "/anchor" },
 	{ labelKey: "nav.architecture", to: "/architecture" },
 	{ labelKey: "nav.settings", to: "/settings" },
 ];

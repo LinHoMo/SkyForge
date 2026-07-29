@@ -22,9 +22,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-# --------------------------------------------------------------------------- #
 # 路径 & Mock 模式环境变量（必须在 import skyforge_engine 之前设置）
-# --------------------------------------------------------------------------- #
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(PROJECT_ROOT / "src"))
 sys.path.insert(0, str(PROJECT_ROOT / "studio"))
@@ -45,9 +43,7 @@ except ImportError:  # pragma: no cover - 降级路径
     _HAS_PSUTIL = False
 
 
-# --------------------------------------------------------------------------- #
 # 资源监控器
-# --------------------------------------------------------------------------- #
 class ResourceMonitor:
     """后台线程采样内存峰值与 CPU 使用率。
 
@@ -115,9 +111,7 @@ class ResourceMonitor:
                 pass
 
 
-# --------------------------------------------------------------------------- #
 # 基准测试运行器
-# --------------------------------------------------------------------------- #
 class BenchmarkRunner:
     """运行所有示例的基准测试并生成 Markdown 报告。"""
 
@@ -423,9 +417,7 @@ class BenchmarkRunner:
         return "\n".join(lines)
 
 
-# --------------------------------------------------------------------------- #
 # 主入口
-# --------------------------------------------------------------------------- #
 async def main() -> int:
     runner = BenchmarkRunner()
     await runner.run_all_benchmarks()

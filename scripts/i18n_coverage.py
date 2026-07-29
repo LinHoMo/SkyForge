@@ -31,9 +31,7 @@ KNOWN_MODULES = {
     "misra", "hitl", "anchor", "architecture", "compliance", "settings", "data",
 }
 
-# ---------------------------------------------------------------------------
 # 1. Build merged flattened key sets per locale (mirror app merge semantics)
-# ---------------------------------------------------------------------------
 def flatten(prefix, obj, out):
     if isinstance(obj, dict):
         for k, v in obj.items():
@@ -66,9 +64,7 @@ def build_locale(locale):
 zh_keys, zh_tree = build_locale("zh-CN")
 en_keys, en_tree = build_locale("en")
 
-# ---------------------------------------------------------------------------
 # 2. Extract static i18n key references from source
-# ---------------------------------------------------------------------------
 # Patterns capturing the literal 1st argument of i18n calls.
 patterns = [
     re.compile(r"\$(?:t|tc|te)\(\s*['\"`]([^'\"`]+)['\"`]"),          # $t('...') in templates
@@ -103,9 +99,7 @@ for dirpath, _, files in os.walk(os.path.join(ROOT, "src")):
                         continue
                     refs[key].add(f"{rel}:{i}")
 
-# ---------------------------------------------------------------------------
 # 3. Reports
-# ---------------------------------------------------------------------------
 ref_keys = set(refs.keys())
 
 missing_zh = sorted(k for k in ref_keys if k not in zh_keys)
@@ -153,10 +147,8 @@ print("\n--- [D] en keys NOT present in zh-CN (unexpected, {} ) ---".format(len(
 for k in parity_en_only:
     print(f"  {k}")
 
-# ---------------------------------------------------------------------------
 # 4. Candidate fixes: referenced key whose zh-CN twin uses a different prefix
 #    e.g. code uses 'common.backend.mock' but tree has 'backend.mock'
-# ---------------------------------------------------------------------------
 print("\n--- [E] Possible mis-prefixed references (tree has a shorter/longer form) ---")
 seen = set()
 for k in missing_zh:

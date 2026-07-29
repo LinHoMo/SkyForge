@@ -234,7 +234,7 @@ ALL_OBJECTIVES: list[DALObjectiveDefinition] = [
         do178_table="—",
         applicable_dals={DAL.A, DAL.B, DAL.C},
     ),
-    # ---- Phase 3 新增 ----
+    # Phase 3 新增
     DALObjectiveDefinition(
         obj_id="OBJ-13",
         name="语句覆盖率",
@@ -284,7 +284,7 @@ ALL_OBJECTIVES: list[DALObjectiveDefinition] = [
         do178_table="§12.2",
         applicable_dals={DAL.A, DAL.B, DAL.C, DAL.D},
     ),
-    # ---- P0: 数据耦合与控制耦合 (DO-178C §6.4.4.2) ----
+    # P0: 数据耦合与控制耦合 (DO-178C §6.4.4.2)
     DALObjectiveDefinition(
         obj_id="OBJ-20",
         name="数据耦合分析",

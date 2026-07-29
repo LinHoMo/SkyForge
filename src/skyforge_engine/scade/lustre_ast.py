@@ -10,7 +10,7 @@ from enum import Enum, auto
 from typing import Optional
 
 
-# ==================== 枚举类型 ====================
+# 枚举类型
 
 class LustreType(Enum):
     """Lustre 基础数据类型。"""
@@ -57,7 +57,7 @@ class UnaryOp(Enum):
     ABS = 'abs'
 
 
-# ==================== AST 节点 ====================
+# AST 节点
 
 @dataclass
 class ASTNode:
@@ -104,7 +104,7 @@ class StructFieldNode(ASTNode):
     type: TypeNode = field(default_factory=PrimitiveTypeNode)
 
 
-# ==================== 变量声明 ====================
+# 变量声明
 
 @dataclass
 class VariableNode(ASTNode):
@@ -120,7 +120,7 @@ class ParamNode(ASTNode):
     type: TypeNode = field(default_factory=PrimitiveTypeNode)
 
 
-# ==================== 表达式 ====================
+# 表达式
 
 @dataclass
 class ExprNode(ASTNode):
@@ -262,7 +262,7 @@ class ConversionNode(ExprNode):
     operand: ExprNode = field(default_factory=IdentifierNode)
 
 
-# ==================== 语句 ====================
+# 语句
 
 @dataclass
 class EquationNode(ASTNode):
@@ -277,7 +277,7 @@ class AssertNode(ASTNode):
     expr: ExprNode = field(default_factory=IdentifierNode)
 
 
-# ==================== 定义 ====================
+# 定义
 
 @dataclass
 class NodeDecl(ASTNode):
@@ -333,7 +333,7 @@ class PackageDecl(ASTNode):
     name: str = ""
 
 
-# ==================== 程序 ====================
+# 程序
 
 @dataclass
 class LustreProgram(ASTNode):
@@ -343,7 +343,7 @@ class LustreProgram(ASTNode):
     declarations: list[ASTNode] = field(default_factory=list)
 
 
-# ==================== 向后兼容的转换类型 ====================
+# 向后兼容的转换类型
 
 @dataclass
 class Variable:

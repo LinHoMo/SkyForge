@@ -36,7 +36,7 @@ from typing import Any
 from skyforge_engine.utils.log_util import logger
 
 
-# ==================== 数据类 ====================
+# 数据类
 
 @dataclass
 class CouplingResult:
@@ -52,7 +52,7 @@ class CouplingResult:
         return asdict(self)
 
 
-# ==================== 正则模式 ====================
+# 正则模式
 
 # 函数定义: 返回类型 函数名 (参数列表) {
 _FUNC_DEF_RE = re.compile(
@@ -91,7 +91,7 @@ _STDLIB_FUNCS = {
 }
 
 
-# ==================== 核心分析函数 ====================
+# 核心分析函数
 
 def analyze_coupling(code: str) -> CouplingResult:
     """分析 C 代码的数据耦合和控制耦合。
@@ -143,7 +143,7 @@ def analyze_coupling(code: str) -> CouplingResult:
         return CouplingResult(error=str(e), analyzed=False)
 
 
-# ==================== 函数提取 ====================
+# 函数提取
 
 def _extract_functions(code: str) -> dict[str, dict[str, Any]]:
     """提取所有函数定义及其信息。
@@ -204,7 +204,7 @@ def _find_matching_brace(code: str, start: int) -> int:
     return -1
 
 
-# ==================== 控制耦合分析 ====================
+# 控制耦合分析
 
 def _analyze_control_coupling(
     code: str, functions: dict[str, dict[str, Any]]
@@ -265,7 +265,7 @@ def _extract_function_calls(body: str, known_funcs: set[str]) -> set[str]:
     return calls
 
 
-# ==================== 数据耦合分析 ====================
+# 数据耦合分析
 
 def _analyze_data_coupling(
     code: str, functions: dict[str, dict[str, Any]]
@@ -416,7 +416,7 @@ def _detect_shared_data_anomalies(
     return anomalies
 
 
-# ==================== 摘要生成 ====================
+# 摘要生成
 
 def _generate_summary(
     functions: dict[str, dict[str, Any]],
@@ -454,7 +454,7 @@ def _generate_summary(
     }
 
 
-# ==================== 便捷函数 ====================
+# 便捷函数
 
 def get_coupling_summary(result: CouplingResult) -> str:
     """生成耦合分析的可读摘要。"""

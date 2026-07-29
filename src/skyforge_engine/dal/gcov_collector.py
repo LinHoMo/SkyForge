@@ -1,6 +1,6 @@
 """gcov/lcov MC/DC 真实覆盖率收集器。
 
-V0.4 P2: 从 stub 代码解析升级为 GCC 14.2+ -fcondition-coverage 真实数据。
+从 stub 代码解析升级为 GCC 14.2+ -fcondition-coverage 真实数据。
 
 工具: GCC 14.2+ (GPL-3.0) + lcov 2.0+ (GPL-2.0)
 用途: DO-178C DAL-A 强制要求的 MC/DC 覆盖率指标
@@ -255,7 +255,7 @@ def _parse_gcov_dump_mcdc(gcda_path: str) -> dict[str, int]:
     conditions_total = 0
     conditions_covered = 0
 
-    # V0.5.1: 从对应 .gcno 文件读取函数名，识别 main 并跳过其条件
+    # 从对应 .gcno 文件读取函数名，识别 main 并跳过其条件
     main_func_ident: set[int] = set()
     gcno_path = gcda_path.replace(".gcda", ".gcno")
     if os.path.isfile(gcno_path):
@@ -296,7 +296,7 @@ def _parse_gcov_dump_mcdc(gcda_path: str) -> dict[str, int]:
         if not in_conditions:
             continue
 
-        # V0.5.1: 跳过 main 函数的条件计数器
+        # 跳过 main 函数的条件计数器
         if current_ident in main_func_ident:
             in_conditions = False
             continue

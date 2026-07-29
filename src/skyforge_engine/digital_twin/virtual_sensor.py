@@ -206,7 +206,7 @@ class VirtualSensor:
             out[step_at:] = out[step_at:] + step_value
             logger.info(f"VirtualSensor:inject step at={step_at} value={step_value}")
 
-        # ===== 扩展 7 类故障 =====
+        # 扩展 7 类故障
         elif fault_type == "saturation":
             min_val = float(params.get("min_val", -1000.0))
             max_val = float(params.get("max_val", 1000.0))

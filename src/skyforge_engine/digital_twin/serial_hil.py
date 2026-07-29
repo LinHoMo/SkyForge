@@ -47,9 +47,7 @@ class SerialHILAdapter(HILAdapter):
         self._serial: Any = None
         self._seq: int = 0
 
-    # ------------------------------------------------------------------
     # 公共接口
-    # ------------------------------------------------------------------
 
     def connect(self) -> bool:
         """打开串口连接。"""
@@ -157,9 +155,7 @@ class SerialHILAdapter(HILAdapter):
         self._serial = None
         return True
 
-    # ------------------------------------------------------------------
     # 帧编码 / 解码
-    # ------------------------------------------------------------------
 
     def _build_frame(self, seq: int, cmd: int, data: bytes) -> bytes:
         """构造一帧数据（不含 HEAD 的 CRC 计算从 HEAD 开始）。"""
@@ -255,9 +251,7 @@ class SerialHILAdapter(HILAdapter):
                     crc = (crc << 1) & 0xFFFF
         return crc
 
-    # ------------------------------------------------------------------
     # 数据序列化 / 反序列化
-    # ------------------------------------------------------------------
 
     @staticmethod
     def _encode_input_vector(input_vector: Any) -> bytes:

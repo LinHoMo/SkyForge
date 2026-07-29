@@ -15,9 +15,7 @@ from skyforge_engine.digital_twin.hil_adapter_base import (
 )
 
 
-# ---------------------------------------------------------------------------
 # 抽象基类约束
-# ---------------------------------------------------------------------------
 
 
 def test_base_class_is_abstract():
@@ -69,9 +67,7 @@ def test_subclass_with_all_methods_can_be_instantiated():
     assert adapter._connected is False
 
 
-# ---------------------------------------------------------------------------
 # HILConfig 默认值
-# ---------------------------------------------------------------------------
 
 
 def test_hil_config_defaults():
@@ -104,9 +100,7 @@ def test_hil_config_override():
     assert cfg.jtag_target == "STM32F407"
 
 
-# ---------------------------------------------------------------------------
 # HILResult 基本行为
-# ---------------------------------------------------------------------------
 
 
 def test_hil_result_defaults():

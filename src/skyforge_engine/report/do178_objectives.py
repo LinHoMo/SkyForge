@@ -85,7 +85,7 @@ def check_objectives(
     """
     # 延迟导入，避免循环依赖
 
-    # ---- 推断 DAL 等级 ----
+    # 推断 DAL 等级
     resolved_dal = _resolve_dal(dal, pipeline_result)
     logger.info(
         f"DO178Objectives:检查 DAL={resolved_dal.value} "
@@ -101,67 +101,67 @@ def check_objectives(
 
     results: list[ObjectiveResult] = []
 
-    # ---- OBJ-1 需求可追溯性 ----
+    # OBJ-1 需求可追溯性
     results.append(_check_obj1(pipeline_result, def_map))
 
-    # ---- OBJ-2 契约式设计验证 ----
+    # OBJ-2 契约式设计验证
     results.append(_check_obj2(pipeline_result, def_map))
 
-    # ---- OBJ-3 源代码合规性 ----
+    # OBJ-3 源代码合规性
     results.append(_check_obj3(pipeline_result, def_map))
 
-    # ---- OBJ-4 静态分析 ----
+    # OBJ-4 静态分析
     results.append(_check_obj4(pipeline_result, def_map))
 
-    # ---- OBJ-5 仿真测试覆盖 ----
+    # OBJ-5 仿真测试覆盖
     results.append(_check_obj5(pipeline_result, def_map))
 
-    # ---- OBJ-6 故障注入测试 ----
+    # OBJ-6 故障注入测试
     results.append(_check_obj6(pipeline_result, def_map))
 
-    # ---- OBJ-7 代码审查 ----
+    # OBJ-7 代码审查
     results.append(_check_obj7(pipeline_result, def_map))
 
-    # ---- OBJ-8 配置管理 ----
+    # OBJ-8 配置管理
     results.append(_check_obj8(pipeline_result, def_map))
 
-    # ---- OBJ-9 问题报告 ----
+    # OBJ-9 问题报告
     results.append(_check_obj9(pipeline_result, def_map))
 
-    # ---- OBJ-10 独立性 ----
+    # OBJ-10 独立性
     results.append(_check_obj10(pipeline_result, def_map))
 
-    # ---- OBJ-11 编译验证 ----
+    # OBJ-11 编译验证
     results.append(_check_obj11(pipeline_result, def_map))
 
-    # ---- OBJ-12 契约违约处理 ----
+    # OBJ-12 契约违约处理
     results.append(_check_obj12(pipeline_result, def_map))
 
-    # ---- OBJ-13 语句覆盖率 (V3.2 新增) ----
+    # OBJ-13 语句覆盖率 (V3.2 新增)
     results.append(_check_obj13(pipeline_result, def_map, resolved_dal))
 
-    # ---- OBJ-14 判定覆盖率 (V3.2 新增) ----
+    # OBJ-14 判定覆盖率 (V3.2 新增)
     results.append(_check_obj14(pipeline_result, def_map, resolved_dal))
 
-    # ---- OBJ-15 MC/DC 覆盖率 (V3.2 新增) ----
+    # OBJ-15 MC/DC 覆盖率 (V3.2 新增)
     results.append(_check_obj15(pipeline_result, def_map, resolved_dal))
 
-    # ---- OBJ-16 HLR/LLR 追溯 (V3.2 新增) ----
+    # OBJ-16 HLR/LLR 追溯 (V3.2 新增)
     results.append(_check_obj16(pipeline_result, def_map))
 
-    # ---- OBJ-17 独立验证 (V3.2 新增) ----
+    # OBJ-17 独立验证 (V3.2 新增)
     results.append(_check_obj17(pipeline_result, def_map, resolved_dal))
 
-    # ---- OBJ-18 正式 PR 系统 (V3.2 新增) ----
+    # OBJ-18 正式 PR 系统 (V3.2 新增)
     results.append(_check_obj18(pipeline_result, def_map))
 
-    # ---- OBJ-19 工具鉴定 (V3.2 新增) ----
+    # OBJ-19 工具鉴定 (V3.2 新增)
     results.append(_check_obj19(pipeline_result, def_map))
 
-    # ---- OBJ-20 数据耦合分析 (V0.5.0 P0 新增) ----
+    # OBJ-20 数据耦合分析 (V0.5.0 P0 新增)
     results.append(_check_obj20(pipeline_result, def_map))
 
-    # ---- OBJ-21 控制耦合分析 (V0.5.0 P0 新增) ----
+    # OBJ-21 控制耦合分析 (V0.5.0 P0 新增)
     results.append(_check_obj21(pipeline_result, def_map))
 
     # 按 applicable_ids 过滤：不适用当前 DAL 的目标设为 STATUS_NA
@@ -224,7 +224,7 @@ def _build_def(obj_id: str, def_map: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-# ========== OBJ-1 ~ OBJ-12（原有 12 项 + DAL 自适应）==========
+# OBJ-1 ~ OBJ-12（原有 12 项 + DAL 自适应）
 
 def _check_obj1(
     pipeline_result: dict[str, Any], def_map: dict[str, Any]
@@ -317,7 +317,7 @@ def _check_obj4(
 ) -> ObjectiveResult:
     """OBJ-4 静态分析。"""
     d = _build_def("OBJ-4", def_map)
-    # V0.5.1: 优先检查 tool_evidence 中的 static_analysis 状态
+    # 优先检查 tool_evidence 中的 static_analysis 状态
     tool_evidence = pipeline_result.get("tool_evidence", {}) or {}
     static_evidence = tool_evidence.get("static_analysis", {}) or {}
     static_status = static_evidence.get("status", "")
@@ -373,7 +373,7 @@ def _check_obj6(
     sim = pipeline_result.get("simulation_result")
     cov = pipeline_result.get("coverage_result", {}) or {}
 
-    # V0.5.1: 多渠道检测故障注入 — sim fault_type、coverage fault_injected、evidence
+    # 多渠道检测故障注入 — sim fault_type、coverage fault_injected、evidence
     has_fault = False
     fault_evidence = ""
 
@@ -459,7 +459,7 @@ def _check_obj9(
     cppcheck_result = pipeline_result.get("cppcheck_result", []) or []
     repair_history = pipeline_result.get("repair_history", []) or []
 
-    # V0.5.1: 检查静态分析是否已执行（0 违规也是有效结果）
+    # 检查静态分析是否已执行（0 违规也是有效结果）
     tool_evidence = pipeline_result.get("tool_evidence", {}) or {}
     static_status = (tool_evidence.get("static_analysis", {}) or {}).get("status", "")
 
@@ -620,7 +620,7 @@ def _check_obj12(
     return ObjectiveResult(status=status, evidence=evidence, **d)
 
 
-# ========== OBJ-13 ~ OBJ-19（V3.2 新增 7 项目标）==========
+# OBJ-13 ~ OBJ-19（V3.2 新增 7 项目标）
 
 def _check_obj13(
     pipeline_result: dict[str, Any],
@@ -867,7 +867,7 @@ def _check_obj19(
     return ObjectiveResult(status=status, evidence=evidence, **d)
 
 
-# ========== OBJ-20 ~ OBJ-21（V0.5.0 P0 新增：数据耦合 / 控制耦合）==========
+# OBJ-20 ~ OBJ-21（V0.5.0 P0 新增：数据耦合 / 控制耦合）
 
 def _check_obj20(
     pipeline_result: dict[str, Any], def_map: dict[str, Any]

@@ -43,7 +43,9 @@
 			"pipelineIdle": "Pipeline 待命",
 			"hint": "在左侧输入需求并点击「开始生成」",
 			"noResult": "暂无结果",
-			"resultHint": "Pipeline 完成后将在此展示生成结果"
+			"resultHint": "Pipeline 完成后将在此展示生成结果",
+			"generating": "正在生成结果...",
+			"generatingDesc": "Agent 正在执行流水线，结果将在此展示"
 		},
 		"result": {
 			"title": "生成结果",

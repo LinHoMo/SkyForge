@@ -593,9 +593,7 @@ def _fix_rule_21_6(code: str, v: "Violation") -> tuple[str, RepairAction]:
     return new_code, action
 
 
-# ============================================================================
 # 第二批 MISRA-C 规则修复函数（+20条）
-# ============================================================================
 
 
 def _fix_dir_4_12(code: str, v: "Violation") -> tuple[str, RepairAction]:
@@ -810,9 +808,7 @@ def _fix_rule_21_7(code: str, v: "Violation") -> tuple[str, RepairAction]:
     return new_code, action
 
 
-# ============================================================================
 # 第三批 MISRA-C 规则修复函数（+26条，总计56条）
-# ============================================================================
 
 
 def _fix_rule_8_9(code: str, v: "Violation") -> tuple[str, RepairAction]:
@@ -910,7 +906,7 @@ def _fix_rule_3_2(code: str, v: "Violation") -> tuple[str, RepairAction]:
     return new_code, action
 
 
-# --- 词法 Rule 4.1-4.2 ---
+# 词法 Rule 4.1-4.2
 
 
 def _fix_rule_11_9(code: str, v: "Violation") -> tuple[str, RepairAction]:
@@ -940,7 +936,7 @@ def _fix_rule_11_9(code: str, v: "Violation") -> tuple[str, RepairAction]:
     return new_code, action
 
 
-# --- 运算符 Rule 12.2 ---
+# 运算符 Rule 12.2
 
 
 def _fix_rule_12_2(code: str, v: "Violation") -> tuple[str, RepairAction]:
@@ -978,7 +974,7 @@ def _fix_rule_12_2(code: str, v: "Violation") -> tuple[str, RepairAction]:
     return new_code, action
 
 
-# --- 副作用 Rule 13.1, 13.2, 13.4, 13.5 ---
+# 副作用 Rule 13.1, 13.2, 13.4, 13.5
 
 
 def _fix_rule_17_1(code: str, v: "Violation") -> tuple[str, RepairAction]:
@@ -1036,7 +1032,7 @@ def _fix_rule_17_6(code: str, v: "Violation") -> tuple[str, RepairAction]:
     return new_code, action
 
 
-# --- 联合体 Rule 19.1, 19.2 ---
+# 联合体 Rule 19.1, 19.2
 
 
 def _fix_rule_19_1(code: str, v: "Violation") -> tuple[str, RepairAction]:
@@ -1395,10 +1391,8 @@ def _fix_dir_4_14(code: str, v: "Violation") -> tuple[str, RepairAction]:
     return new_code, action
 
 
-# ============================================================================
 # 规则 ID → 修复函数映射（支持形如 "misra-c2012-8.1" / "Rule 8.1" / "8.1" 等格式）
 # 总计 130 条规则修复函数
-# ============================================================================
 
 
 def _fix_rule_8_1(code: str, v: "Violation") -> tuple[str, RepairAction]:
@@ -2117,7 +2111,7 @@ def _fix_rule_8_12(code: str, v: "Violation") -> tuple[str, RepairAction]:
     return new_code, action
 
 
-# --- 表达式 Rule 10.7 ---
+# 表达式 Rule 10.7
 
 
 def _fix_rule_13_1(code: str, v: "Violation") -> tuple[str, RepairAction]:
@@ -2177,9 +2171,7 @@ def _fix_rule_22_9(code: str, v: "Violation") -> tuple[str, RepairAction]:
     return new_code, action
 
 
-# =========================================================================
 # 规则 ID 到修复函数的映射
-# =========================================================================
 FIXERS: dict[str, Callable[[str, 'Violation'], tuple[str, RepairAction]]] = {
     "8_1": _fix_rule_8_1,
     "8_4": _fix_rule_8_4,
@@ -2314,42 +2306,40 @@ FIXERS: dict[str, Callable[[str, 'Violation'], tuple[str, RepairAction]]] = {
 }
 
 
-# =========================================================================
 # 规则 ID 到修复函数的映射
-# =========================================================================
 FIXERS: dict[str, Callable[[str, 'Violation'], tuple[str, RepairAction]]] = {
-    # --- 环境 ---
+    # 环境
     "1.1": _fix_rule_1_1,
     "1.3": _fix_rule_1_3,
-    # --- 未使用 ---
+    # 未使用
     "2.1": _fix_rule_2_1,
     "2.2": _fix_rule_2_2,
     "2.3": _fix_rule_2_3,
     "2.4": _fix_rule_2_4,
     "2.5": _fix_rule_2_5,
     "2.6": _fix_rule_2_6,
-    # --- 注释 ---
+    # 注释
     "3.1": _fix_rule_3_1,
     "3.2": _fix_rule_3_2,
-    # --- 词法 ---
+    # 词法
     "4.1": _fix_rule_4_1,
     "4.2": _fix_rule_4_2,
-    # --- 标识符 ---
+    # 标识符
     "5.1": _fix_rule_5_1,
     "5.2": _fix_rule_5_2,
     "5.3": _fix_rule_5_3,
     "5.4": _fix_rule_5_4,
     "5.5": _fix_rule_5_5,
-    # --- 类型 ---
+    # 类型
     "6.1": _fix_rule_6_1,
     "6.2": _fix_rule_6_2,
     "6.3": _fix_rule_6_3,
-    # --- 字面量 ---
+    # 字面量
     "7.1": _fix_rule_7_1,
     "7.2": _fix_rule_7_2,
     "7.3": _fix_rule_7_3,
     "7.4": _fix_rule_7_4,
-    # --- 声明 ---
+    # 声明
     "8.1": _fix_rule_8_1,
     "8.2": _fix_rule_8_2,
     "8.3": _fix_rule_8_3,
@@ -2363,9 +2353,9 @@ FIXERS: dict[str, Callable[[str, 'Violation'], tuple[str, RepairAction]]] = {
     "8.11": _fix_rule_8_11,
     "8.12": _fix_rule_8_12,
     "8.13": _fix_rule_8_13,
-    # --- 初始化 ---
+    # 初始化
     "9.1": _fix_rule_9_1,
-    # --- 表达式 ---
+    # 表达式
     "10.1": _fix_rule_10_1,
     "10.2": _fix_rule_10_2,
     "10.3": _fix_rule_10_3,
@@ -2374,7 +2364,7 @@ FIXERS: dict[str, Callable[[str, 'Violation'], tuple[str, RepairAction]]] = {
     "10.6": _fix_rule_10_6,
     "10.7": _fix_rule_10_7,
     "10.8": _fix_rule_10_8,
-    # --- 指针 ---
+    # 指针
     "11.1": _fix_rule_11_1,
     "11.2": _fix_rule_11_2,
     "11.3": _fix_rule_11_3,
@@ -2382,19 +2372,19 @@ FIXERS: dict[str, Callable[[str, 'Violation'], tuple[str, RepairAction]]] = {
     "11.7": _fix_rule_11_7,
     "11.8": _fix_rule_11_8,
     "11.9": _fix_rule_11_9,
-    # --- 运算符 ---
+    # 运算符
     "12.1": _fix_rule_12_1,
     "12.2": _fix_rule_12_2,
     "12.3": _fix_rule_12_3,
     "12.4": _fix_rule_12_4,
-    # --- 副作用 ---
+    # 副作用
     "13.1": _fix_rule_13_1,
     "13.2": _fix_rule_13_2,
     "13.3": _fix_rule_13_3,
     "13.4": _fix_rule_13_4,
     "13.5": _fix_rule_13_5,
     "13.6": _fix_rule_13_6,
-    # --- 控制流 ---
+    # 控制流
     "14.1": _fix_rule_14_1,
     "14.2": _fix_rule_14_2,
     "14.4": _fix_rule_14_4,
@@ -2409,19 +2399,19 @@ FIXERS: dict[str, Callable[[str, 'Violation'], tuple[str, RepairAction]]] = {
     "16.3": _fix_rule_16_3,
     "16.4": _fix_rule_16_4,
     "16.5": _fix_rule_16_5,
-    # --- 声明 ---
+    # 声明
     "17.1": _fix_rule_17_1,
     "17.2": _fix_rule_17_2,
     "17.3": _fix_rule_17_3,
     "17.4": _fix_rule_17_4,
     "17.6": _fix_rule_17_6,
     "17.7": _fix_rule_17_7,
-    # --- 类型 ---
+    # 类型
     "18.4": _fix_rule_18_4,
-    # --- 联合体 ---
+    # 联合体
     "19.1": _fix_rule_19_1,
     "19.2": _fix_rule_19_2,
-    # --- 预处理器 ---
+    # 预处理器
     "20.1": _fix_rule_20_1,
     "20.2": _fix_rule_20_2,
     "20.3": _fix_rule_20_3,
@@ -2431,7 +2421,7 @@ FIXERS: dict[str, Callable[[str, 'Violation'], tuple[str, RepairAction]]] = {
     "20.8": _fix_rule_20_8,
     "20.9": _fix_rule_20_9,
     "20.10": _fix_rule_20_10,
-    # --- 标准库 ---
+    # 标准库
     "21.1": _fix_rule_21_1,
     "21.2": _fix_rule_21_2,
     "21.3": _fix_rule_21_3,
@@ -2462,7 +2452,7 @@ FIXERS: dict[str, Callable[[str, 'Violation'], tuple[str, RepairAction]]] = {
     "22.10": _fix_rule_22_10,
     "22.11": _fix_rule_22_11,
     "22.12": _fix_rule_22_12,
-    # --- Directive ---
+    # Directive
     "Dir.4.1": _fix_dir_4_1,
     "Dir.4.6": _fix_dir_4_6,
     "Dir.4.9": _fix_dir_4_9,

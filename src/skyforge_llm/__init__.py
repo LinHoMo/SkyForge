@@ -12,5 +12,5 @@ Provider 适配: OpenAI · Anthropic · Qwen · DeepSeek · 智谱 · Moonshot �
 from skyforge_llm.client import LMStudioClient, UnifiedLLMClient, get_lmstudio_client, get_local_llm_client
 from skyforge_llm.parser import safe_parse_llm_json
 
-__version__ = "0.4.0"
+__version__ = "1.0.0"
 __all__ = ["LMStudioClient", "UnifiedLLMClient", "get_lmstudio_client", "get_local_llm_client", "safe_parse_llm_json"]

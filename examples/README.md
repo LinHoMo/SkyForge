@@ -2,7 +2,7 @@
 
 本目录收录 SkyForge AI 驱动航空代码生成工具的演示示例，覆盖滤波器、控制器、采样器、调度器、传感器融合、任务规划、ARINC 653 分区调度、FreeRTOS 任务调度、C++ RAII、Rust 所有权等多种航空运行时场景。
 
-> 所有示例均符合 **DO-178C** 安全等级要求与 **MISRA-C:2012** 编码规范，可作为比赛评审、客户演示与回归测试的标准素材。
+> 所有示例均按 **DO-178C** 安全等级要求与 **MISRA-C:2012** 编码规范编写，可作为演示与回归测试的素材。
 
 ## 1. 目录结构总览
 
@@ -132,19 +132,16 @@ python -m skyforge_core.cli verify examples/arinc653_partition/contract.yaml
 python -m skyforge_core.cli misra-check examples/arinc653_partition/expected_code.c
 ```
 
-## 5. 与比赛评审维度的对应关系
+## 5. 示例覆盖范围
 
-本示例库针对比赛评审的多个维度提供端到端证据，**直接贡献赛道契合度 +5 分**:
-
-| 评审维度                | 对应示例 / 证据                                              | 评分贡献 |
-|:------------------------|:------------------------------------------------------------|:--------:|
-| **赛道契合度 (航空运行时)** | ARINC 653 分区调度 + FreeRTOS 任务调度，覆盖 IMA + FCS 两大主流航空运行时 | **+5**   |
-| **DO-178C 合规**         | DAL-A/DAL-B 等级标注 + MC/DC 覆盖率目标 + 可追溯性矩阵       | 强证据   |
-| **MISRA-C:2012 合规**    | 每个示例的 `expected_code.c` 遵循 Rule 8.4/8.7/17.7/20.4 等 | 强证据   |
-| **形式化验证**           | `contract.yaml` 通过 z3 验证 pre/post/invariants/fault_handling | 强证据   |
-| **三层可追溯性**         | `requirement.txt` → `contract.yaml` → `expected_code.c`      | 强证据   |
-| **行业落地**             | 直接对应真实航电系统 (IMA 分区调度 / FreeRTOS FCS)           | 强证据   |
-| **数字孪生集成**         | 生成的 C 代码可部署到 Virtual MCU 仿真验证                   | 加分项   |
+| 维度 | 对应示例 / 证据 |
+|:------------------------|:------------------------------------------------------------|
+| 航空运行时 | ARINC 653 分区调度 + FreeRTOS 任务调度，覆盖 IMA 与飞控两类运行时 |
+| DO-178C 合规 | DAL-A/DAL-B 等级标注 + MC/DC 覆盖率目标 + 可追溯性矩阵 |
+| MISRA-C:2012 合规 | 每个示例的 `expected_code.c` 遵循 Rule 8.4/8.7/17.7/20.4 等 |
+| 形式化验证 | `contract.yaml` 通过 z3 验证 pre/post/invariants/fault_handling |
+| 三层可追溯性 | `requirement.txt` → `contract.yaml` → `expected_code.c` |
+| 数字孪生集成 | 生成的 C 代码可部署到 Virtual MCU 仿真验证 |
 
 ## 6. 契约模板对应
 

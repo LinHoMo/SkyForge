@@ -43,7 +43,7 @@ from typing import Any, Optional
 from skyforge_engine.utils.log_util import logger
 
 
-# ==================== 数据类 ====================
+# 数据类
 
 @dataclass
 class HilConfig:
@@ -140,7 +140,7 @@ class HilResult:
         }
 
 
-# ==================== 抽象基类 ====================
+# 抽象基类
 
 class HilAdapter(abc.ABC):
     """HIL 适配器抽象基类。
@@ -346,7 +346,7 @@ class HilAdapter(abc.ABC):
         return data
 
 
-# ==================== 串口 HIL 适配器 ====================
+# 串口 HIL 适配器
 
 class SerialHilAdapter(HilAdapter):
     """UART 串口 HIL 适配器。
@@ -561,7 +561,7 @@ class SerialHilAdapter(HilAdapter):
             return False, f"运行采集失败: {e}"
 
 
-# ==================== JTAG/SWD HIL 适配器 ====================
+# JTAG/SWD HIL 适配器
 
 class JtagHilAdapter(HilAdapter):
     """JTAG/SWD HIL 适配器。
@@ -823,7 +823,7 @@ adapter speed {self.config.jtag_clock // 1000}
         return tmp.name
 
 
-# ==================== Mock HIL 适配器（向后兼容） ====================
+# Mock HIL 适配器（向后兼容）
 
 class MockHilAdapter(HilAdapter):
     """Mock HIL 适配器 — 基于 VirtualMCU 的模拟模式。
@@ -860,7 +860,7 @@ class MockHilAdapter(HilAdapter):
             return False, f"Mock HIL 运行失败: {e}"
 
 
-# ==================== 工厂函数 ====================
+# 工厂函数
 
 def create_hil_adapter(
     interface: str = "serial",

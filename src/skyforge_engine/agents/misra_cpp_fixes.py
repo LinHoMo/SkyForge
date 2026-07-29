@@ -498,9 +498,7 @@ def _fix_rule_17_3_6(code: str, v: "Violation") -> tuple[str, RepairAction]:
     return "".join(ls), action
 
 
-# ============================================================================
 # MISRA-C++ Rule 18: 初始化和类型转换（18-1-1 到 18-5-1）
-# ============================================================================
 
 
 def _fix_rule_18_5_1(code: str, v: "Violation") -> tuple[str, RepairAction]:
@@ -531,33 +529,31 @@ def _fix_rule_18_5_1(code: str, v: "Violation") -> tuple[str, RepairAction]:
     return "".join(ls), action
 
 
-# ============================================================================
 # 规则 ID → 修复函数映射
 # 总计 59 条规则修复函数（JSF AV C++: 5 + MISRA-C++: 54）
-# ============================================================================
 
 CPP_FIXERS: dict[str, "Callable[[str, Violation], tuple[str, RepairAction]]"] = {
-    # --- JSF AV C++ (5条) ---
+    # JSF AV C++ (5条)
     "jsf-3-1-1": _fix_jsf_3_1_1,
     "jsf-5-2-1": _fix_jsf_5_2_1,
     "jsf-6-6-1": _fix_jsf_6_6_1,
     "jsf-12-1-2": _fix_jsf_12_1_2,
     "jsf-18-4-1": _fix_jsf_18_4_1,
-    # --- MISRA-C++ Rule 0: 程序说明 (6条) ---
+    # MISRA-C++ Rule 0: 程序说明 (6条)
     "0-1-1": _fix_rule_0_1_1,
     "0-1-2": _fix_rule_0_1_2,
     "0-1-3": _fix_rule_0_1_3,
     "0-1-4": _fix_rule_0_1_4,
     "0-1-5": _fix_rule_0_1_5,
     "0-1-6": _fix_rule_0_1_6,
-    # --- MISRA-C++ Rule 3: 注释 (6条) ---
+    # MISRA-C++ Rule 3: 注释 (6条)
     "3-1-2": _fix_rule_3_1_2,
     "3-1-3": _fix_rule_3_1_3,
     "3-1-4": _fix_rule_3_1_4,
     "3-2-1": _fix_rule_3_2_1,
     "3-3-1": _fix_rule_3_3_1,
     "3-4-1": _fix_rule_3_4_1,
-    # --- MISRA-C++ Rule 5: 标识符 (8条) ---
+    # MISRA-C++ Rule 5: 标识符 (8条)
     "5-0-1": _fix_rule_5_0_1,
     "5-0-2": _fix_rule_5_0_2,
     "5-0-3": _fix_rule_5_0_3,
@@ -566,13 +562,13 @@ CPP_FIXERS: dict[str, "Callable[[str, Violation], tuple[str, RepairAction]]"] = 
     "5-2-1": _fix_rule_5_2_1,
     "5-2-2": _fix_rule_5_2_2,
     "5-3-1": _fix_rule_5_3_1,
-    # --- MISRA-C++ Rule 6-6: 枚举 (5条) ---
+    # MISRA-C++ Rule 6-6: 枚举 (5条)
     "6-6-2": _fix_rule_6_6_2,
     "6-6-3": _fix_rule_6_6_3,
     "6-6-4": _fix_rule_6_6_4,
     "6-6-5": _fix_rule_6_6_5,
     "6-6-6": _fix_rule_6_6_6,
-    # --- MISRA-C++ Rule 7-3: 命名空间 (7条) ---
+    # MISRA-C++ Rule 7-3: 命名空间 (7条)
     "7-3-1": _fix_rule_7_3_1,
     "7-3-2": _fix_rule_7_3_2,
     "7-3-3": _fix_rule_7_3_3,
@@ -580,11 +576,11 @@ CPP_FIXERS: dict[str, "Callable[[str, Violation], tuple[str, RepairAction]]"] = 
     "7-3-5": _fix_rule_7_3_5,
     "7-3-6": _fix_rule_7_3_6,
     "7-3-7": _fix_rule_7_3_7,
-    # --- MISRA-C++ Rule 10-3: 枚举转换 (3条) ---
+    # MISRA-C++ Rule 10-3: 枚举转换 (3条)
     "10-3-1": _fix_rule_10_3_1,
     "10-3-2": _fix_rule_10_3_2,
     "10-3-3": _fix_rule_10_3_3,
-    # --- MISRA-C++ Rule 14: 控制流表达式 (10条) ---
+    # MISRA-C++ Rule 14: 控制流表达式 (10条)
     "14-3-1": _fix_rule_14_3_1,
     "14-3-2": _fix_rule_14_3_2,
     "14-3-3": _fix_rule_14_3_3,
@@ -595,7 +591,7 @@ CPP_FIXERS: dict[str, "Callable[[str, Violation], tuple[str, RepairAction]]"] = 
     "14-4-4": _fix_rule_14_4_4,
     "14-5-1": _fix_rule_14_5_1,
     "14-5-2": _fix_rule_14_5_2,
-    # --- MISRA-C++ Rule 15: 控制流 (7条) ---
+    # MISRA-C++ Rule 15: 控制流 (7条)
     "15-1-1": _fix_rule_15_1_1,
     "15-1-2": _fix_rule_15_1_2,
     "15-1-3": _fix_rule_15_1_3,
@@ -603,16 +599,16 @@ CPP_FIXERS: dict[str, "Callable[[str, Violation], tuple[str, RepairAction]]"] = 
     "15-2-2": _fix_rule_15_2_2,
     "15-2-3": _fix_rule_15_2_3,
     "15-3-1": _fix_rule_15_3_1,
-    # --- MISRA-C++ Rule 16: switch (1条) ---
+    # MISRA-C++ Rule 16: switch (1条)
     "16-1-1": _fix_rule_16_1_1,
-    # --- MISRA-C++ Rule 17-3: 函数 (6条) ---
+    # MISRA-C++ Rule 17-3: 函数 (6条)
     "17-3-1": _fix_rule_17_3_1,
     "17-3-2": _fix_rule_17_3_2,
     "17-3-3": _fix_rule_17_3_3,
     "17-3-4": _fix_rule_17_3_4,
     "17-3-5": _fix_rule_17_3_5,
     "17-3-6": _fix_rule_17_3_6,
-    # --- MISRA-C++ Rule 18: 初始化和类型转换 (9条) ---
+    # MISRA-C++ Rule 18: 初始化和类型转换 (9条)
     "18-1-1": _fix_rule_18_1_1,
     "18-1-2": _fix_rule_18_1_2,
     "18-1-3": _fix_rule_18_1_3,
@@ -625,15 +621,13 @@ CPP_FIXERS: dict[str, "Callable[[str, Violation], tuple[str, RepairAction]]"] = 
     "18-5-1": _fix_rule_18_5_1,
 }
 
-# --- 统计 ---
+# 统计
 # JSF AV C++:    5 条
 # MISRA-C++:    54 条
 # 合计:         59 条
 
 
-# =========================================================================
 # 规则 ID 到修复函数的映射
-# =========================================================================
 FIXERS: dict[str, Callable[[str, 'Violation'], tuple[str, RepairAction]]] = {
     "0_1_1": _fix_rule_0_1_1,
     "0_1_2": _fix_rule_0_1_2,

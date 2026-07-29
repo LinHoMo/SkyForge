@@ -130,9 +130,7 @@ class CompositionSimulator:
         )
 
 
-# ====================================================================== #
 # 模块级便捷函数
-# ====================================================================== #
 def simulate_composition(
     composed_code: str,
     composed_contract: str,

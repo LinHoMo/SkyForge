@@ -7,6 +7,6 @@
 from skyforge_engine import run_full_pipeline as run_full_pipeline
 from skyforge_engine import run_pipeline as run_pipeline
 
-__version__ = "0.4.0"
+__version__ = "1.0.0"
 
 __all__ = ["run_full_pipeline", "run_pipeline"]

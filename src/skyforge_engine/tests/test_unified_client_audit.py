@@ -73,9 +73,7 @@ def test_audit_failure_does_not_break_chat():
     assert result == ""  # mock 后端返回空字符串，审计异常未影响主流程
 
 
-# ---------------------------------------------------------------------------
 # SubTask 11.1: UnifiedLLMClient.is_available() 在不同 mode 下的行为
-# ---------------------------------------------------------------------------
 
 
 def test_is_available_local_unreachable():

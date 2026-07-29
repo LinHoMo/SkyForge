@@ -65,9 +65,7 @@ from skyforge_engine.core.stages._utils import (
 )
 
 
-# ============================================================================
 # 兼容导出（保留原有类型别名供外部引用）
-# ============================================================================
 
 __all__ = [
     "LogHook",
@@ -78,9 +76,7 @@ __all__ = [
 ]
 
 
-# ============================================================================
 # 废弃函数（向后兼容）
-# ============================================================================
 
 @deprecated("请使用 PipelineOrchestrator 直接编排 Stage")
 async def run_pipeline(
@@ -98,7 +94,7 @@ async def run_pipeline(
 
     await _log_llm_status(hook)
 
-    # ---- 处理 SCADE 输入（G-Lustre → 需求 + 契约）----
+    # 处理 SCADE 输入（G-Lustre → 需求 + 契约）
     scade_parsed = None
     scade_contract: str | None = None
     scade_requirement: str | None = None
@@ -152,7 +148,7 @@ async def run_pipeline(
         final_requirement = sanitized.text
         sanitize_mapping_for_evidence = sanitized.mapping
 
-    # ---- 构建 Stage 列表 ----
+    # 构建 Stage 列表
     hil_manager = get_hil_manager()
     stages: list[Any] = [
         RequirementParseStage(),
@@ -281,13 +277,13 @@ async def run_full_pipeline(
     if degraded:
         await hook("SYSTEM", "warn", "LLM 不可用，Agent 将走降级（mock）路径")
 
-    # ---- P1-3 修复：启动 DO-178C 合规证据收集 ----
+    # P1-3 修复：启动 DO-178C 合规证据收集
     evidence_collector = None
     try:
         from skyforge_engine.report.evidence_collector import get_collector
 
         evidence_collector = get_collector()
-        evidence_collector.start_session(pipeline_version="v0.5.0")
+        evidence_collector.start_session(pipeline_version="v1.0.0")
         await hook(
             "SYSTEM", "info", f"合规证据收集已启动 (会话: {evidence_collector.session_id})"
         )
@@ -296,7 +292,7 @@ async def run_full_pipeline(
     except Exception as e:
         logger.warning(f"Pipeline:证据收集器启动失败: {e}")
 
-    # ---- 阶段 1：run_pipeline ----
+    # 阶段 1：run_pipeline
     await hook("SYSTEM", "info", "阶段 1：需求 → 契约 → 代码 → Cppcheck 扫描")
     pipeline_result = await run_pipeline(
         requirement=requirement,
@@ -372,7 +368,7 @@ async def run_full_pipeline(
             "degraded": degraded,
         }
 
-    # ---- 阶段 2：修复闭环 ----
+    # 阶段 2：修复闭环
     await hook("SYSTEM", "info", "阶段 2：修复闭环")
     repair_result = await repair_loop(
         code=pipeline_result["code"],
@@ -382,7 +378,7 @@ async def run_full_pipeline(
         log_hook=hook,
     )
 
-    # ---- 阶段 3：数字孪生仿真 ----
+    # 阶段 3：数字孪生仿真
     simulation_result_dict: dict[str, Any] | None = None
     if simulate:
         await hook("SYSTEM", "info", "阶段 3：数字孪生仿真（无故障默认）")
@@ -516,7 +512,7 @@ async def run_full_pipeline(
         full_result["scade_parsed"] = pipeline_result["scade_parsed"]
         full_result["scade_contract"] = pipeline_result.get("scade_contract")
 
-    # ---- P1-3 修复：记录合规证据并生成证据包 ----
+    # P1-3 修复：记录合规证据并生成证据包
     if evidence_collector and evidence_collector.active:
         try:
             evidence_collector.record_code_generated(

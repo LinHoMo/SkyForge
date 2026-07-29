@@ -28,7 +28,7 @@ from signal_processor import (
 )
 
 
-# ==================== SignalProcessor 测试 ====================
+# SignalProcessor 测试
 
 class TestSignalProcessor:
     """SignalProcessor 单元测试。"""
@@ -114,7 +114,7 @@ class TestSignalProcessor:
             processor.process(100.0)
 
 
-# ==================== SensorReading 测试 ====================
+# SensorReading 测试
 
 class TestSensorReading:
     """SensorReading 单元测试。"""
@@ -139,7 +139,7 @@ class TestSensorReading:
         assert bad.is_valid() is False
 
 
-# ==================== 工具函数测试 ====================
+# 工具函数测试
 
 class TestUtilityFunctions:
     """工具函数单元测试。"""
@@ -158,7 +158,7 @@ class TestUtilityFunctions:
         assert validate_input(20001.0) is False
 
 
-# ==================== 编码规范验证 ====================
+# 编码规范验证
 
 class TestCodingStandards:
     """编码规范验证测试。"""

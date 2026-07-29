@@ -16,7 +16,7 @@ from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
-# ---- 在导入 app 之前设置环境变量，避免触发真实 LM Studio 调用 ----
+# 在导入 app 之前设置环境变量，避免触发真实 LM Studio 调用
 os.environ["USE_LLM"] = "false"
 os.environ["LOCAL_LLM_BASE_URL"] = "http://localhost:9999/v1"
 os.environ["HIL_ENABLED"] = "false"
@@ -27,9 +27,7 @@ from app.core.llm.model_router import reset_model_router  # noqa: E402
 from app.core.hil.hil_manager import reset_hil_manager  # noqa: E402
 
 
-# ====================================================================== #
 # 测试常量
-# ====================================================================== #
 
 # 简单的 filter C 代码（含 double filter(double)），用于契约校验 / 仿真
 FILTER_CODE = """\
@@ -164,9 +162,7 @@ class TestE2EFullPipeline(unittest.TestCase):
         """每个测试前重置单例，保证 LLM/HIL 状态干净。"""
         _reset_singletons()
 
-    # ------------------------------------------------------------------ #
     # 主流程：12 步 API 全链路
-    # ------------------------------------------------------------------ #
 
     def test_e2e_full_pipeline(self) -> None:
         """完整 12 步 API 流程：generate -> simulate ->

@@ -132,9 +132,9 @@ TEST(arinc653_partition, fatal_event_enters_safe_state)   [PASS]
 | FATAL        | 致命错误 (配置错误/多重故障)    | 进入 SAFE_STATE，停止所有分区，触发看门狗 |
 | WATCHDOG     | 硬件看门狗超时 (500ms)          | 系统复位                                |
 
-## 6. 与比赛评审维度的对应
+## 6. 覆盖的能力点
 
-- **赛道契合度 (+5分)**: 本示例完整演示 SkyForge 在航空运行时场景 (ARINC 653 分区调度) 的代码生成能力，符合 DO-178C DAL-A 与 MISRA-C:2012 标准
-- **形式化验证**: contract.yaml 通过 z3 验证所有 16 条约束
-- **可追溯性**: requirement.txt → contract.yaml → expected_code.c 三层可追溯
-- **行业落地**: 直接对应真实航电系统 (IMA) 的分区调度场景
+- 航空运行时：完整演示 ARINC 653 分区调度场景下的代码生成，符合 DO-178C DAL-A 与 MISRA-C:2012
+- 形式化验证：contract.yaml 通过 z3 验证全部 16 条约束
+- 可追溯性：requirement.txt → contract.yaml → expected_code.c 三层可追溯
+- 行业落地：对应 IMA 分区调度场景

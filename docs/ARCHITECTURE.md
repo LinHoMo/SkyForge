@@ -1,222 +1,87 @@
-# SkyForge 架构文档
+# 架构
 
-## 概述
+SkyForge 的部署分四层，从轻到重：核心引擎（不带 LLM、不带 Web）、LLM 抽象层、CLI、Web 工作室。哪层不要就剥哪层，比如只想要命令行可以不带 Studio 跑。
 
-SkyForge 采用**四层可剥离部署架构**（Layer 0-3: Engine/LLM/CLI/Studio），从轻量级核心引擎到完整的 Web 工作室，可根据需求灵活部署。
+引擎内部又是六层（L0-L5），自底向上是协议、LLM 客户端、仿真验证、验证链、Agent 策略、编排。
 
-引擎内部架构升级为**六层引擎架构**（L0-L5），实现协议驱动、工具链可插拔、多 Agent 协同的可信代码生成流水线。
-
-## 部署架构层次（四层可剥离）
+## 部署的四层
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    Layer 3: Web 工作室                        │
-│              (FastAPI + Vue 3 + WebSocket)                   │
-├─────────────────────────────────────────────────────────────┤
-│                    Layer 2: CLI 工具                          │
-│               (skyforge-core CLI)                            │
-├─────────────────────────────────────────────────────────────┤
-│                    Layer 1: LLM 抽象层                       │
-│           (skyforge-llm 多模型支持)                          │
-├─────────────────────────────────────────────────────────────┤
-│                    Layer 0: 核心引擎                         │
-│            (skyforge-engine 零LLM零Web)                      │
-└─────────────────────────────────────────────────────────────┘
+Layer 3  Web 工作室      FastAPI + Vue 3 + WebSocket
+Layer 2  CLI             skyforge-core
+Layer 1  LLM 抽象层       skyforge-llm
+Layer 0  核心引擎         skyforge-engine（零 LLM、零 Web）
 ```
 
-## 引擎内部架构（六层 L0-L5）
+## 引擎六层
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│  L5 编排层 (Orchestration)                                          │
-│  PipelineOrchestrator · 12个Stage调度 · 可信证据包生成              │
-├─────────────────────────────────────────────────────────────────────┤
-│  L4 Agent 策略层 (Agent Strategy)                                   │
-│  需求解析 · LLR生成 · 架构设计 · 契约 · 代码生成 · 修复 · MISRA适配 │
-├─────────────────────────────────────────────────────────────────────┤
-│  L3 验证工具链层 (Verifier Chain)                                   │
-│  Z3 · CBMC · Cppcheck · GCC · 形式化 · 静态分析 · 可插拔链          │
-├─────────────────────────────────────────────────────────────────────┤
-│  L2 仿真验证层 (SIL/PIL/HIL)                                        │
-│  SIL: VirtualSensor · VirtualMCU · FaultInjector                     │
-│  PIL: QEMU · ARINC653 · HIL: 串口 UART · JTAG-SWD                  │
-├─────────────────────────────────────────────────────────────────────┤
-│  L1 LLM 客户端层 (LLM Client)                                       │
-│  Mock · 云API · 本地OpenAI兼容 · 路由                              │
-├─────────────────────────────────────────────────────────────────────┤
-│  L0 基础设施协议层 (Protocols)                                      │
-│  协议 · 抽象基类 · 模式守卫 · 执行契约                              │
-└─────────────────────────────────────────────────────────────────────┘
-```
+| 层 | 名字 | 干什么 | 关键目录 |
+|----|------|--------|----------|
+| L0 | 基础设施协议 | 抽象基类、数据 schema、模式守卫、执行契约 | core/protocols.py |
+| L1 | LLM 客户端 | 多模型统一接口、路由、Mock 降级 | core/strategies/ |
+| L2 | 仿真验证 SIL/PIL/HIL | 纯软件仿真、QEMU 处理器仿真、真实硬件在环 | digital_twin/、core/adapters/ |
+| L3 | 验证工具链 | Z3/CBMC/Cppcheck/GCC 可插拔 | core/verifiers/、tools/ |
+| L4 | Agent 策略 | 多个 Agent 从需求一路做到代码 | agents/ |
+| L5 | 编排 | PipelineOrchestrator 串起来，11 个 Stage 类（装 10 个实例） | core/orchestrator.py、core/stages/ |
 
-### 引擎六层详细说明
+## 核心引擎（skyforge_engine）
 
-| 层级 | 名称 | 核心职责 | 关键模块 |
-|------|------|----------|----------|
-| L0 | 基础设施协议层 | 定义全系统协议、抽象基类、模式守卫、执行契约 | protocols/ |
-| L1 | LLM 客户端层 | 多模型客户端统一接口、路由、Mock 降级 | strategies/ |
-| L2 | 仿真验证层（SIL/PIL/HIL） | 覆盖纯软件仿真(SIL)、QEMU处理器仿真(PIL)与真实硬件在环(HIL) | adapters/ · digital_twin/ |
-| L3 | 验证工具链层 | 形式化验证与静态分析工具可插拔链 | verifiers/ · tools/ |
-| L4 | Agent 策略层 | 多 Agent 协同完成需求到代码的全流程 | agents/ |
-| L5 | 编排层 | PipelineOrchestrator 串联各层，调度 12 个 Stage | core/orchestrator.py · stages/ |
-
-## Layer 0: 核心引擎 (skyforge_engine)
-
-核心引擎是整个系统的基础，不依赖 LLM 和 Web 框架，可独立运行。
-
-### 模块结构
+这层不依赖 LLM 和 Web 框架，能单独跑。目录大概长这样：
 
 ```
 skyforge_engine/
-├── core/                      # 核心编排
-│   ├── orchestrator.py        #   PipelineOrchestrator
-│   ├── stages/                #   12个阶段
-│   │   ├── requirement_parse.py
-│   │   ├── llr_gen.py
-│   │   ├── architecture_design.py
-│   │   ├── contract_gen.py
-│   │   ├── code_gen.py
-│   │   ├── cppcheck.py
-│   │   ├── repair_loop.py
-│   │   ├── formal_verification.py
-│   │   ├── simulation.py
-│   │   ├── hil_checkpoint.py
-│   │   ├── report_gen.py
-│   │   └── ...
-│   ├── verifiers/             #   验证器链
-│   │   ├── z3.py
-│   │   ├── cbmc.py
-│   │   ├── cppcheck.py
-│   │   ├── contract.py
-│   │   └── chain.py
-│   ├── strategies/            #   LLM/Mock 策略
-│   ├── protocols/             #   协议定义
-│   ├── standards/             #   编码标准
-│   ├── adapters/              #   HIL 适配器
-│   └── renderers/             #   HTML/Markdown/PDF 渲染
-├── agents/                    # 多 Agent 系统
-│   ├── requirement_parser.py  #   需求解析 Agent
-│   ├── llr_generator.py       #   LLR 生成 Agent
-│   ├── architecture_designer.py # 架构设计 Agent
-│   ├── contract_generator.py  #   契约生成 Agent
-│   ├── code_generator.py      #   代码生成 Agent (C)
-│   ├── code_generator_multi.py #  多语言代码生成 (C++/Python)
-│   ├── code_repairer.py       #   代码修复 Agent
-│   ├── misra_fixes.py         #   MISRA-C 修复规则
-│   └── python_fixes.py        #   Python 修复规则
-├── digital_twin/              # 数字孪生
-│   ├── virtual_sensor.py      #   虚拟传感器
-│   ├── virtual_mcu.py         #   虚拟 MCU
-│   ├── fault_injector.py      #   故障注入
-│   ├── hil_adapter.py         #   HIL 适配器
-│   ├── qemu_adapter.py        #   QEMU 适配器
-│   ├── serial_hil.py          #   串口 HIL
-│   ├── arinc653_adapter.py    #   ARINC653 适配器
-│   └── simulation_engine.py   #   仿真引擎
-├── composable/                # 组件组合验证
-│   ├── compatibility_checker.py
-│   ├── component_combinator.py
-│   └── composition_simulator.py
-├── tools/                     # 工具链
-│   ├── cppcheck_scanner.py    #   Cppcheck 集成
-│   ├── z3_verifier.py         #   Z3 形式化验证
-│   ├── cbmc_verifier.py       #   CBMC 模型检测
-│   ├── contract_checker.py    #   契约校验
-│   ├── contract_formal_verifier.py # 契约形式化验证
-│   └── tool_chain_validator.py #  工具链验证
-├── report/                    # DO-178C 报告
-│   ├── do178_objectives.py    #   合规目标
-│   ├── coverage_analyzer.py   #   覆盖率分析
-│   ├── traceability_matrix.py #   可追溯性矩阵
-│   ├── psac_generator.py      #   PSAC 生成器
-│   ├── evidence_collector.py  #   证据收集器
-│   └── report_generator.py    #   报告生成器
-├── rag/                       # RAG 知识库
-│   ├── misra_searcher.py      #   MISRA 搜索
-│   ├── rag_enhancer.py        #   RAG 增强器
-│   ├── rule_parser.py         #   规则解析器
-│   └── semantic_search.py     #   语义搜索
-├── coding_standards/          # 可插拔编码标准系统
-│   ├── misra_c.py             #   MISRA-C
-│   ├── misra_cpp.py           #   MISRA-C++
-│   └── python_safety.py       #   Python 安全标准
-├── streaming/                 # 流处理
-│   └── task_stream_registry.py #  任务流注册
-├── dal/                       # DAL 目标覆盖
-│   ├── gcov_collector.py      #   GCOV 收集器
-│   └── mcdc_calculator.py     #   MC/DC 计算器
-└── scade/                     # SCADE G-Lustre 解析器
+├── core/                  编排
+│   ├── orchestrator.py    PipelineOrchestrator
+│   ├── stages/            各阶段：需求解析/LLR/架构/契约/代码/cppcheck/修复/形式化/仿真/HIL检查点/报告
+│   ├── verifiers/         z3/cbmc/cppcheck/contract + chain
+│   ├── strategies/       LLM/Mock 策略
+│   ├── standards/         编码标准
+│   ├── adapters/          HIL 适配
+│   └── renderers/         HTML/Markdown/PDF
+├── agents/                需求解析、LLR、架构、契约、代码生成（含多语言）、修复、misra_fixes、python_fixes
+├── digital_twin/          虚拟传感器、虚拟 MCU、故障注入、hil/qemu/serial/arinc653 适配器、仿真引擎
+├── composable/            compatibility_checker / component_combinator / composition_simulator
+├── tools/                 cppcheck_scanner、z3/cbmc_verifier、contract_checker、tool_chain_validator
+├── report/                do178_objectives、coverage_analyzer、traceability_matrix、psac_generator、evidence_collector
+├── rag/                   misra_searcher、rag_enhancer、rule_parser、semantic_search
+├── coding_standards/      misra_c / misra_cpp / python_safety（插件注册）
+├── streaming/             task_stream_registry
+├── dal/                   gcov_collector、mcdc_calculator
+└── scade/                 G-Lustre 解析器
 ```
 
-### 可插拔编码标准系统
+### 编码标准怎么插拔
 
-DO-178C 过程标准固定不动，编码标准通过插件化注册机制实现可插拔：
+DO-178C 那套过程标准是固定的，编码规范走注册机制，加新规范不用动主流程：
 
 ```python
-# coding_standards/base.py
 from skyforge_engine.coding_standards import get_registry
 
 registry = get_registry()
-# 获取所有已注册标准
 for std in registry.list_all():
-    print(f"{std.id}: {std.name} ({std.language})")
+    print(std.id, std.name, std.language)
 
-# 按语言获取
 cpp_standards = registry.get_by_language("cpp")
 ```
 
-当前已注册的编码标准：
-- `misra_c_2012`: MISRA-C:2012 (10 条红线规则, 56 个修复器)
-- `jsf_av_cpp`: JSF AV C++ (5 条红线规则)
-- `python_safety`: Python 安全标准 (3 条红线规则, 4 个修复器)
+现在注册了三个：`misra_c_2012`（MISRA-C:2012，红线规则加一批修复器）、`jsf_av_cpp`（JSF AV C++）、`python_safety`（Python 安全子集）。各有多少条规则、多少个 fixer，看 `coding_standards/` 下各文件的表，别信这里手数的数。
 
-### 核心流程（PipelineOrchestrator + 12 个 Stage）
+### 流水线
 
-```python
-# core/orchestrator.py - PipelineOrchestrator
-class PipelineOrchestrator:
-    def run(self, requirement: str, profile: str = "demo") -> TaskResult:
-        # 12 个 Stage 流水线
-        stages = [
-            "requirement_parse",    # 需求解析
-            "llr_gen",            # LLR 生成
-            "architecture_design", # 架构设计
-            "contract_gen",       # 契约生成
-            "code_gen",           # 代码生成
-            "cppcheck",           # 静态分析
-            "repair_loop",        # 自动修复循环
-            "formal_verification", # 形式化验证
-            "simulation",         # 数字孪生仿真
-            "hil_checkpoint",     # HIL 检查点
-            "report_gen",         # 报告生成
-            # ... 更多阶段
-        ]
-        # 串联六层架构协作，生成可信证据包
-```
+PipelineOrchestrator 把这些 Stage 串起来：需求解析 → LLR → 架构 → 契约 → 代码 → cppcheck → 修复循环 → 形式化验证 → 仿真 → HIL 检查点 → 报告。中间产物在 Stage 之间传递，失败策略和并行组在 orchestrator 里配。
 
-## Layer 1: LLM 抽象层 (skyforge_llm)
-
-提供统一的 LLM 接口，支持多种模型提供商。
-
-### 模块结构
+## LLM 抽象层（skyforge_llm）
 
 ```
 skyforge_llm/
-├── providers/               # 模型提供商
-│   ├── openai.py            # OpenAI 兼容
-│   ├── anthropic.py         # Anthropic
-│   └── local.py             # 本地模型(LM Studio)
-├── security/                # 安全封装
-│   ├── sanitizer.py         # 输入清理
-│   └── auditor.py           # 审计日志
-├── client.py                # 统一客户端
-├── router.py                # 模型路由
-└── cache.py                 # LLM 响应缓存
+├── providers/   openai / anthropic / openai_responses
+├── security/    sanitizer（输入清洗）、auditor（审计）、validator
+├── client.py    统一客户端
+├── router.py    多供应商路由
+└── cache.py     响应缓存
 ```
 
-## Layer 2: CLI 工具 (skyforge_core)
-
-提供命令行接口，方便开发者快速使用。
+## CLI（skyforge_core）
 
 ```bash
 skyforge generate   # 代码生成
@@ -225,194 +90,54 @@ skyforge simulate   # 数字孪生仿真
 skyforge report     # 生成报告
 ```
 
-## Layer 3: Web 工作室 (app + frontend)
+## Web 工作室
 
-### 后端 (FastAPI) - V1 任务协议
-
-```
-studio/app/
-├── api/v1/                  # V1 唯一任务协议
-│   ├── routes/
-│   │   ├── tasks.py         #   POST /tasks (idempotency_key)
-│   │   │                    #   GET /tasks/{task_id}
-│   │   │                    #   GET /tasks
-│   │   ├── task_events.py   #   WS /tasks/{task_id}/events?after_seq=N
-│   │   ├── profiles.py      #   GET /execution-profiles
-│   │   │                    #   GET /preflight/{profile}
-│   │   └── recordings.py    #   GET /recordings
-│   │                        #   GET /recordings/{id}
-├── core/                     # 核心功能(HIL / LLM / Streaming)
-├── services/                 # 服务层(Redis / WebSocket)
-├── schemas/                  # Pydantic 数据模型
-├── rag/                      # MISRA-C 检索
-└── main.py                   # FastAPI 入口
-```
-
-#### V1 唯一任务协议接口
+后端在 `studio/app`，FastAPI。V1 任务协议是唯一入口，用 idempotency_key 防重复提交，事件走 WebSocket 续传：
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| POST | `/api/v1/tasks` | 唯一创建入口，使用 idempotency_key |
-| GET | `/api/v1/tasks/{task_id}` | 读取状态、完整产物与 provenance |
+| POST | `/api/v1/tasks` | 唯一创建入口，带 idempotency_key |
+| GET | `/api/v1/tasks/{task_id}` | 读状态、产物、provenance |
 | GET | `/api/v1/tasks` | 运行记录列表 |
-| WS | `/api/v1/tasks/{task_id}/events?after_seq=N` | 事件订阅，支持事件续传 |
-| GET | `/api/v1/execution-profiles` | 执行 Profile 列表 |
+| WS | `/api/v1/tasks/{task_id}/events?after_seq=N` | 事件订阅，支持断线续传 |
+| GET | `/api/v1/execution-profiles` | Profile 列表 |
 | GET | `/api/v1/preflight/{profile}` | 可用性预检 |
-| GET | `/api/v1/recordings` | 离线运行包列表 |
-| GET | `/api/v1/recordings/{id}` | 核验并读取离线运行包 |
+| GET | `/api/v1/recordings` | 离线运行包 |
+| GET | `/api/v1/recordings/{id}` | 读离线运行包 |
 
-### 前端 (Vue 3) - 11 个页面
-
-```
-studio/frontend/src/
-├── pages/                    # 路由页面（11个）
-│   ├── Home.vue              #   比赛演示首页 (/)
-│   ├── Architecture.vue      #   六层架构 (/architecture)
-│   ├── Generate.vue          #   代码生成 (/generate)
-│   ├── Records.vue           #   运行记录 (/records)
-│   ├── RecordDetail.vue      #   回放模式 (/records/:taskId)
-│   ├── Lab.vue               #   能力实验室 (/lab)
-│   ├── Settings.vue          #   系统设置 (/settings)
-│   ├── Demo.vue              #   比赛工作台 (/demo)
-│   ├── Compose.vue           #   组件组合验证 (/compose)
-│   ├── Misra.vue             #   MISRA 规则搜索 (/misra)
-│   └── HITL.vue              #   HITL人工审查 (/hitl)
-├── components/               # UI 组件
-│   ├── TopStatusBar.vue      #   顶部状态栏
-│   ├── NavBar.vue            #   顶部导航栏（6项）
-│   ├── StatusDot.vue         #   状态指示灯
-│   ├── StatCard.vue          #   KPI 统计卡片
-│   ├── PipelineFlow.vue      #   Agent 流水线可视化
-│   ├── AgentTerminal.vue     #   Agent 终端输出
-│   ├── CodeViewer.vue        #   代码查看器
-│   ├── SimulationResult.vue  #   仿真结果展示
-│   └── ui/                   #   shadcn-vue 基础组件
-├── services/                 # API 调用 + Mock 实现
-├── router/                   # 路由配置(11 条路由)
-└── utils/                    # 工具函数
-```
-
-#### 顶部导航栏（6个）
-
-| 序号 | 名称 | 路由 |
-|------|------|------|
-| 1 | 比赛演示 | `/` |
-| 2 | 六层架构 | `/architecture` |
-| 3 | 代码生成 | `/generate` |
-| 4 | 运行记录 | `/records` |
-| 5 | 能力实验室 | `/lab` |
-| 6 | 系统设置 | `/settings` |
+前端 Vue 3，页面在 `studio/frontend/src/views` 和 `pages/` 下，路由大概十个：首页、架构、生成、记录、记录详情、能力实验室、设置、组件组合、MISRA 搜索、HITL。组件用 shadcn-vue，状态走 Pinia。
 
 ## 数据流
 
-### 代码生成流程
+代码生成这条线：用户输入 → 需求解析（出 JSON）→ 契约（YAML）→ 代码生成（C/C++/Python）→ 合规检查 → 报告（HTML/PDF）。
 
-```
-用户输入 → 需求解析 → 契约生成 → 代码生成 → 合规检查 → 报告生成
-    │          │          │          │          │          │
-    ▼          ▼          ▼          ▼          ▼          ▼
-  文本      JSON       YAML        C        HTML        PDF
-```
-
-### HITL 人工审查流程
-
-```
-Agent 决策 → 风险评估 → 人工审批 → 结果反馈 → 流程继续
-    │          │          │          │
-    ▼          ▼          ▼          ▼
-  自动       高风险     需要审批    更新状态
-```
+HITL 那条线：Agent 决策 → 风险评估 → 高风险就停住等人审批 → 批了再往下走。
 
 ## 技术栈
 
-### 后端
+后端 Python 3.12+、FastAPI、Pydantic、Ruff、Loguru；测试用 pytest。前端 Vue 3、TypeScript、Vite、Pinia、Tailwind、shadcn-vue、Vitest、Biome。基础设施 Docker、Redis、GitHub Actions。
 
-| 技术 | 用途 |
-|------|------|
-| Python 3.12+ | 运行时 |
-| FastAPI | Web 框架 |
-| Pydantic | 数据验证 |
-| Ruff | 代码检查 |
-| unittest | 测试框架 |
-| Loguru | 日志记录 |
+## 执行 Profile
 
-### 前端
+| Profile | 类型 | 说明 |
+|---------|------|------|
+| mock | simulated | 浏览器/后端纯模拟，完全离线 |
+| cloud | live | 云模型，服务端真跑 |
+| local | live / replay | 本地模型（Ollama/LM Studio），支持已验证回放 |
 
-| 技术 | 用途 |
-|------|------|
-| Vue 3 | UI 框架 |
-| TypeScript | 类型安全 |
-| Vite | 构建工具 |
-| Pinia | 状态管理 |
-| Tailwind CSS | 样式框架 |
-| shadcn-vue | UI 组件库 |
-| Vitest | 测试框架 |
-| Biome | 代码检查 |
+术语上 HITL 是人工审查（Human-in-the-Loop），HIL 专指硬件在环，别混。证据状态四种：observed / simulated / unavailable / failed。
 
-### 基础设施
+## 性能上做过的几处
 
-| 技术 | 用途 |
-|------|------|
-| Docker | 容器化 |
-| Redis | 缓存/队列 |
-| GitHub Actions | CI/CD |
+独立的 Agent 任务并行跑；LLM 响应和中间结果有缓存；非核心模块懒加载。前端那几个长轮询组件（顶部状态栏、Dashboard 状态、HITL 倒计时）用 `visibilitychange`，页面切后台就停，切回来立刻刷。generate / repair / generateReport 统一 180s 超时，本地模型推理慢也能扛。Windows 上 cppcheck 的 MISRA addon 用 `sys.executable` 调 venv 里的 Python，绕开 Microsoft Store 的 python stub。
 
-## 执行模式 Profile
+## 怎么扩展
 
-| 模式 | 类型 | 说明 |
-|------|------|------|
-| demo | 浏览器模拟 (simulated) | 完全离线，主演示用 |
-| cloud | 云模型 (live) | 服务端实时执行 |
-| local | 本地模型 (live/replay) | Ollama/LM Studio实时执行，支持已验证回放 |
-
-## 术语约定
-
-- **HITL** = 人工审查 (Human-in-the-Loop)
-- **HIL** = 硬件在环 (Hardware-in-the-Loop)
-- **证据规则**：observed / simulated / unavailable / failed
-
-## 测试覆盖
-
-- 后端/引擎/LLM 安全测试：645 pytest passed，2 skipped（全仓库口径；引擎层 281 passed）
-- 前端测试：180 Vitest passed（15 test files）
-
-## 性能优化
-
-### 关键优化点
-
-1. **并行处理**：Agent 可并行执行独立任务
-2. **增量更新**：只重新生成受影响的部分
-3. **缓存机制**：缓存 LLM 响应和中间结果
-4. **懒加载**：按需加载非核心模块
-5. **前端轮询降频 + 后台暂停**：4 个长轮询组件使用 `visibilitychange` API，页面切后台时停止轮询，切回前台立即刷新并恢复
-6. **LLM 长任务超时**：generate / repair / generateReport 接口统一 3 分钟（180s）超时，兼容本地模型推理时间
-7. **Windows 工具链兼容**：cppcheck MISRA addon 使用 `sys.executable` 调用 venv 内 Python，避免 Windows Store python stub 问题
-
-### 前端轮询组件
-
-| 组件 | 轮询周期 | 后台暂停策略 |
-|------|----------|-------------|
-| TopStatusBar（顶部状态栏） | 10s | visibilitychange 暂停 |
-| Dashboard 系统状态 | 10s | visibilitychange 暂停 |
-| HILPanel（HITL 倒计时） | 1s | visibilitychange 暂停 |
-
-### 资源消耗
-
-| 层级 | 内存占用 | 磁盘占用 |
-|------|---------|---------|
-| Layer 0 | ~50MB | ~80MB |
-| Layer 1 | +20MB | +50MB |
-| Layer 2 | +5MB | +5MB |
-| Layer 3 | +100MB | +315MB |
-
-## 扩展点
-
-### 自定义编码标准
+加自己的编码标准：
 
 ```python
 from skyforge_engine.coding_standards.base import CodingStandard, get_registry
 
-# 创建自定义编码标准
 my_std = CodingStandard(
     id="my_custom_standard",
     name="My Custom Standard",
@@ -421,49 +146,15 @@ my_std = CodingStandard(
     red_line_rules=["R1", "R2"],
     fixers={"R1": my_fixer_func},
 )
-
-# 注册到全局 Registry
-registry = get_registry()
-registry.register(my_std)
+get_registry().register(my_std)
 ```
 
-### 自定义 Agent
+自定义 Agent 和工具分别继承 `agents/agent.py` 的 `BaseAgent` 和 `tools/base_scanner.py` 的基类，实现 `execute` / `run` 就行。
 
-```python
-from skyforge_engine.agents.agent import BaseAgent
+## 安全
 
-class CustomAgent(BaseAgent):
-    def execute(self, input_data):
-        # 自定义逻辑
-        pass
-```
-
-### 自定义工具
-
-```python
-from skyforge_engine.tools import BaseTool
-
-class CustomTool(BaseTool):
-    def run(self, params):
-        # 自定义工具逻辑
-        pass
-```
-
-## 安全考虑
-
-### 输入验证
-
-- 所有用户输入都经过 Pydantic 验证
-- LLM 输出经过安全检查和清理
-- 防止注入攻击
-
-### 权限控制
-
-- API 密钥安全存储
-- 角色基础的访问控制
-- 操作审计日志
+用户输入走 Pydantic 校验，LLM 输出经过 sanitizer 清洗再用，API key 存配置不进日志，操作有审计。这块具体看 `skyforge_llm/security/`。
 
 ---
 
-**版本**: v0.5.0
-**更新日期**: 2026-07-21
+v1.0.0，2026-07-21。

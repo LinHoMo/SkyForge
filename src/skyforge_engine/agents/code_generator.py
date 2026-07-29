@@ -159,7 +159,7 @@ class CodeGeneratorAgent:
             )
         return result
 
-    # ==================== 契约约束提取工具 ====================
+    # 契约约束提取工具
 
     @staticmethod
     def _extract_contract_constraints(contract: dict[str, Any]) -> dict[str, Any]:
@@ -2552,7 +2552,7 @@ uint8_t                 {module}_task_get_count(void);
 
 #endif /* {guard} */
 """
-    # ==================== C++ 代码生成模板 ====================
+    # C++ 代码生成模板
 
     def _gen_cpp_smart_pointer_code(self, req: dict[str, Any]) -> str:
         """生成 C++ 智能指针管理器代码（RAII 模式，unique_ptr/shared_ptr）。
@@ -3159,7 +3159,7 @@ private:
 }};
 """
 
-    # ==================== Python 代码生成模板 ====================
+    # Python 代码生成模板
 
     def _gen_python_safety_code(self, req: dict[str, Any]) -> str:
         """生成军工软件Python编程规范代码（类型标注、命名规范、模块结构）。

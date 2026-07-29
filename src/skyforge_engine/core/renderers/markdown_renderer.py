@@ -38,7 +38,7 @@ class MarkdownRenderer:
         """
         lines: list[str] = []
 
-        # ---- 封面 ----
+        # 封面
         requirement = data.get("requirement") or {}
         project_name = (
             requirement.get("module_name")
@@ -59,7 +59,7 @@ class MarkdownRenderer:
         lines.append(f"| 生成时间 | {now.strftime('%H:%M:%S')} |")
         lines.append("")
 
-        # ---- PSAC 摘要 ----
+        # PSAC 摘要
         try:
             psac = generate_psac(data)
             lines.append(psac.to_markdown())
@@ -71,7 +71,7 @@ class MarkdownRenderer:
             lines.append("PSAC 生成失败。")
             lines.append("")
 
-        # ---- DO-178C 目标符合性 ----
+        # DO-178C 目标符合性
         lines.append("## DO-178C 目标符合性表")
         lines.append("")
         try:
@@ -104,7 +104,7 @@ class MarkdownRenderer:
             lines.append("目标检查生成失败。")
             lines.append("")
 
-        # ---- 需求追溯矩阵 ----
+        # 需求追溯矩阵
         lines.append("## 需求追溯矩阵")
         lines.append("")
         try:
@@ -133,7 +133,7 @@ class MarkdownRenderer:
             lines.append("追溯矩阵生成失败。")
             lines.append("")
 
-        # ---- MISRA-C 合规摘要 ----
+        # MISRA-C 合规摘要
         lines.append("## MISRA-C 合规摘要")
         lines.append("")
         cppcheck_result = data.get("cppcheck_result", []) or []
@@ -144,7 +144,7 @@ class MarkdownRenderer:
         lines.append(f"- 最终残留违规: {len(final_violations)} 条")
         lines.append("")
 
-        # ---- 仿真结果 ----
+        # 仿真结果
         lines.append("## 数字孪生仿真结果")
         lines.append("")
         sim = data.get("simulation_result")
@@ -159,7 +159,7 @@ class MarkdownRenderer:
             lines.append("未执行数字孪生仿真。")
         lines.append("")
 
-        # ---- 签名页 ----
+        # 签名页
         lines.append("## 签名页")
         lines.append("")
         lines.append("| 角色 | 签名 | 日期 |")

@@ -13,7 +13,6 @@
 		"lab": "仿真实验室",
 		"compose": "组合验证",
 		"hitl": "HITL审查",
-		"anchor": "链上锚定",
 		"architecture": "文档中心",
 		"settings": "系统设置"
 	},
@@ -25,7 +24,6 @@
 		"compose": "组合验证",
 		"misra": "合规审计",
 		"hitl": "HITL审查",
-		"anchor": "链上锚定",
 		"architecture": "六层架构",
 		"compliance": "合规审计",
 		"settings": "系统设置"

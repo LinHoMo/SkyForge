@@ -159,9 +159,7 @@ class ComponentCombinator:
             connection=connection,
         )
 
-    # ------------------------------------------------------------------ #
     # C 代码组合
-    # ------------------------------------------------------------------ #
     def _generate_composed_code(
         self,
         code_a: str,
@@ -213,9 +211,7 @@ class ComponentCombinator:
             + wrapper
         )
 
-    # ------------------------------------------------------------------ #
     # 契约组合
-    # ------------------------------------------------------------------ #
     def _generate_composed_contract(
         self,
         contract_a: dict[str, Any],
@@ -294,9 +290,7 @@ class ComponentCombinator:
         return yaml.safe_dump(composed, allow_unicode=True, sort_keys=False)
 
 
-# ====================================================================== #
 # 模块级便捷函数
-# ====================================================================== #
 def compose(
     component_a_code: str,
     component_a_contract: str,
@@ -326,9 +320,7 @@ def compose(
     )
 
 
-# ====================================================================== #
 # 内部辅助函数
-# ====================================================================== #
 def _rename_filter_def(code: str, new_name: str) -> str:
     """把 C 代码中的 `double filter(double ...)` 函数定义重命名。
 
@@ -352,9 +344,7 @@ def _extract_section(contract: dict[str, Any], section: str) -> list[Any]:
     return contracts_block.get(section, []) or []
 
 
-# ====================================================================== #
 # wrapper C 代码模板
-# ====================================================================== #
 _SEQUENTIAL_WRAPPER = """\
 /* 顺序组合：A 的输出 → B 的输入 */
 double filter(double input) {

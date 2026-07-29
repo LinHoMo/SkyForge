@@ -51,9 +51,7 @@ def test_pipeline_sanitize_enabled_modifies_requirement():
     assert "v1.2.3-alpha" not in result.text
 
 
-# ---------------------------------------------------------------------------
 # Task 4.5: 严格模式集成测试（不再测试降级逻辑）
-# ---------------------------------------------------------------------------
 
 
 def _make_mock_pipeline_result() -> dict:

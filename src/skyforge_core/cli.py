@@ -271,7 +271,7 @@ def cmd_verify(args: argparse.Namespace) -> int:
     return 0 if overall != "failed" else 1
 
 
-# ---- 形式化验证辅助函数 ----
+# 形式化验证辅助函数
 
 def _build_verification_checks(verification) -> list[dict]:
     """将底层 VerificationResult 转换为结构化检查项列表。
@@ -405,7 +405,7 @@ def _print_check_line(check: dict) -> None:
             print(f"  └─ {line}")
 
 
-# ---- 工具函数 ----
+# 工具函数
 
 def _read_requirement(source: str) -> str:
     """读取需求：文件路径 或 直接文本。"""
@@ -464,7 +464,7 @@ def _safe_serialize(obj: object) -> dict:
     return result
 
 
-# ---- 主入口 ----
+# 主入口
 
 def main() -> int:
     """CLI 主入口。"""
@@ -486,7 +486,7 @@ def main() -> int:
 
     subparsers = parser.add_subparsers(dest="command", help="子命令")
 
-    # ---- generate ----
+    # generate
     gen = subparsers.add_parser("generate", help="从需求生成 DO-178C 合规代码")
     gen.add_argument("-r", "--requirement", required=True,
                      help="需求文本 或 需求文件路径")
@@ -503,12 +503,12 @@ def main() -> int:
     gen.add_argument("--fault", choices=["bias", "signal_loss", "noise", "stuck", "step"],
                      help="故障注入类型（需 --simulate）")
 
-    # ---- check ----
+    # check
     chk = subparsers.add_parser("check", help="校验代码 MISRA-C 合规性和契约一致性")
     chk.add_argument("-c", "--code", required=True, help="C 代码文件路径")
     chk.add_argument("-t", "--contract", help="契约 YAML 文件路径（可选）")
 
-    # ---- simulate ----
+    # simulate
     sim = subparsers.add_parser("simulate", help="运行数字孪生仿真")
     sim.add_argument("-c", "--code", required=True, help="C 代码文件路径")
     sim.add_argument("-t", "--contract", help="契约 YAML 文件路径")
@@ -517,14 +517,14 @@ def main() -> int:
     sim.add_argument("--steps", type=int, default=200, help="仿真步数（默认 200）")
     sim.add_argument("-o", "--output", help="波形 CSV 输出路径")
 
-    # ---- report ----
+    # report
     rpt = subparsers.add_parser("report", help="生成 DO-178C 合规报告")
     rpt.add_argument("-p", "--pipeline-result", required=True,
                      help="pipeline_result JSON 文件路径")
     rpt.add_argument("-o", "--output", default="report.html",
                      help="报告输出路径（默认 report.html）")
 
-    # ---- verify ----
+    # verify
     vfy = subparsers.add_parser(
         "verify",
         help="对契约执行形式化验证（Z3 SMT + CBMC 有界模型检查）",

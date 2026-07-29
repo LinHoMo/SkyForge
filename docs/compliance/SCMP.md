@@ -2,7 +2,7 @@
 
 > **文档标识**: SCMP-SKYFORGE-V1.0
 > **日期**: 2026-07-21
-> **状态**: 工程草案（比赛版）；不代表适航批准
+> **状态**: 工程草案；不代表适航批准
 > **DO-178C 章节**: §4.4
 
 ---
@@ -72,7 +72,7 @@ major: 重大架构变更
 minor: 功能新增
 patch: Bug 修复 / 文档更新
 
-示例: V0.5.0
+示例: V1.0
   major=0 (预发布)
   minor=5 (第 5 个功能增量)
   patch=0 (初始发布)
@@ -87,7 +87,7 @@ patch: Bug 修复 / 文档更新
 | 契约 | CON-NNN | CON-001 | 项目级 |
 | 测试 | TST-NNN | TST-001 | 项目级 |
 | 问题报告 | PR-YYYY-NNNN | PR-2026-0001 | 年度级 |
-| Git 版本 | vX.Y.Z | v0.5.0 | 项目级 |
+| Git 版本 | vX.Y.Z | v1.0.0 | 项目级 |
 
 ---
 
@@ -255,7 +255,7 @@ tmp/
 # docker-compose.yml
 services:
   backend:
-    image: skyforge-backend:v0.5.0
+    image: skyforge-backend:v1.0.0
   frontend:
-    image: skyforge-frontend:v0.5.0
+    image: skyforge-frontend:v1.0.0
 ```

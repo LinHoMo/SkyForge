@@ -71,7 +71,7 @@ def analyze_code_coverage(
             "decision_points": [...],
             "switch_cases": [...],
             "analyzed": bool,
-            "version": "V0.4-Real+Static",
+            "version": "V1.0-Real+Static",
             "method": "gcov" | "static_analysis",
         }
     """
@@ -82,7 +82,7 @@ def analyze_code_coverage(
         # 设定目标阈值
         targets = _get_targets_for_dal(dal)
 
-        # V0.4 P2: 优先尝试真实 gcov/lcov
+        # 优先尝试真实 gcov/lcov
         real_cov = None
         method = "static_analysis"
         if use_real_coverage:
@@ -126,7 +126,7 @@ def analyze_code_coverage(
             "decision_points": dp_enhanced,
             "switch_cases": cov.switch_cases,
             "analyzed": True,
-            "version": "V0.4-Real+Static",
+            "version": "V1.0-Real+Static",
             "method": method,
             "fault_injected": fault_injected,
             "dal": dal,
@@ -136,7 +136,7 @@ def analyze_code_coverage(
         result["_trend"] = _analyze_trend(result, targets)
 
         logger.info(
-            f"CoverageAnalyzer(V0.4):DAL={dal} method={method} "
+            f"CoverageAnalyzer(V1.0):DAL={dal} method={method} "
             f"语句={statement_cov}%/{targets['statement']}% "
             f"判定={decision_cov}%/{targets['decision']}% "
             f"MC/DC={mcdc_cov}%/{targets['mcdc']}%"
@@ -173,7 +173,7 @@ def get_coverage_summary(coverage_result: dict[str, Any]) -> str:
     )
 
 
-# ---- 内部函数 ----
+# 内部函数
 
 def _get_targets_for_dal(dal: str) -> dict[str, float]:
     """根据 DAL 等级返回目标覆盖率阈值。"""

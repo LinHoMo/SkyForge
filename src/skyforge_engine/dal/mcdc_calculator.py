@@ -165,7 +165,7 @@ class CoverageResult:
         }
 
 
-# ---- 判定识别正则 ----
+# 判定识别正则
 _DECISION_PATTERN = re.compile(
     r"\b(if|while|for)\s*\((.+?)\)\s*",
     re.DOTALL,
@@ -180,7 +180,7 @@ _CASE_PATTERN = re.compile(
     r"\bcase\s+(.+?)\s*:",
 )
 
-# ---- 条件拆分（V3.3: 括号感知）----
+# 条件拆分（V3.3: 括号感知）
 
 
 def _split_conditions(condition_str: str) -> list[str]:
@@ -304,7 +304,7 @@ def _generate_test_vectors(dp: DecisionPoint) -> list[str]:
     return vectors
 
 
-# ---- 主分析函数 ----
+# 主分析函数
 
 def analyze_coverage(code: str) -> CoverageResult:
     """分析 C 代码的覆盖率（V3.3 增强版）。

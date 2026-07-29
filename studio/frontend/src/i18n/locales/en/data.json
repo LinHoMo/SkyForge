@@ -83,9 +83,6 @@
 				"cloud": "Cloud API · Live/Replay",
 				"local": "Local Model · Live/Replay"
 			}
-		},
-		"anchor": {
-			"hashError": "Anchor hash must be 64 hex characters"
 		}
 	}
 }

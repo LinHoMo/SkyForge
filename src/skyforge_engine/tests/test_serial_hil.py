@@ -13,9 +13,7 @@ from skyforge_engine.digital_twin.hil_adapter_base import HILConfig, HILMode, HI
 from skyforge_engine.digital_twin.serial_hil import SerialHILAdapter
 
 
-# ---------------------------------------------------------------------------
 # CRC 校验测试
-# ---------------------------------------------------------------------------
 
 
 class TestCrc16Ccitt:
@@ -44,9 +42,7 @@ class TestCrc16Ccitt:
         assert crc != crc_corrupted
 
 
-# ---------------------------------------------------------------------------
 # 帧编码测试
-# ---------------------------------------------------------------------------
 
 
 class TestFrameEncoding:
@@ -156,9 +152,7 @@ class TestFrameEncoding:
         assert result is None
 
 
-# ---------------------------------------------------------------------------
 # 串口连接测试（mock serial.Serial）
-# ---------------------------------------------------------------------------
 
 
 class TestSerialConnection:
@@ -218,9 +212,7 @@ class TestSerialConnection:
         assert adapter.disconnect() is True
 
 
-# ---------------------------------------------------------------------------
 # flash / run 行为测试
-# ---------------------------------------------------------------------------
 
 
 class TestFlashAndRun:
@@ -368,9 +360,7 @@ class TestFlashAndRun:
         assert result.output_waveform == [1.5, 2.5, 3.5]
 
 
-# ---------------------------------------------------------------------------
 # 数据编解码测试
-# ---------------------------------------------------------------------------
 
 
 class TestDataEncoding:

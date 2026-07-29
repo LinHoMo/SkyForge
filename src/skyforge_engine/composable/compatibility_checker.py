@@ -157,9 +157,7 @@ class CompatibilityChecker:
             return self._check_parallel(contract_a, contract_b)
         return self._check_feedback(contract_a, contract_b)
 
-    # ------------------------------------------------------------------ #
     # 顺序组合：A 的输出 → B 的输入
-    # ------------------------------------------------------------------ #
     def _check_sequential(
         self, contract_a: dict[str, Any], contract_b: dict[str, Any]
     ) -> CompatibilityResult:
@@ -247,9 +245,7 @@ class CompatibilityChecker:
             connection="sequential",
         )
 
-    # ------------------------------------------------------------------ #
     # 并行组合：A 和 B 并行（共享输入）
-    # ------------------------------------------------------------------ #
     def _check_parallel(
         self, contract_a: dict[str, Any], contract_b: dict[str, Any]
     ) -> CompatibilityResult:
@@ -321,9 +317,7 @@ class CompatibilityChecker:
             connection="parallel",
         )
 
-    # ------------------------------------------------------------------ #
     # 反馈组合：B 的输出反馈到 A
-    # ------------------------------------------------------------------ #
     def _check_feedback(
         self, contract_a: dict[str, Any], contract_b: dict[str, Any]
     ) -> CompatibilityResult:
@@ -391,9 +385,7 @@ class CompatibilityChecker:
         )
 
 
-# ====================================================================== #
 # 模块级便捷函数
-# ====================================================================== #
 def check_compatibility(
     contract_a_yaml: str,
     contract_b_yaml: str,
@@ -413,9 +405,7 @@ def check_compatibility(
     return checker.check(contract_a_yaml, contract_b_yaml, connection)
 
 
-# ====================================================================== #
 # 辅助解析函数
-# ====================================================================== #
 def _extract_section(contract: dict[str, Any], section: str) -> list[Any]:
     """从契约字典提取指定 section，兼容两种 YAML 布局。
 

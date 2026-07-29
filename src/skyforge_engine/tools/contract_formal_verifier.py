@@ -53,7 +53,7 @@ from skyforge_engine.core.verifiers.contract_verifier import ContractVerifier as
 from skyforge_engine.core.protocols import VerificationResult as CoreVerificationResult
 
 
-# ==================== 数据类 ====================
+# 数据类
 
 @dataclass
 class VerificationResult:
@@ -99,7 +99,7 @@ class VerificationResult:
         }
 
 
-# ==================== Z3 约束验证器 ====================
+# Z3 约束验证器
 
 class Z3ContractVerifier:
     """基于 Z3 SMT Solver 的契约约束验证器。
@@ -370,7 +370,7 @@ class Z3ContractVerifier:
         return None
 
 
-# ==================== CBMC 验证器 ====================
+# CBMC 验证器
 
 class CbmcContractVerifier:
     """基于 CBMC 的契约有界模型检查。"""
@@ -526,7 +526,7 @@ class CbmcContractVerifier:
         return "\n".join(instrumented_lines)
 
 
-# ==================== 统一验证器 ====================
+# 统一验证器
 
 class ContractFormalVerifier:
     """契约形式化验证统一入口。
@@ -645,7 +645,7 @@ class ContractFormalVerifier:
         return result.is_consistent
 
 
-# ==================== 便捷函数 ====================
+# 便捷函数
 
 _verifier_instance: Optional[ContractFormalVerifier] = None
 

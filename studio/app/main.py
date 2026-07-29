@@ -30,7 +30,6 @@ from app.api.routes import dashboard as dashboard_router
 from app.api.routes import tasks_v1 as tasks_v1_router
 from app.api.routes import tools as tools_router
 from app.api.routes import provenance as provenance_router
-from app.api.routes import evidence as evidence_router
 from app.config.setting import settings
 from app.core.llm.local_llm_client import get_lmstudio_client
 from skyforge_engine.utils.log_util import logger
@@ -194,7 +193,7 @@ atexit.register(_atexit_close_redis)
 app = FastAPI(
     title="SkyForge",
     description="SkyForge (天锻) - AI智能体驱动的机载软件轻量化开发工具",
-    version="0.1.0",
+    version = "1.0.0",
     lifespan=lifespan,
 )
 
@@ -225,7 +224,6 @@ app.include_router(dashboard_router.router)
 app.include_router(tasks_v1_router.router)
 app.include_router(tools_router.router)
 app.include_router(provenance_router.router)
-app.include_router(evidence_router.router)
 
 
 @app.get("/", include_in_schema=False)

@@ -286,7 +286,7 @@ pre {{ background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; o
 <h1>SkyForge (天锻)</h1>
 <div class="meta">
   DO-178C DAL-A 航空机载软件工程平台 &mdash; AI 多智能体驱动<br>
-  版本: v0.5.1 | 日期: {now} | 环境: {platform.system()} + GCC 16.1.0 + DeepSeek API
+  版本: v1.0.0 | 日期: {now} | 环境: {platform.system()} + GCC 16.1.0 + DeepSeek API
 </div>
 
 <h2>1. 全 Pipeline 运行状态</h2>
@@ -348,7 +348,7 @@ pre {{ background: #1e293b; color: #e2e8f0; padding: 15px; border-radius: 8px; o
 </table>
 
 <div class="footer">
-  SkyForge v0.5.1 | DO-178C DAL-A 航空软件工程平台 | {now}<br>
+  SkyForge v1.0.0 | DO-178C DAL-A 航空软件工程平台 | {now}<br>
   后端: Python 3.13 | 前端: Vue 3 + TypeScript | Pipeline: 12 Stage × 3 语言
 </div>
 

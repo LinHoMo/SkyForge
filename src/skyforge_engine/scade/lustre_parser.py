@@ -274,7 +274,7 @@ def _extract_range_annotations(content: str) -> dict[str, list[float]]:
     return range_map
 
 
-# ==================== 增强的解析功能 ====================
+# 增强的解析功能
 
 def parse_glustre_with_ast(content: str):
     """解析 G-Lustre 文件并返回完整的 AST。
@@ -321,7 +321,7 @@ def get_ast_statistics(program) -> dict:
     return get_stats(program)
 
 
-# ==================== 导出 ====================
+# 导出
 
 __all__ = [
     'parse_glustre',

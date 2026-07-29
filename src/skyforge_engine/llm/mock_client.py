@@ -163,7 +163,7 @@ contracts:
             data = {}
         module_name = data.get("module_name", "module")
 
-        # V0.5.1: MISRA-C:2012 合规代码 — 消除 12.1/15.5/8.9 违规
+        # MISRA-C:2012 合规代码 — 消除 12.1/15.5/8.9 违规
         return f"""/*
  * [REQ-001] {module_name} 模块
  * DO-178C DAL-C 目标代码（自动生成）

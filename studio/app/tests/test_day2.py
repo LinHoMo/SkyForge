@@ -82,7 +82,13 @@ class TestRepairLoop(unittest.TestCase):
         此时使用 mock 扫描来验证修复闭环逻辑。如果真实 Cppcheck 无法找到
         违规（如 Windows 上 std.cfg 缺失），则 repair_history 为空。
         """
-        initial = cppcheck_scan(DIRTY_CODE)
+        try:
+            initial = cppcheck_scan(DIRTY_CODE)
+        except RuntimeError:
+            # 真实 Cppcheck 模式下系统未安装 cppcheck 时 scan() 会抛 RuntimeError
+            # （见 cppcheck_scanner.scan_with_result 文档约定）。按本用例既定降级
+            # 策略回退到 mock 扫描，验证修复闭环逻辑本身。
+            initial = []
         # 如果真实 Cppcheck 未找到违规（Windows MISRA addon 问题），使用 mock 扫描
         if len(initial) == 0:
             from skyforge_engine.tools.cppcheck_scanner import _mock_scan

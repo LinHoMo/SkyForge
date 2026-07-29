@@ -50,7 +50,7 @@ from typing import Any, Optional
 from skyforge_engine.utils.log_util import logger
 
 
-# ==================== 证据条目数据类 ====================
+# 证据条目数据类
 
 @dataclass
 class EvidenceItem:
@@ -83,13 +83,13 @@ class EvidenceSession:
     session_id: str
     start_time: str
     end_time: str = ""
-    pipeline_version: str = "v0.4"
+    pipeline_version: str = "v1.0"
     status: str = "running"  # running | completed | failed
     items: list[EvidenceItem] = field(default_factory=list)
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
-# ==================== 核心证据收集器 ====================
+# 核心证据收集器
 
 class EvidenceCollector:
     """DO-178C 合规证据自动收集器。
@@ -113,9 +113,9 @@ class EvidenceCollector:
         self._session: Optional[EvidenceSession] = None
         self._item_counter: int = 0
 
-    # ==================== 会话管理 ====================
+    # 会话管理
 
-    def start_session(self, pipeline_version: str = "v0.4") -> str:
+    def start_session(self, pipeline_version: str = "v1.0") -> str:
         """开始新的证据收集会话。
 
         Returns:
@@ -149,7 +149,7 @@ class EvidenceCollector:
     def active(self) -> bool:
         return self._session is not None and self._session.status == "running"
 
-    # ==================== 证据记录方法 ====================
+    # 证据记录方法
 
     def record_requirement_parsed(self, req_json: dict[str, Any]) -> EvidenceItem:
         """记录需求解析证据 (DO-178C A-7.6 需求可追溯性)。
@@ -686,7 +686,7 @@ class EvidenceCollector:
             },
         )
 
-    # ==================== 证据包生成 ====================
+    # 证据包生成
 
     def generate_package(self) -> str:
         """生成完整的 DO-178C 合规证据包。
@@ -1067,7 +1067,7 @@ class EvidenceCollector:
             data=coupling_result,
         )
 
-    # ==================== 内部方法 ====================
+    # 内部方法
 
     def _add_item(
         self,
@@ -1103,7 +1103,7 @@ class EvidenceCollector:
         return item
 
 
-# ==================== 全局实例 ====================
+# 全局实例
 
 _collector_instance: Optional[EvidenceCollector] = None
 
