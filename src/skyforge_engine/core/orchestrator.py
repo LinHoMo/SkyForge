@@ -29,15 +29,7 @@ class PipelineOrchestrator:
         initial_artifact: Any,
         context: dict[str, Any] | None = None,
     ) -> list[StageResult]:
-        """执行所有 Stage，返回结果列表。
-
-        Args:
-            initial_artifact: 初始产物。
-            context: 执行上下文。
-
-        Returns:
-            每个 Stage 的 StageResult 列表。
-        """
+        """执行所有 Stage，返回结果列表。"""
         context = context or {}
         artifact = initial_artifact
         results: list[StageResult] = []

@@ -166,19 +166,7 @@ class FaultInjector:
         fault_type: str,
         params: dict[str, Any] | None,
     ) -> np.ndarray:
-        """注入故障到传感器数据。
-
-        Args:
-            data: 原始正常数据数组。
-            fault_type: 故障类型（bias/signal_loss/noise/stuck/step）。
-            params: 故障参数字典。
-
-        Returns:
-            注入故障后的新数组。
-
-        Raises:
-            ValueError: 故障类型不支持或参数非法。
-        """
+        """注入故障到传感器数据。"""
         if not self.validate_params(fault_type, params or {}):
             raise ValueError(
                 f"故障参数校验失败: fault_type={fault_type} params={params}"
@@ -187,11 +175,7 @@ class FaultInjector:
         return self.sensor.inject_fault(data, fault_type, params or {})
 
     def get_fault_types(self) -> list[dict[str, Any]]:
-        """返回 5 类故障的描述和默认参数。
-
-        Returns:
-            故障类型信息列表，每项含 type/name/desc/default_params/params_schema。
-        """
+        """返回 5 类故障的描述和默认参数。"""
         return [
             {
                 "type": info["type"],
@@ -204,15 +188,7 @@ class FaultInjector:
         ]
 
     def validate_params(self, fault_type: str, params: dict[str, Any]) -> bool:
-        """验证故障参数合法性。
-
-        Args:
-            fault_type: 故障类型。
-            params: 故障参数字典。
-
-        Returns:
-            True 表示参数合法。
-        """
+        """验证故障参数合法性。"""
         info = next((i for i in FAULT_TYPES_INFO if i["type"] == fault_type), None)
         if info is None:
             logger.warning(f"FaultInjector:未知故障类型 {fault_type}")

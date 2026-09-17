@@ -66,6 +66,10 @@ class TaskEvent(Base):
     agent: Mapped[str] = mapped_column(String(32), default="SYSTEM")
     message: Mapped[str] = mapped_column(Text)
     evidence_status: Mapped[str] = mapped_column(String(16), default="observed")
+    # 修复轮次指示（仅 misra 阶段事件有值，其余阶段为 NULL）：
+    # round_number 当前是第几轮修复（1-based），remaining_violations 当前剩余违规数。
+    round_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    remaining_violations: Mapped[int | None] = mapped_column(Integer, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(timezone.utc)
     )

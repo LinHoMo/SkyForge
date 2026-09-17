@@ -48,15 +48,7 @@ def verify_contract_constraints(
     """验证契约约束是否一致。
 
     .. deprecated::
-        使用 ``Z3Verifier().verify(preconditions=..., postconditions=...)`` 替代。
-
-    Args:
-        preconditions: 前置条件列表 [{expr, domain}, ...]
-        postconditions: 后置条件列表 [{expr, expected}, ...]
-        invariants: 不变式列表
-
-    Returns:
-        Z3Result: 约束验证结果。
+    使用 ``Z3Verifier().verify(preconditions=..., postconditions=...)`` 替代。
     """
     warnings.warn(
         "verify_contract_constraints is deprecated, use Z3Verifier instead",
@@ -138,15 +130,7 @@ def generate_boundary_test_cases(
     """基于约束求解生成边界测试用例。
 
     .. deprecated::
-        使用 ``Z3Verifier`` 的边界测试生成能力替代。
-
-    Args:
-        variable: 变量名。
-        domain: (min, max) 范围。
-        constraints: 额外约束表达式。
-
-    Returns:
-        测试用例列表 [{variable: value}, ...]。
+    使用 ``Z3Verifier`` 的边界测试生成能力替代。
     """
     warnings.warn(
         "generate_boundary_test_cases is deprecated, use Z3Verifier instead",
@@ -199,15 +183,7 @@ def check_component_compatibility_z3(
     """用 Z3 验证组件输入/输出兼容性。
 
     .. deprecated::
-        使用 ``Z3Verifier`` 替代。
-
-    Args:
-        input_range: 输入范围 (min, max)。
-        output_range: 输出范围 (min, max)。
-        gain: 增益系数。
-
-    Returns:
-        兼容性结果字典。
+    使用 ``Z3Verifier`` 替代。
     """
     warnings.warn(
         "check_component_compatibility_z3 is deprecated, use Z3Verifier instead",

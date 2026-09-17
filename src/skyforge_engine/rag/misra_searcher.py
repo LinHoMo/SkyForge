@@ -91,12 +91,6 @@ def _tokenize(query: str) -> list[str]:
     - 规则 ID 形如 "Rule 8.1" / "Dir 4.1" / "8.1" 单独保留
     - 转小写
     - 去除停用词
-
-    Args:
-        query: 用户查询字符串。
-
-    Returns:
-        关键词 token 列表（去重）。
     """
     if not query:
         return []
@@ -160,12 +154,6 @@ def _compute_idf(rules: list[MisraRule]) -> dict[str, float]:
 
     IDF(token) = log(N / (1 + df(token)))
     其中 N 是规则总数，df(token) 是包含该 token 的规则数。
-
-    Args:
-        rules: MisraRule 列表。
-
-    Returns:
-        {token: idf_value} 字典。
     """
     n = len(rules)
     if n == 0:
@@ -190,14 +178,6 @@ def _score_rule(
     """对单条规则与查询关键词的相关性打分。
 
     打分公式：sum(token_score * field_weight * idf) + severity_weight + rule_id_bonus
-
-    Args:
-        rule: 待评分的规则。
-        query_tokens: 查询关键词列表。
-        idf: token → IDF 字典。
-
-    Returns:
-        相关性得分（越高越相关）。
     """
     if not query_tokens:
         return 0.0
@@ -250,11 +230,7 @@ class MisraRuleSearcher:
     _idf: dict[str, float]
 
     def __init__(self, rules_path: Optional[str] = None) -> None:
-        """初始化检索引擎，加载并解析 misra_rules.txt。
-
-        Args:
-            rules_path: misra_rules.txt 路径。默认使用模块内 data 目录下的文件。
-        """
+        """初始化检索引擎，加载并解析 misra_rules.txt。"""
         path = rules_path or _DEFAULT_RULES_PATH
         if not os.path.exists(path):
             logger.error(f"MisraRuleSearcher:规则文件不存在: {path}")
@@ -290,13 +266,6 @@ class MisraRuleSearcher:
         - "函数声明"：中文关键词匹配
         - "动态内存" / "malloc"：动态内存相关规则
         - "隐式转换"：表达式相关规则
-
-        Args:
-            query: 查询字符串。
-            top_k: 返回最多 top_k 条规则。
-
-        Returns:
-            相关性排序后的 MisraRule 列表（最多 top_k 条）。
         """
         if not self._rules:
             return []
@@ -322,12 +291,6 @@ class MisraRuleSearcher:
         - "rule 8.1" / "RULE 8.1"（大小写不敏感）
         - "8.1"（仅规则号，会自动匹配 Rule/Dir）
         - "MISRA-C:2012-Rule-8.1"（带前缀的格式）
-
-        Args:
-            rule_id: 规则 ID。
-
-        Returns:
-            MisraRule 或 None（未找到时）。
         """
         if not rule_id:
             return None
@@ -360,16 +323,7 @@ class MisraRuleSearcher:
         return list(self._rules)
 
     def get_rules_by_category(self, category: str) -> list[MisraRule]:
-        """按分类检索规则。
-
-        Args:
-            category: 分类名称（type/memory/control/expression/declaration/
-                preprocessor/std_library/identifier/comments/lexical/
-                environment/unused_code/constant/other）。
-
-        Returns:
-            该分类下的所有规则。
-        """
+        """按分类检索规则。"""
         if not category:
             return []
         category_lower = category.lower().strip()

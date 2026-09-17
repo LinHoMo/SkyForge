@@ -118,20 +118,7 @@ class LLRGeneratorAgent:
         safety_level: str = "DAL-C",
         module_name: str = "",
     ) -> dict[str, Any]:
-        """从 HLR 列表生成 LLR 列表。
-
-        Args:
-            hlr_list: HLR 列表，每项含 req_id / desc / type 等字段。
-                如 [{"req_id": "REQ-001", "desc": "低通滤波", "type": "functional"}]
-            safety_level: DAL 等级（A-E）。
-            module_name: 模块名称。
-
-        Returns:
-            LLR 结果字典，含 hlr_count / llr_count / llrs 字段。
-
-        Raises:
-            RuntimeError: LLM 生成失败。
-        """
+        """从 HLR 列表生成 LLR 列表。"""
         if not hlr_list:
             logger.warning("LLRGenerator:HLR 列表为空，跳过生成")
             return {

@@ -64,13 +64,29 @@ const props = withDefaults(defineProps<Props>(), {
 });
 const executionStore = useExecutionStore();
 
-/**
- * complete 事件：仅在非 mock 模式下，WebSocket 收到 `level: "complete"` 消息时触发，
- * 透传后端返回的 `{ result, degraded }` payload，供父组件（Generate.vue）实现
- * HTTP 与 WebSocket 双通道汇合门控（SkyForge Spec 修复 A Task 4）。
- */
 const emit =
-	defineEmits<(e: "complete", payload?: StreamCompletePayload) => void>();
+	defineEmits<{
+		/**
+		 * complete 事件：仅在非 mock 模式下，WebSocket 收到 `level: "complete"` 消息时触发，
+		 * 透传后端返回的 `{ result, degraded }` payload，供父组件（Generate.vue）实现
+		 * HTTP 与 WebSocket 双通道汇合门控（SkyForge Spec 修复 A Task 4）。
+		 */
+		(e: "complete", payload?: StreamCompletePayload): void;
+		/**
+		 * stage 事件：每推入一条日志时，把当前阶段标识透传给父组件。
+		 * 优先取后端 V1 消息的 `stage` 字段，缺省回退到 `agent` 字段。
+		 * 父组件据此推进 pipeline 阶段进度条（8 阶段）。
+		 */
+		(e: "stage", stage: string): void;
+		/**
+		 * repair 事件：MISRA 修复阶段日志带 round_number / remaining_violations 时
+		 * 透传给父组件，用于"第 N 轮 / 剩余 N 违规"指示。
+		 */
+		(
+			e: "repair",
+			payload: { round_number?: number; remaining_violations?: number },
+		): void;
+	}>();
 
 interface RenderedLog {
 	ts: number;
@@ -92,16 +108,17 @@ const virtualizer = useVirtualizer({
 	overscan: 20,
 });
 
-// 监听 logs 变化更新虚拟滚动
+// 监听日志条数变化更新虚拟滚动。
+// 只监听 length（push/shift 时变化），不做 deep watch：
+// 打字机效果每 20ms 改写 visibleText/done，deep watch 会随每个字符触发一次 setOptions。
 watch(
-	logs,
+	() => logs.value.length,
 	() => {
 		virtualizer.value.setOptions({
 			...virtualizer.value.options,
 			count: logs.value.length,
 		});
 	},
-	{ deep: true },
 );
 
 let typingIndex = -1;
@@ -127,6 +144,15 @@ const pushLog = (log: AgentLog) => {
 		done: false,
 	};
 	logs.value.push(newLog);
+	// 透传阶段标识给父组件，驱动 pipeline 阶段进度条（优先 stage 字段，回退 agent）
+	emit("stage", log.stage ?? log.agent);
+	// 透传修复轮次指示（仅 misra 阶段事件带 round_number/remaining_violations）
+	if (log.round_number !== undefined || log.remaining_violations !== undefined) {
+		emit("repair", {
+			round_number: log.round_number,
+			remaining_violations: log.remaining_violations,
+		});
+	}
 	typingIndex = logs.value.length - 1;
 	startTyping();
 	scrollToBottom();

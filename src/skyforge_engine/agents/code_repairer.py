@@ -90,18 +90,7 @@ class CodeRepairerAgent:
         req_id: str = "REQ-001",
         log_hook: Callable[[str, str, str], Any] | None = None,
     ) -> RepairResult:
-        """根据违规列表修复 C 代码。
-
-        Args:
-            code: 原 C 代码字符串。
-            violations: scan() 返回的违规列表。
-            req_id: 关联的 [REQ-xxx] 追溯 Tag。
-            log_hook: 可选的流式推送回调 (agent_name, level, message)，
-                支持 sync / async / None。用于推送安全校验告警。
-
-        Returns:
-            RepairResult（含修复后代码 + 修复说明列表）。
-        """
+        """根据违规列表修复 C 代码。"""
         if not violations:
             logger.info("CodeRepairerAgent:无违规，跳过修复")
             return RepairResult(code=code, actions=[])
@@ -201,12 +190,6 @@ class CodeRepairerAgent:
 
         遍历违规规则 ID，从 MISRA 知识库检索规则详情，注入到修复 prompt。
         静态红线规则 + 动态检索规则 + 去重（参考文档 1.6.4 节）。
-
-        Args:
-            violations: 违规列表。
-
-        Returns:
-            MISRA 规则上下文文本（无可用规则时返回空字符串）。
         """
         try:
             searcher = MisraRuleSearcher.get_instance()

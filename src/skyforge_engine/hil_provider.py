@@ -62,21 +62,13 @@ _provider: HILManagerProvider = _default_provider
 
 
 def set_hil_manager_provider(provider: HILManagerProvider) -> None:
-    """注入 HIL 管理器 provider（由 L3 启动时调用）。
-
-    Args:
-        provider: 零参函数，返回 HIL 管理器实例。
-    """
+    """注入 HIL 管理器 provider（由 L3 启动时调用）。"""
     global _provider
     _provider = provider
 
 
 def get_hil_manager() -> HILManagerProtocol:
-    """获取 HIL 管理器（通过当前 provider）。
-
-    Returns:
-        HIL 管理器实例（默认为空实现，L3 注入后为真实管理器）。
-    """
+    """获取 HIL 管理器（通过当前 provider）。"""
     return _provider()
 
 

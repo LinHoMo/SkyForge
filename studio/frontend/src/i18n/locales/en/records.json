@@ -18,7 +18,8 @@
 		"empty": {
 			"title": "No run records for the current source",
 			"desc": "Run records will appear here after a code generation task completes.",
-			"noMatch": "No matching tasks"
+			"noMatch": "No matching tasks",
+			"cta": "Create a task"
 		},
 		"placeholder": {
 			"search": "Search by requirement text…"

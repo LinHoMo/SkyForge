@@ -118,19 +118,7 @@ def collect_coverage(
     code: str,
     test_inputs: list[float] | None = None,
 ) -> GcovCoverageResult:
-    """收集代码覆盖率（严格模式：仅支持真实 gcov）。
-
-    Args:
-        code: C 源代码。
-        test_inputs: 测试输入向量（用于执行插桩代码）。
-
-    Returns:
-        GcovCoverageResult: 覆盖率结果。
-
-    Raises:
-        ToolNotFoundError: 真实覆盖率被禁用，或 GCC 不可用/版本不足。
-        RuntimeError: 编译或覆盖率收集过程中发生错误。
-    """
+    """收集代码覆盖率（严格模式：仅支持真实 gcov）。"""
     if not _is_real_enabled():
         raise ToolNotFoundError(
             "真实覆盖率已显式禁用 (USE_REAL_COVERAGE=false)，且降级策略已被移除"
@@ -214,17 +202,11 @@ def _parse_gcov_dump_mcdc(gcda_path: str) -> dict[str, int]:
 
     gcov-dump -l 输出格式::
 
-        01b10000:  16:COUNTERS conditions 2 counts
-                          0: 3 3
+    01b10000:  16:COUNTERS conditions 2 counts
+    0: 3 3
 
     其中每个计数器值为掩码（bit 0 = false observed, bit 1 = true observed），
     一个条件『被覆盖』当且仅当掩码值同时设置了 bit 0 和 bit 1（value & 3 == 3）。
-
-    Args:
-        gcda_path: .gcda 文件的绝对路径。
-
-    Returns:
-        dict: {"conditions_total": int, "conditions_covered": int}
     """
     import shutil as _shutil
 
@@ -354,10 +336,6 @@ def _parse_lcov_info(info_content: str) -> dict:
     - BRDA: 分支详情
     - FNF/FNH: 函数覆盖
     - MCDC: MC/DC 条件覆盖
-
-    Returns:
-        dict: 包含 lines_total, lines_executed, branches_total, branches_taken,
-              conditions_covered, conditions_total, mcdc_conditions 字典。
     """
     lines_total = 0
     lines_executed = 0
@@ -709,9 +687,6 @@ def _collect_from_gcov(code: str, test_inputs: list[float], lcov_path: str | Non
     3. 执行: 运行测试二进制
     4. 收集: gcov JSON 格式（首选）或 lcov（可选）
     5. MC/DC: gcov-dump -l 解析 .gcda 条件覆盖率
-
-    Raises:
-        RuntimeError: GCC 编译失败或覆盖率收集失败。
     """
     if not test_inputs:
         test_inputs = _generate_default_inputs(code)

@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 import { i18n } from "@/i18n";
+import { API_BASE_URL } from "@/services/client";
 
 export interface ToolchainTool {
 	name: string;
@@ -38,7 +39,7 @@ export const useToolchainStore = defineStore("toolchain", () => {
 		loading.value = true;
 		error.value = null;
 		try {
-			const res = await fetch("/api/tools/registry");
+			const res = await fetch(`${API_BASE_URL}/api/tools/registry`);
 			if (res.ok) {
 				tools.value = await res.json();
 			} else {
@@ -81,7 +82,7 @@ export const useToolchainStore = defineStore("toolchain", () => {
 		toolName: string,
 	): Promise<Record<string, string>> {
 		try {
-			const res = await fetch(`/api/tools/${toolName}/install-hint`);
+			const res = await fetch(`${API_BASE_URL}/api/tools/${toolName}/install-hint`);
 			if (res.ok) {
 				const data = await res.json();
 				return data.hints || {};

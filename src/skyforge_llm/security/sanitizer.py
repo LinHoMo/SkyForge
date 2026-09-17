@@ -31,18 +31,11 @@ def sanitize_input(prompt: str) -> SanitizedPrompt:
     """净化输入文本，脱敏敏感信息。
 
     规则执行顺序（先后顺序很重要）：
-      1. 移除 C 代码注释（/* */ 与 //），避免注释中的内容被后续规则误脱敏
-      2. 脱敏文件路径（/home/user、/Users/user、C:\\Users\\user）
-      3. 脱敏硬件寄存器地址（0xXXXXXXXX，8 位十六进制）
-      4. 脱敏版本号（vX.Y.Z-suffix）
-      5. 脱敏项目内部代号（SkyForge / skyforge / 天锻）
-
-    Args:
-        prompt: 原始输入文本
-
-    Returns:
-        SanitizedPrompt，包含净化后文本与脱敏映射表（用于还原）。
-        mapping 字典记录所有 原始敏感信息 → 占位符 的对应关系。
+    1. 移除 C 代码注释（/* */ 与 //），避免注释中的内容被后续规则误脱敏
+    2. 脱敏文件路径（/home/user、/Users/user、C:\\Users\\user）
+    3. 脱敏硬件寄存器地址（0xXXXXXXXX，8 位十六进制）
+    4. 脱敏版本号（vX.Y.Z-suffix）
+    5. 脱敏项目内部代号（SkyForge / skyforge / 天锻）
     """
     mapping: dict[str, str] = {}
     reverse: dict[str, str] = {}  # 原始值 → 占位符（用于去重，确保相同输入映射到同一占位符）

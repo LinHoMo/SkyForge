@@ -109,18 +109,7 @@ def design_architecture(
     safety_level: str = "DAL-C",
     strategy=None,
 ) -> ArchitectureResult:
-    """根据 HLR + LLR 生成软件架构设计。
-
-    Args:
-        hlr_list: 高层需求列表。
-        llr_list: 低层需求列表（可选）。
-        module_name: 模块名称。
-        safety_level: DAL 安全等级。
-        strategy: 可选的执行策略。
-
-    Returns:
-        ArchitectureResult: 架构设计结果。
-    """
+    """根据 HLR + LLR 生成软件架构设计。"""
     if strategy is None:
         from skyforge_engine.core.strategies import get_strategy_for_mode
         strategy = get_strategy_for_mode()

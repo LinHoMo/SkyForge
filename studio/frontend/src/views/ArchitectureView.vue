@@ -19,7 +19,7 @@ import {
 	Wrench,
 } from "@lucide/vue";
 import type { Component } from "vue";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import { Badge } from "@/components/ui/badge";
@@ -572,6 +572,228 @@ function backToHome() {
 function navigateTo(route: string) {
 	router.push(route);
 }
+
+// ==================== P0-5: 需求-代码-测试追溯链可视化 ====================
+
+interface TraceNode {
+	id: string;
+	label: string;
+	type: "req" | "con" | "code" | "tst";
+	status: "covered" | "partial" | "uncovered" | "verified" | "failed";
+	detail: string;
+	children?: TraceNode[];
+}
+
+const traceTree: TraceNode[] = [
+	{
+		id: "REQ-001",
+		label: "低通滤波器设计",
+		type: "req",
+		status: "covered",
+		detail: "一阶 IIR 低通滤波器，截止频率 10Hz",
+		children: [
+			{
+				id: "CON-001",
+				label: "lowpass_filter 契约",
+				type: "con",
+				status: "covered",
+				detail: "前置/后置条件 + 不变式 + 故障处理",
+				children: [
+					{
+						id: "CODE-lowpass",
+						label: "lowpass.c — filter_apply()",
+						type: "code",
+						status: "covered",
+						detail: "87 行 C 代码",
+						children: [
+							{
+								id: "TST-unit-lowpass",
+								label: "lowpass_test.c — 单元测试",
+								type: "tst",
+								status: "verified",
+								detail: "12 个测试用例全部通过",
+							},
+						],
+					},
+					{
+						id: "TST-z3-con001",
+						label: "Z3 形式化证明",
+						type: "tst",
+						status: "verified",
+						detail: "5 个属性全部 Valid",
+					},
+				],
+			},
+			{
+				id: "CON-002",
+				label: "filter_init 契约",
+				type: "con",
+				status: "partial",
+				detail: "初始化参数校验 + 内存分配",
+				children: [
+					{
+						id: "CODE-init",
+						label: "filter_init.c",
+						type: "code",
+						status: "covered",
+						detail: "43 行 C 代码",
+						children: [
+							{
+								id: "TST-init",
+								label: "init_test.c — 单元测试",
+								type: "tst",
+								status: "failed",
+								detail: "1 个用例失败：空指针输入",
+							},
+						],
+					},
+					{
+						id: "TST-cbmc-con002",
+						label: "CBMC 有界模型检查",
+						type: "tst",
+						status: "failed",
+						detail: "展开深度 100 发现整数溢出",
+					},
+				],
+			},
+		],
+	},
+	{
+		id: "REQ-002",
+		label: "输入范围校验",
+		type: "req",
+		status: "covered",
+		detail: "uint16 范围 [0, 65535] 输入钳位",
+		children: [
+			{
+				id: "CON-003",
+				label: "input_range_check 契约",
+				type: "con",
+				status: "covered",
+				detail: "输入越界钳位到合法范围",
+				children: [
+					{
+						id: "CODE-buffer",
+						label: "buffer.c — clamp_input()",
+						type: "code",
+						status: "uncovered",
+						detail: "MISRA Rule 18.1 未修复",
+						children: [
+							{
+								id: "TST-buffer",
+								label: "buffer_test.c — 边界测试",
+								type: "tst",
+								status: "verified",
+								detail: "5 个边界用例全部通过",
+							},
+						],
+					},
+				],
+			},
+			{
+				id: "CON-004",
+				label: "fault_hold 契约",
+				type: "con",
+				status: "partial",
+				detail: "采样率为 0 时保持上一拍输出",
+				children: [
+					{
+						id: "CODE-fault",
+						label: "fault_handler.c",
+						type: "code",
+						status: "covered",
+						detail: "28 行 C 代码",
+						children: [
+							{
+								id: "TST-fault",
+								label: "fault_inject_test.c",
+								type: "tst",
+								status: "verified",
+								detail: "故障注入仿真通过",
+							},
+						],
+					},
+				],
+			},
+		],
+	},
+	{
+		id: "REQ-003",
+		label: "输出单调性保证",
+		type: "req",
+		status: "uncovered",
+		detail: "滤波后输出单调不超过输入",
+		children: [
+			{
+				id: "CON-005",
+				label: "monotonicity 契约",
+				type: "con",
+				status: "uncovered",
+				detail: "尚未生成后置条件断言",
+			},
+		],
+	},
+];
+
+interface FlatRow {
+	node: TraceNode;
+	depth: number;
+	hasChildren: boolean;
+}
+
+const expandedNodes = ref<Set<string>>(new Set(["REQ-001", "REQ-002"]));
+
+function flattenTree(nodes: TraceNode[], depth = 0): FlatRow[] {
+	const rows: FlatRow[] = [];
+	for (const node of nodes) {
+		const hasChildren = !!node.children && node.children.length > 0;
+		rows.push({ node, depth, hasChildren });
+		if (hasChildren && expandedNodes.value.has(node.id)) {
+			rows.push(...flattenTree(node.children!, depth + 1));
+		}
+	}
+	return rows;
+}
+
+const flatTraceRows = computed<FlatRow[]>(() => flattenTree(traceTree));
+
+function toggleTraceNode(id: string) {
+	const set = new Set(expandedNodes.value);
+	if (set.has(id)) {
+		set.delete(id);
+	} else {
+		set.add(id);
+	}
+	expandedNodes.value = set;
+}
+
+function expandAllTrace() {
+	const all = new Set<string>();
+	const collect = (nodes: TraceNode[]) => {
+		for (const n of nodes) {
+			if (n.children?.length) {
+				all.add(n.id);
+				collect(n.children);
+			}
+		}
+	};
+	collect(traceTree);
+	expandedNodes.value = all;
+}
+
+function collapseAllTrace() {
+	expandedNodes.value = new Set();
+}
+
+const traceTypeLabel = (type: string) => t(`architecture.traceability.types.${type}`);
+const traceStatusLabel = (status: string) => t(`architecture.traceability.status.${status}`);
+
+const traceStatusBadge = (status: string): "success" | "destructive" | "warning" | "secondary" => {
+	if (status === "covered" || status === "verified") return "success";
+	if (status === "failed") return "destructive";
+	if (status === "partial") return "warning";
+	return "secondary";
+};
 </script>
 
 <template>
@@ -620,6 +842,10 @@ function navigateTo(route: string) {
 					<TabsTrigger value="standards">
 						<ShieldCheck :size="16" class="mr-2" />
 						{{ t("architecture.tabs.standards") }}
+					</TabsTrigger>
+					<TabsTrigger value="traceability">
+						<BookOpen :size="16" class="mr-2" />
+						{{ t("architecture.tabs.traceability") }}
 					</TabsTrigger>
 				</TabsList>
 
@@ -1092,6 +1318,90 @@ sh start.sh
 							</Card>
 						</div>
 					</div>
+				</TabsContent>
+
+				<TabsContent value="traceability" class="mt-0">
+					<Card>
+						<CardHeader>
+							<div class="flex items-start justify-between gap-3 flex-wrap">
+								<div>
+									<CardTitle class="flex items-center gap-2">
+										<BookOpen :size="20" class="text-primary" />
+										{{ t("architecture.traceability.title") }}
+									</CardTitle>
+									<CardDescription class="mt-1">
+										{{ t("architecture.traceability.description") }}
+									</CardDescription>
+								</div>
+								<div class="flex gap-2">
+									<Button size="sm" variant="outline" @click="expandAllTrace">
+										{{ t("architecture.traceability.expandAll") }}
+									</Button>
+									<Button size="sm" variant="outline" @click="collapseAllTrace">
+										{{ t("architecture.traceability.collapseAll") }}
+									</Button>
+								</div>
+							</div>
+						</CardHeader>
+						<CardContent>
+							<table class="w-full text-sm">
+								<thead>
+									<tr class="border-b border-border">
+										<th class="text-left py-2 px-2 font-medium text-xs text-muted-foreground uppercase w-10"></th>
+										<th class="text-left py-2 px-2 font-medium text-xs text-muted-foreground uppercase">
+											{{ t("architecture.traceability.columns.node") }}
+										</th>
+										<th class="text-left py-2 px-2 font-medium text-xs text-muted-foreground uppercase w-24">
+											{{ t("architecture.traceability.columns.type") }}
+										</th>
+										<th class="text-left py-2 px-2 font-medium text-xs text-muted-foreground uppercase w-28">
+											{{ t("architecture.traceability.columns.status") }}
+										</th>
+										<th class="text-left py-2 px-2 font-medium text-xs text-muted-foreground uppercase">
+											{{ t("architecture.traceability.columns.detail") }}
+										</th>
+									</tr>
+								</thead>
+								<tbody>
+									<tr
+										v-for="row in flatTraceRows"
+										:key="row.node.id"
+										class="border-b border-border/50 hover:bg-muted/30 transition-colors"
+									>
+										<td class="py-2 px-2">
+											<button
+												v-if="row.hasChildren"
+												class="flex items-center justify-center w-5 h-5 rounded hover:bg-muted transition-colors"
+												@click="toggleTraceNode(row.node.id)"
+											>
+												<ChevronDown
+													:size="14"
+													class="text-muted-foreground transition-transform"
+													:class="{ 'rotate-180': !expandedNodes.has(row.node.id) }"
+												/>
+											</button>
+											<span v-else class="inline-block w-5 h-5"></span>
+										</td>
+										<td class="py-2 px-2" :style="{ paddingLeft: `${row.depth * 24 + 8}px` }">
+											<span class="font-mono text-xs font-semibold text-primary mr-2">{{ row.node.id }}</span>
+											<span>{{ row.node.label }}</span>
+										</td>
+										<td class="py-2 px-2">
+											<Badge variant="secondary" class="text-xs">{{ traceTypeLabel(row.node.type) }}</Badge>
+										</td>
+										<td class="py-2 px-2">
+											<Badge :variant="traceStatusBadge(row.node.status)" class="text-xs">
+												{{ traceStatusLabel(row.node.status) }}
+											</Badge>
+										</td>
+										<td class="py-2 px-2 text-muted-foreground text-xs">
+											{{ row.node.detail }}
+										</td>
+									</tr>
+								</tbody>
+							</table>
+						</CardContent>
+					</Card>
 				</TabsContent>
 			</Tabs>
 		</div>

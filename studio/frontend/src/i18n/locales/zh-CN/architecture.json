@@ -7,11 +7,37 @@
 			"layers": "六层架构",
 			"pipeline": "Pipeline",
 			"quickstart": "快速上手",
-			"standards": "编码标准"
+			"standards": "编码标准",
+			"traceability": "追溯链"
 		},
 		"layerLabels": {
 			"mainEntry": "主入口",
 			"keyFiles": "关键文件"
+		},
+		"traceability": {
+			"title": "需求-代码-测试追溯链",
+			"description": "REQ → CON（契约）→ CODE（代码单元）→ TST（测试/验证）双向追溯矩阵",
+			"expandAll": "全部展开",
+			"collapseAll": "全部折叠",
+			"columns": {
+				"node": "节点",
+				"type": "类型",
+				"status": "状态",
+				"detail": "详情"
+			},
+			"types": {
+				"req": "需求",
+				"con": "契约",
+				"code": "代码",
+				"tst": "测试"
+			},
+			"status": {
+				"covered": "已覆盖",
+				"partial": "部分覆盖",
+				"uncovered": "未覆盖",
+				"verified": "已验证",
+				"failed": "未通过"
+			}
 		},
 		"layers": {
 			"orchestration": {

@@ -26,6 +26,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { getHITLHistory } from "@/services/api";
 import { getApi } from "@/services/apiSwitcher";
+import { downloadTextFile } from "@/utils/download";
 import type { ReviewComment, ReviewTemplate } from "@/stores/hitlStore";
 import { useHITLStore } from "@/stores/hitlStore";
 import type {
@@ -280,7 +281,28 @@ const batchApprove = async () => {
 };
 
 const exportHistory = () => {
-	console.log("[HITLPage] 导出审查历史");
+	const rows = filteredHistory.value;
+	if (!rows.length) return;
+	const header = ["request_id", "checkpoint", "checkpoint_name", "status", "reviewer", "submitted_at", "reviewed_at", "comments"];
+	const lines = [header.join(",")];
+	for (const h of rows) {
+		const cells = [
+			h.request_id,
+			h.checkpoint,
+			`"${(h.checkpoint_name ?? "").replace(/"/g, '""')}"`,
+			h.status,
+			h.reviewer ?? "",
+			new Date(h.submitted_at).toISOString(),
+			h.reviewed_at ? new Date(h.reviewed_at).toISOString() : "",
+			`"${(h.comments ?? "").replace(/"/g, '""')}"`,
+		];
+		lines.push(cells.join(","));
+	}
+	downloadTextFile(
+		`hitl-history-${new Date().toISOString().slice(0, 10)}.csv`,
+		"﻿" + lines.join("\n"),
+		"text/csv",
+	);
 };
 
 watch(selectedId, async (newId) => {

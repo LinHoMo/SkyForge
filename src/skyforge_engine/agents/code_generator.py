@@ -59,17 +59,7 @@ class CodeGeneratorAgent:
         contract: str,
         log_hook: Callable[[str, str, str], Any] | None = None,
     ) -> str:
-        """根据需求与契约生成 C 代码（含头文件）。
-
-        Args:
-            requirement_json: 结构化需求字典。
-            contract: .contract YAML 字符串。
-            log_hook: 可选的流式推送回调 (agent_name, level, message)，
-                支持 sync / async / None。用于推送安全校验告警。
-
-        Returns:
-            C 代码字符串。
-        """
+        """根据需求与契约生成 C 代码（含头文件）。"""
         logger.info(
             f"CodeGeneratorAgent:开始:为 {requirement_json.get('req_id')} 生成 C 代码"
         )
@@ -163,23 +153,7 @@ class CodeGeneratorAgent:
 
     @staticmethod
     def _extract_contract_constraints(contract: dict[str, Any]) -> dict[str, Any]:
-        """从契约字典中提取公共约束，供所有模板统一使用。
-
-        Returns:
-            {
-                "input_name": str,        # 输入参数名
-                "output_name": str,       # 输出变量名
-                "input_min": float,       # 输入下界
-                "input_max": float,       # 输入上界
-                "output_min": float,      # 输出下界
-                "output_max": float,      # 输出上界
-                "has_fault_handling": bool, # 是否有故障处理约束
-                "preconditions": list,    # 前置条件列表
-                "postconditions": list,   # 后置条件列表
-                "invariants": list,       # 不变式列表
-                "fault_handling": list,   # 故障处理列表
-            }
-        """
+        """从契约字典中提取公共约束，供所有模板统一使用。"""
         iface = contract.get("interface", {})
         inputs = iface.get("inputs", [{}])
         outputs = iface.get("outputs", [{}])

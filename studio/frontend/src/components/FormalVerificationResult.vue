@@ -4,7 +4,8 @@ import {
 	CheckCircle2,
 	ChevronDown,
 	ChevronRight,
-	MinusCircle,
+	HelpCircle,
+	Hourglass,
 	Play,
 	XCircle,
 } from "@lucide/vue";
@@ -19,9 +20,17 @@ const { t } = useI18n();
 /**
  * FormalVerificationResult 形式化验证结果组件（Task 5.5）
  *
- * 展示 Z3 SMT Solver + CBMC 对契约的形式化验证结果：
- * - 顶部状态徽章（passed=绿 ✓ / failed=红 ✗ / skipped=灰 -）
- * - 通过/失败/跳过统计徽章
+ * 展示 Z3 SMT Solver + CBMC 对契约的形式化验证结果。
+ * 状态分类对标 Frama-C 四态：
+ *   - Valid（已证明）→ 绿
+ *   - Fail（证伪/发现反例）→ 红
+ *   - Unknown（无法自动证明，需人工）→ 黄
+ *   - Timeout（求解超时）→ 灰
+ * 后端仅返回 passed/failed/skipped，前端按 counter_example 文本把 skipped 细分为
+ * Unknown（工具不可用等）与 Timeout（求解超时）。
+ *
+ * - 顶部状态徽章（四态颜色）
+ * - Valid/Fail/Unknown/Timeout 统计徽章
  * - 各检查项列表（名称、状态图标、耗时、工具标签）
  * - 反例展示区（failed/skipped 项展开后显示）
  * - 工具标识（Z3 / CBMC / Z3+CBMC / Mock）
@@ -86,34 +95,93 @@ watch(
 	{ immediate: true },
 );
 
-/** 顶部状态配置 */
+/** Frama-C 四态分类：Valid / Fail / Unknown / Timeout */
+type FourState = "valid" | "fail" | "unknown" | "timeout";
+
+/** 判断文本是否为超时（把 skipped 细分为 Unknown vs Timeout） */
+const isTimeoutText = (text?: string | null): boolean =>
+	/timeout|timed out|超时/i.test(text ?? "");
+
+/** 单项检查 → 四态分类 */
+const classifyCheck = (
+	status: VerificationCheck["status"],
+	counter?: string | null,
+): FourState => {
+	if (status === "passed") return "valid";
+	if (status === "failed") return "fail";
+	return isTimeoutText(counter) ? "timeout" : "unknown";
+};
+
+/** 总体四态：passed→valid, failed→fail, skipped→按检查项细分 */
+const overallFour = computed<FourState>(() => {
+	if (!props.result) return "unknown";
+	if (props.result.status === "passed") return "valid";
+	if (props.result.status === "failed") return "fail";
+	const hasTimeout = props.result.checks.some(
+		(c) => c.status === "skipped" && isTimeoutText(c.counter_example),
+	);
+	return hasTimeout ? "timeout" : "unknown";
+});
+
+/** 四态统计计数 */
+const fourCounts = computed(() => {
+	const c = { valid: 0, fail: 0, unknown: 0, timeout: 0 };
+	if (!props.result) return c;
+	for (const check of props.result.checks) {
+		c[classifyCheck(check.status, check.counter_example)] += 1;
+	}
+	return c;
+});
+
+/** 四态视觉配置（图标/颜色/文案） */
+const fourVisual: Record<
+	FourState,
+	{ icon: unknown; color: string; symbol: string }
+> = {
+	valid: { icon: CheckCircle2, color: "#10b981", symbol: "✓" },
+	fail: { icon: XCircle, color: "#dc2626", symbol: "✗" },
+	unknown: { icon: HelpCircle, color: "#f59e0b", symbol: "?" },
+	timeout: { icon: Hourglass, color: "#9ca3af", symbol: "⏱" },
+};
+
+/** 顶部状态配置（四态横幅） */
 const statusConfig = computed(() => {
 	if (!props.result) return null;
-	const status = props.result.status;
-	const map = {
-		passed: {
+	const s = overallFour.value;
+	const map: Record<
+		FourState,
+		{ icon: unknown; label: string; color: string; bg: string; border: string }
+	> = {
+		valid: {
 			icon: CheckCircle2,
-			label: t("formalVerify.statusPassed"),
+			label: t("formalVerify.stateValid"),
 			color: "#10b981",
 			bg: "linear-gradient(to right, #f0fdf4, #ecfdf5)",
 			border: "#10b981",
 		},
-		failed: {
+		fail: {
 			icon: XCircle,
-			label: t("formalVerify.statusFailed"),
+			label: t("formalVerify.stateFail"),
 			color: "#dc2626",
 			bg: "linear-gradient(to right, #fef2f2, #fff7ed)",
 			border: "#f59e0b",
 		},
-		skipped: {
-			icon: MinusCircle,
-			label: t("formalVerify.statusSkipped"),
+		unknown: {
+			icon: HelpCircle,
+			label: t("formalVerify.stateUnknown"),
+			color: "#f59e0b",
+			bg: "linear-gradient(to right, #fffbeb, #fef3c7)",
+			border: "#f59e0b",
+		},
+		timeout: {
+			icon: Hourglass,
+			label: t("formalVerify.stateTimeout"),
 			color: "#6b7280",
 			bg: "linear-gradient(to right, #f9fafb, #f3f4f6)",
 			border: "#9ca3af",
 		},
-	} as const;
-	return map[status] ?? map.skipped;
+	};
+	return map[s];
 });
 
 /** 总耗时（秒） */
@@ -122,15 +190,9 @@ const totalDurationSec = computed(() => {
 	return (props.result.total_duration_ms / 1000).toFixed(3);
 });
 
-/** 检查项状态图标与颜色 */
-const checkVisual = (status: VerificationCheck["status"]) => {
-	const map = {
-		passed: { icon: CheckCircle2, color: "#10b981", symbol: "✓" },
-		failed: { icon: XCircle, color: "#dc2626", symbol: "✗" },
-		skipped: { icon: MinusCircle, color: "#9ca3af", symbol: "-" },
-	} as const;
-	return map[status] ?? map.skipped;
-};
+/** 检查项状态图标与颜色（四态） */
+const checkVisual = (status: VerificationCheck["status"], counter?: string | null) =>
+	fourVisual[classifyCheck(status, counter)];
 
 /** 单项耗时（秒） */
 const formatDuration = (ms: number): string => (ms / 1000).toFixed(3);
@@ -220,9 +282,10 @@ const onStart = () => emit("start-verify");
 
         <!-- 统计徽章 -->
         <div class="summary-badges">
-          <span class="badge pass">{{ $t("formalVerify.badgePassed", { count: result.summary.passed }) }}</span>
-          <span class="badge fail">{{ $t("formalVerify.badgeFailed", { count: result.summary.failed }) }}</span>
-          <span class="badge skip">{{ $t("formalVerify.badgeSkipped", { count: result.summary.skipped }) }}</span>
+          <span class="badge pass">{{ $t("formalVerify.badgeValid", { count: fourCounts.valid }) }}</span>
+          <span class="badge fail">{{ $t("formalVerify.badgeFail", { count: fourCounts.fail }) }}</span>
+          <span class="badge unknown">{{ $t("formalVerify.badgeUnknown", { count: fourCounts.unknown }) }}</span>
+          <span class="badge timeout">{{ $t("formalVerify.badgeTimeout", { count: fourCounts.timeout }) }}</span>
           <span class="badge total">{{ $t("formalVerify.badgeTotal", { count: result.summary.total }) }}</span>
         </div>
 
@@ -238,7 +301,7 @@ const onStart = () => emit("start-verify");
             v-for="check in result.checks"
             :key="check.name"
             class="check-item"
-            :class="check.status"
+            :class="classifyCheck(check.status, check.counter_example)"
           >
             <div
               class="check-header"
@@ -246,14 +309,14 @@ const onStart = () => emit("start-verify");
               @click="hasCounterExample(check) && toggleExpand(check.name)"
             >
               <component
-                :is="checkVisual(check.status).icon"
+                :is="checkVisual(check.status, check.counter_example).icon"
                 class="check-icon"
-                :style="{ color: checkVisual(check.status).color }"
+                :style="{ color: checkVisual(check.status, check.counter_example).color }"
               />
               <span class="check-name">{{ check.name }}</span>
               <span v-if="check.tool" class="check-tool">[{{ check.tool }}]</span>
               <span class="check-status" :style="{ color: checkVisual(check.status).color }">
-                [{{ check.status.toUpperCase() }}]
+                [{{ classifyCheck(check.status, check.counter_example).toUpperCase() }}]
               </span>
               <span class="check-duration">({{ formatDuration(check.duration_ms) }}s)</span>
               <component
@@ -428,7 +491,13 @@ const onStart = () => emit("start-verify");
   border-color: #fca5a5;
 }
 
-.badge.skip {
+.badge.unknown {
+  background: #fffbeb;
+  color: #b45309;
+  border-color: #fcd34d;
+}
+
+.badge.timeout {
   background: #f3f4f6;
   color: #4b5563;
   border-color: #d1d5db;
@@ -478,16 +547,21 @@ const onStart = () => emit("start-verify");
   transition: all 0.15s;
 }
 
-.check-item.passed {
+.check-item.valid {
   border-left: 3px solid #10b981;
 }
 
-.check-item.failed {
+.check-item.fail {
   border-left: 3px solid #dc2626;
   background: #fef2f2;
 }
 
-.check-item.skipped {
+.check-item.unknown {
+  border-left: 3px solid #f59e0b;
+  background: #fffbeb;
+}
+
+.check-item.timeout {
   border-left: 3px solid #9ca3af;
   background: #f9fafb;
 }
@@ -560,7 +634,8 @@ const onStart = () => emit("start-verify");
   border: 1px solid #374151;
 }
 
-.check-item.skipped .counter-example {
+.check-item.unknown .counter-example,
+.check-item.timeout .counter-example {
   background: #f3f4f6;
   border-color: #d1d5db;
 }
@@ -572,7 +647,8 @@ const onStart = () => emit("start-verify");
   margin-bottom: 4px;
 }
 
-.check-item.skipped .ce-label {
+.check-item.unknown .ce-label,
+.check-item.timeout .ce-label {
   color: #6b7280;
 }
 
@@ -586,7 +662,8 @@ const onStart = () => emit("start-verify");
   line-height: 1.5;
 }
 
-.check-item.skipped .ce-text {
+.check-item.unknown .ce-text,
+.check-item.timeout .ce-text {
   color: #4b5563;
 }
 

@@ -25,29 +25,14 @@ from app.utils.log_util import logger
 
 
 class StreamManager:
-    """WebSocket 连接池管理器。
-
-    Attributes:
-        _connections: websocket_id -> WebSocket 的映射。
-        _lock: 保护 _connections 的异步锁。
-    """
+    """WebSocket 连接池管理器。"""
 
     def __init__(self) -> None:
         self._connections: dict[str, WebSocket] = {}
         self._lock = asyncio.Lock()
 
     async def register(self, websocket: WebSocket) -> str:
-        """注册一个新的 WebSocket 连接。
-
-        调用方应在调用本方法前先 await websocket.accept()，
-        或由本方法负责 accept（默认行为：本方法不重复 accept）。
-
-        Args:
-            websocket: 已 accept 的 WebSocket 实例。
-
-        Returns:
-            该连接的唯一 ID（uuid4 hex）。
-        """
+        """注册一个新的 WebSocket 连接。调用方需先 await websocket.accept()，本方法不重复 accept。"""
         ws_id = uuid.uuid4().hex
         async with self._lock:
             self._connections[ws_id] = websocket
@@ -57,11 +42,7 @@ class StreamManager:
         return ws_id
 
     async def unregister(self, websocket_id: str) -> None:
-        """注销指定 ID 的连接。
-
-        Args:
-            websocket_id: register() 返回的连接 ID。
-        """
+        """注销指定 ID 的连接。"""
         async with self._lock:
             removed = self._connections.pop(websocket_id, None)
         if removed is not None:
@@ -71,15 +52,7 @@ class StreamManager:
             )
 
     async def send_to(self, websocket_id: str, message: dict[str, Any]) -> bool:
-        """向指定连接推送 JSON 消息。
-
-        Args:
-            websocket_id: 目标连接 ID。
-            message: 待推送的 JSON 可序列化字典。
-
-        Returns:
-            True 表示推送成功；False 表示连接不存在或已断开（已自动清理）。
-        """
+        """向指定连接推送 JSON 消息。"""
         async with self._lock:
             websocket = self._connections.get(websocket_id)
         if websocket is None:
@@ -93,14 +66,7 @@ class StreamManager:
             return False
 
     async def broadcast(self, message: dict[str, Any]) -> int:
-        """广播 JSON 消息到所有活跃连接。
-
-        Args:
-            message: 待广播的 JSON 可序列化字典。
-
-        Returns:
-            成功推送的连接数。
-        """
+        """广播 JSON 消息到所有活跃连接。"""
         async with self._lock:
             items = list(self._connections.items())
         success = 0

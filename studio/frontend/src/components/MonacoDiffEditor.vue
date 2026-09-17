@@ -29,7 +29,12 @@ const diffEditorInstance = shallowRef<editor.IDiffEditor | null>(null);
 const initEditor = async () => {
 	if (!editorContainer.value) return;
 
-	const monaco = await import("monaco-editor");
+	// @ts-expect-error monaco ESM path has no bundled type declarations
+	const monaco = await import("monaco-editor/esm/vs/editor/edcore.main.js");
+	// 仅注册 C/C++ 语法高亮（默认 language="c"，CodeDiff 始终走 C）。
+	// 不再 import 完整 "monaco-editor"，避免打包 typescript/css/html/json
+	// 语言服务及其 web worker（ts.worker ~6.9MB 等）。
+	await import("monaco-editor/esm/vs/basic-languages/cpp/cpp.contribution.js");
 
 	monaco.editor.defineTheme("skyforge-dark", {
 		base: "vs-dark",

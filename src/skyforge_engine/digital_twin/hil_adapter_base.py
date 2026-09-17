@@ -69,26 +69,12 @@ class HILAdapter(abc.ABC):
 
     @abc.abstractmethod
     def flash(self, firmware_path: str) -> HILResult:
-        """烧录固件。
-
-        Args:
-            firmware_path: 固件文件路径（ELF/BIN/HEX）
-
-        Returns:
-            HILResult: 烧录结果
-        """
+        """烧录固件。"""
         ...
 
     @abc.abstractmethod
     def run(self, input_vector: Any) -> HILResult:
-        """运行目标程序并采集输出波形。
-
-        Args:
-            input_vector: 输入向量（类型由具体适配器决定）
-
-        Returns:
-            HILResult: 运行结果，包含 output_waveform
-        """
+        """运行目标程序并采集输出波形。"""
         ...
 
     @abc.abstractmethod

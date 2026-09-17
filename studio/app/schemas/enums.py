@@ -22,3 +22,21 @@ class AgentStatus(str, Enum):
     DONE = "done"
     ERROR = "error"
     SUCCESS = "success"
+
+
+class PipelineStage(str, Enum):
+    """Pipeline 8 阶段枚举（V1 事件 ``stage`` 字段契约）。
+
+    前端进度条直接按本枚举值驱动，不再靠 agent 名/日志关键字猜测。
+    与前端 Generate.vue 的 8 阶段进度条一一对应：
+    requirement → architecture → contract → code → misra → simulation → verify → report。
+    """
+
+    REQUIREMENT = "requirement"
+    ARCHITECTURE = "architecture"
+    CONTRACT = "contract"
+    CODE = "code"
+    MISRA = "misra"
+    SIMULATION = "simulation"
+    VERIFY = "verify"
+    REPORT = "report"

@@ -115,12 +115,7 @@ async def report(req: ReportRequest) -> dict[str, Any]:
 
 @router.get("/api/report/download")
 async def report_download(session_id: str | None = None) -> Response:
-    """下载最近一次生成的 HTML 报告。
-
-    Args:
-        session_id: Optional session ID from POST /api/report response.
-                    Falls back to most recent report if omitted.
-    """
+    """下载最近一次生成的 HTML 报告。"""
     if session_id:
         html = _get_report(session_id)
     else:

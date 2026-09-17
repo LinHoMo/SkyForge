@@ -84,15 +84,7 @@ class PipelineStageProtocol(Protocol):
         ...
 
     async def execute(self, artifact: Any, context: dict[str, Any] | None = None) -> StageResult:
-        """执行阶段逻辑。
-
-        Args:
-            artifact: 输入产物（前一阶段的输出）。
-            context: 可选的执行上下文（如 task_id, log_hook 等）。
-
-        Returns:
-            StageResult: 阶段执行结果。
-        """
+        """执行阶段逻辑。"""
         ...
 
 
@@ -119,26 +111,11 @@ class AgentStrategyProtocol(Protocol):
         ...
 
     def supports(self, input_type: str) -> bool:
-        """检查是否支持给定输入类型。
-
-        Args:
-            input_type: 输入数据类型标识（如 "requirement", "contract", "code"）。
-
-        Returns:
-            True 如果支持处理该类型。
-        """
+        """检查是否支持给定输入类型。"""
         ...
 
     async def run(self, input_data: Any, **kwargs: Any) -> AgentResult:
-        """执行策略逻辑。
-
-        Args:
-            input_data: 输入数据。
-            **kwargs: 额外参数（如 req_id, language 等）。
-
-        Returns:
-            AgentResult: 执行结果。
-        """
+        """执行策略逻辑。"""
         ...
 
 
@@ -162,19 +139,7 @@ class VerifierProtocol(Protocol):
         ...
 
     def verify(self, code: str, contract: str | None = None, **kwargs: Any) -> VerificationResult:
-        """执行验证。
-
-        Args:
-            code: 待验证的代码。
-            contract: 可选的契约文本。
-            **kwargs: 工具特定参数（如 unwind, function 等）。
-
-        Returns:
-            VerificationResult: 验证结果。
-
-        Raises:
-            ToolNotFoundError: 工具不可用时抛出。
-        """
+        """执行验证。"""
         ...
 
 
@@ -206,11 +171,7 @@ class HILAdapterProtocol(Protocol):
         ...
 
     def connect(self) -> None:
-        """建立连接。
-
-        Raises:
-            RuntimeError: 连接失败时抛出。
-        """
+        """建立连接。"""
         ...
 
     def disconnect(self) -> None:
@@ -218,22 +179,11 @@ class HILAdapterProtocol(Protocol):
         ...
 
     def send(self, data: bytes) -> None:
-        """发送数据。
-
-        Args:
-            data: 待发送的字节数据。
-        """
+        """发送数据。"""
         ...
 
     def receive(self, timeout_ms: int = 5000) -> bytes:
-        """接收数据。
-
-        Args:
-            timeout_ms: 超时时间（毫秒）。
-
-        Returns:
-            接收到的字节数据。
-        """
+        """接收数据。"""
         ...
 
 
@@ -257,14 +207,7 @@ class ReportRendererProtocol(Protocol):
         ...
 
     def render(self, data: dict[str, Any]) -> str | bytes:
-        """渲染报告。
-
-        Args:
-            data: 报告数据（通常来自 EvidenceCollector）。
-
-        Returns:
-            渲染后的报告内容（str 或 bytes）。
-        """
+        """渲染报告。"""
         ...
 
 
@@ -288,22 +231,11 @@ class CodingStandardProtocol(Protocol):
         ...
 
     def scan(self, code: str) -> list[Violation]:
-        """扫描代码并返回违规列表。
-
-        Args:
-            code: 源代码字符串。
-
-        Returns:
-            违规列表。
-        """
+        """扫描代码并返回违规列表。"""
         ...
 
     def get_mock_scan_patterns(self) -> list[dict[str, Any]]:
-        """获取 Mock 扫描模式（用于无真实工具时的降级扫描）。
-
-        Returns:
-            模式列表，每个模式包含 pattern, rule_id, message, severity 等字段。
-        """
+        """获取 Mock 扫描模式（用于无真实工具时的降级扫描）。"""
         ...
 
 

@@ -19,24 +19,7 @@ from skyforge_engine.utils.log_util import logger
 
 @dataclass
 class CodingStandard:
-    """编码标准定义。
-
-    Attributes:
-        standard_id: 唯一标识符，如 "misra_c_2012"、"jsf_av_cpp"、"python_safety"
-        name: 人类可读名称
-        languages: 支持的语言列表，如 ["c"]、["cpp"]、["python"]
-        version: 标准版本号
-        rule_data_file: 规则数据文件路径（相对或绝对）
-        rule_parser: 规则解析函数，接收文件内容返回规则列表
-        red_line_rules: 每次必须注入的红线规则 ID 列表
-        agent_default_queries: Agent 名称 → 默认检索查询关键词
-        agent_display_names: Agent 名称 → 中文友好名
-        rule_prefix_category: 规则号前缀 → 分类映射
-        keyword_category_map: 关键词 → 分类映射列表
-        fixers: 规则 ID → 修复函数映射
-        mock_scan_patterns: Mock 扫描的正则模式列表
-        priority: 优先级（数字越大优先级越高，同语言多标准时取最高优先级）
-    """
+    """编码标准定义。"""
 
     standard_id: str
     name: str

@@ -24,19 +24,7 @@ class Z3Verifier:
             return False
 
     def verify(self, code: str = "", contract: str | None = None, **kwargs: Any) -> VerificationResult:
-        """执行 Z3 约束验证.
-
-        Args:
-            code: 待验证代码（当前实现中主要用于兼容性，核心约束来自 kwargs）。
-            contract: 可选契约文本。
-            **kwargs: 支持 preconditions, postconditions, invariants。
-
-        Returns:
-            VerificationResult: 验证结果。
-
-        Raises:
-            ToolNotFoundError: Z3 不可用时抛出。
-        """
+        """执行 Z3 约束验证."""
         if not self.is_available():
             raise ToolNotFoundError(self.tool_name)
 

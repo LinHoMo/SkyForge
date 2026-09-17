@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Clock3, Database, Loader2, RotateCcw, Search, Trash2, X } from "@lucide/vue";
+import { Clock3, Database, Plus, RotateCcw, Search, Trash2, X } from "@lucide/vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
@@ -8,6 +8,7 @@ import SourceBadge from "@/components/SourceBadge.vue";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
 	Select,
 	SelectContent,
@@ -62,6 +63,25 @@ function getStatusVariant(
 	if (s.includes("complete") || s.includes("success")) return "secondary";
 	if (s.includes("fail") || s.includes("error")) return "destructive";
 	return "outline";
+}
+
+/** 状态色点 class（绿=完成/黄=运行中/红=失败/灰=取消或未知） */
+function getStatusDotClass(status: string): string {
+	const s = status?.toLowerCase() || "";
+	if (s.includes("running") || s.includes("progress")) return "dot-running";
+	if (s.includes("complete") || s.includes("success")) return "dot-done";
+	if (s.includes("fail") || s.includes("error")) return "dot-failed";
+	return "dot-cancelled";
+}
+
+/** 违规数：优先用独立的 violation_count 字段（技术债清理，不再把 0-100 的 progress 当违规数）。
+ *  后端 V1 暂未下发 violation_count 时临时回退 progress，待后端补齐后可移除回退。 */
+function violationCount(item: TaskSummary): number {
+	return item.violation_count !== undefined
+		? item.violation_count
+		: item.progress !== undefined
+			? item.progress
+			: 0;
 }
 
 function getStatusLabel(status: string): string {
@@ -194,9 +214,23 @@ watch(() => execution.profileId, load);
         <LiveMetrics />
       </section>
 
-      <section v-if="loading" class="flex min-h-[220px] items-center justify-center gap-3 rounded-component-md border border-dashed border-border bg-card">
-        <Loader2 :size="20" class="animate-spin text-muted-foreground" />
-        <span class="text-muted-foreground">{{ $t("records.loading") }}</span>
+      <section v-if="loading" class="space-y-px overflow-hidden rounded-component-md border border-border bg-card">
+        <div v-for="i in 5" :key="i" class="flex flex-col gap-3 border-b border-border p-4 last:border-b-0 md:flex-row md:items-center md:gap-4">
+          <div class="flex min-w-0 flex-1 flex-col gap-2">
+            <Skeleton class="h-3 w-20" />
+            <Skeleton class="h-4 w-3/4" />
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <Skeleton class="h-5 w-12 rounded-full" />
+            <Skeleton class="h-5 w-14 rounded-full" />
+            <Skeleton class="h-5 w-16 rounded-full" />
+            <Skeleton class="h-3 w-16" />
+          </div>
+          <div class="flex items-center gap-2 md:ml-2">
+            <Skeleton class="h-8 w-20" />
+            <Skeleton class="h-8 w-8 rounded-md" />
+          </div>
+        </div>
       </section>
 
       <section v-else-if="error" class="flex min-h-[220px] flex-col items-center justify-center gap-2 rounded-component-md border border-dashed border-border bg-card p-6">
@@ -204,10 +238,14 @@ watch(() => execution.profileId, load);
         <p class="text-xs text-muted-foreground">{{ $t("records.error.hint") }}</p>
       </section>
 
-      <section v-else-if="!tasks.length" class="flex min-h-[220px] flex-col items-center justify-center gap-2 rounded-component-md border border-dashed border-border bg-card p-6">
+      <section v-else-if="!tasks.length" class="flex min-h-[220px] flex-col items-center justify-center gap-3 rounded-component-md border border-dashed border-border bg-card p-6">
         <Database :size="38" class="text-muted-foreground" />
         <strong class="text-foreground">{{ $t("records.empty.title") }}</strong>
         <span class="text-sm text-muted-foreground">{{ $t("records.empty.desc") }}</span>
+        <Button variant="default" size="sm" class="mt-2" @click="router.push('/generate')">
+          <Plus :size="15" />
+          {{ $t("records.empty.cta") }}
+        </Button>
       </section>
 
       <section v-else>
@@ -275,11 +313,17 @@ watch(() => execution.profileId, load);
               <Badge variant="outline" class="text-[11px]">
                 {{ getLanguageLabel(item.language || '') }}
               </Badge>
-              <Badge :variant="getStatusVariant(item.status)" class="text-[11px]">
-                {{ getStatusLabel(item.status) }}
-              </Badge>
-              <Badge variant="outline" class="text-[11px]">
-                {{ $t('records.violations', { n: item.progress !== undefined ? item.progress : 0 }) }}
+              <span class="inline-flex items-center gap-1.5">
+                <span class="status-dot" :class="getStatusDotClass(item.status)" />
+                <Badge :variant="getStatusVariant(item.status)" class="text-[11px]">
+                  {{ getStatusLabel(item.status) }}
+                </Badge>
+              </span>
+              <Badge
+                :variant="violationCount(item) > 0 ? 'destructive' : 'outline'"
+                class="text-[11px]"
+              >
+                {{ $t('records.violations', { n: violationCount(item) }) }}
               </Badge>
               <span class="inline-flex items-center gap-1 text-[11px] text-muted-foreground">
                 <Clock3 :size="12" />
@@ -364,5 +408,35 @@ watch(() => execution.profileId, load);
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-dot.dot-done {
+  background: hsl(var(--success));
+}
+
+.status-dot.dot-running {
+  background: hsl(var(--warning));
+  animation: dot-pulse 1.2s ease-in-out infinite;
+}
+
+.status-dot.dot-failed {
+  background: hsl(var(--destructive));
+}
+
+.status-dot.dot-cancelled {
+  background: hsl(var(--muted-foreground));
+}
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
 }
 </style>

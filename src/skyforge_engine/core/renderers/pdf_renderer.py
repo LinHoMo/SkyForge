@@ -26,17 +26,7 @@ class PDFRenderer:
         return "pdf"
 
     def render(self, data: dict[str, Any]) -> bytes:
-        """渲染 PDF 报告。
-
-        Args:
-            data: 报告数据字典（通常来自 ReportDataCollector.get_data）。
-
-        Returns:
-            PDF 文件内容的 bytes。
-
-        Raises:
-            ToolNotFoundError: weasyprint 未安装时抛出。
-        """
+        """渲染 PDF 报告。"""
         try:
             import weasyprint
         except ImportError as exc:

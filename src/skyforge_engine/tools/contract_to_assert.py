@@ -31,15 +31,7 @@ static void __check_contract_step_{{cid}}(double output) {
 
 
 def contract_to_assert(yaml_str: str, cid: str = "CON-001") -> str:
-    """读取 YAML 契约字符串，生成 C 断言检查函数。
-
-    Args:
-        yaml_str: .contract YAML 文本。
-        cid: 契约 ID，用于断言追溯 Tag（默认 CON-001）。
-
-    Returns:
-        C 断言检查函数源码字符串。
-    """
+    """读取 YAML 契约字符串，生成 C 断言检查函数。"""
     contract = yaml.safe_load(yaml_str) or {}
     postconditions = _extract_postconditions(contract, cid)
     traceability = contract.get("traceability", "")

@@ -170,34 +170,16 @@ class HilAdapter(abc.ABC):
 
     @abc.abstractmethod
     def flash_firmware(self, firmware_path: str) -> tuple[bool, str]:
-        """烧录固件到目标 MCU。
-
-        Args:
-            firmware_path: 固件文件路径（ELF/BIN/HEX）
-
-        Returns:
-            (success, output_log)
-        """
+        """烧录固件到目标 MCU。"""
         ...
 
     @abc.abstractmethod
     def run(self) -> tuple[bool, str]:
-        """运行目标程序并采集输出。
-
-        Returns:
-            (success, output_string)
-        """
+        """运行目标程序并采集输出。"""
         ...
 
     def deploy_and_run(self, firmware_path: Optional[str] = None) -> HilResult:
-        """完整部署流程：连接 → 烧录 → 运行 → 采集 → 验证 → 断开。
-
-        Args:
-            firmware_path: 固件路径，默认从 config 读取
-
-        Returns:
-            HilResult 包含完整测试结果
-        """
+        """完整部署流程：连接 → 烧录 → 运行 → 采集 → 验证 → 断开。"""
         result = HilResult(interface=self.config.interface)
         fw_path = firmware_path or self.config.firmware_path
 
@@ -274,9 +256,6 @@ class HilAdapter(abc.ABC):
 
         默认实现：检查输出中的 PASS/FAIL 标记。
         子类可覆盖实现更复杂的验证逻辑。
-
-        Returns:
-            (all_passed, individual_results)
         """
         results = []
 
@@ -873,22 +852,7 @@ def create_hil_adapter(
     expected_patterns: Optional[list[str]] = None,
     **kwargs,
 ) -> HilAdapter:
-    """创建 HIL 适配器实例。
-
-    Args:
-        interface: 接口类型 ("serial" | "jtag_swd" | "mock")
-        port: 串口端口
-        baud_rate: 波特率
-        jtag_device: JTAG 调试器类型
-        jtag_target: 目标 MCU 型号
-        firmware_path: 固件路径
-        contract_asserts: 契约断言列表
-        expected_patterns: 预期输出模式列表
-        **kwargs: 其他 HilConfig 参数
-
-    Returns:
-        HilAdapter 实例
-    """
+    """创建 HIL 适配器实例。"""
     # 跨平台默认串口：Windows → COM3, macOS → /dev/tty.usbserial, Linux → /dev/ttyUSB0
     if not port:
         import sys

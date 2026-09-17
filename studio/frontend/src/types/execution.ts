@@ -52,6 +52,8 @@ export interface TaskSummary extends TaskHandle {
 	source?: RunSource;
 	current_stage?: string;
 	progress?: number;
+	/** 违规数（独立字段，技术债清理：不再把 0-100 的 progress 当违规数展示）。 */
+	violation_count?: number;
 	duration_ms?: number | null;
 	created_at?: string;
 }

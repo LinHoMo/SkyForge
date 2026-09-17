@@ -14,14 +14,7 @@ from skyforge_engine.utils.log_util import logger
 
 @dataclass
 class PSACMeta:
-    """PSAC 元数据：项目级别的基本信息。
-
-    Attributes:
-        software_name: 软件名称。
-        version: 软件版本号。
-        certification_level: 审定级别（DAL-A / DAL-B / DAL-C / DAL-D / DAL-E）。
-        date: 生成日期（ISO 8601）。
-    """
+    """PSAC 元数据：项目级别的基本信息。"""
 
     software_name: str = "SkyForge"
     version: str = ""
@@ -31,12 +24,7 @@ class PSACMeta:
 
 @dataclass
 class PSACSection:
-    """PSAC 单节内容。
-
-    Attributes:
-        title: 章节标题。
-        content: Markdown 格式内容。
-    """
+    """PSAC 单节内容。"""
 
     title: str
     content: str
@@ -44,12 +32,7 @@ class PSACSection:
 
 @dataclass
 class PSACDocument:
-    """完整的 PSAC 文档结构。
-
-    Attributes:
-        meta: PSAC 元数据。
-        sections: 文档各章节列表。
-    """
+    """完整的 PSAC 文档结构。"""
 
     meta: PSACMeta = field(default_factory=PSACMeta)
     sections: list[PSACSection] = field(default_factory=list)
@@ -86,15 +69,7 @@ class PSACDocument:
 
 
 def generate_psac(pipeline_result: dict[str, Any]) -> PSACDocument:
-    """从 pipeline_result 生成 PSAC 文档摘要。
-
-    Args:
-        pipeline_result: 全流程结果字典，至少包含 requirement / contract / final_code
-            等字段。
-
-    Returns:
-        PSACDocument：结构化 PSAC 文档。
-    """
+    """从 pipeline_result 生成 PSAC 文档摘要。"""
     from datetime import datetime
 
     doc = PSACDocument()

@@ -206,7 +206,7 @@ export function mockGenerate(
 	language = "c",
 ): Promise<GenerateResult> {
 	const lang = language || "c";
-	console.log(
+	console.debug(
 		"[mockApi] 调用 mockGenerate，需求：",
 		requirement,
 		"语言:",
@@ -259,7 +259,7 @@ export function mockSimulate(
 	faultType: FaultType,
 	params: FaultParams,
 ): Promise<SimulationResult> {
-	console.log(
+	console.debug(
 		"[mockApi] 调用 mockSimulate，故障类型：",
 		faultType,
 		"参数：",
@@ -375,11 +375,11 @@ export function connectAgentStream(
 	}
 
 	ws.onopen = () => {
-		console.log("[mockApi] WebSocket 已连接:", wsUrl);
+		console.debug("[mockApi] WebSocket 已连接:", wsUrl);
 		// 订阅模式：发送 {task_id, action: "subscribe"} 不启动新 pipeline
 		if (taskId) {
 			ws?.send(JSON.stringify({ task_id: taskId, action: "subscribe" }));
-			console.log(`[mockApi] 已发送订阅请求: task_id=${taskId}`);
+			console.debug(`[mockApi] 已发送订阅请求: task_id=${taskId}`);
 			return;
 		}
 		// 生成模式：发送 requirement 触发后端独立 pipeline
@@ -424,7 +424,7 @@ export function connectAgentStream(
 	};
 
 	ws.onclose = () => {
-		console.log("[mockApi] WebSocket 已关闭");
+		console.debug("[mockApi] WebSocket 已关闭");
 		if (!stopped) onDone?.();
 	};
 
@@ -475,7 +475,7 @@ export function connectV1TaskEvents(
 	}
 
 	ws.onopen = () => {
-		console.log("[mockApi] V1 WebSocket 已连接:", url);
+		console.debug("[mockApi] V1 WebSocket 已连接:", url);
 	};
 
 	ws.onmessage = (event) => {
@@ -496,6 +496,8 @@ export function connectV1TaskEvents(
 				result?: unknown;
 				task?: { result?: unknown };
 				degraded?: boolean;
+				round_number?: number;
+				remaining_violations?: number;
 			};
 			if (data.type === "complete" || data.level === "complete") {
 				// V1 complete: result 嵌套在 data.task.result 中
@@ -510,6 +512,9 @@ export function connectV1TaskEvents(
 				level: ((data.level as LogLevel) ?? "info") as LogLevel,
 				thought: data.message ?? data.thought ?? `[${data.stage ?? "stage"}]`,
 				ts: data.created_at ? Date.parse(data.created_at) : Date.now(),
+				stage: data.stage,
+				round_number: data.round_number,
+				remaining_violations: data.remaining_violations,
 			});
 		} catch (err) {
 			console.warn("[mockApi] V1 消息解析失败：", err);
@@ -521,7 +526,7 @@ export function connectV1TaskEvents(
 	};
 
 	ws.onclose = () => {
-		console.log("[mockApi] V1 WebSocket 已关闭");
+		console.debug("[mockApi] V1 WebSocket 已关闭");
 		// 不在此处调 onDone：只在收到完整 complete 消息时才算完成。
 		// WS 关闭（任务未完成/已完成但 WS 连晚了）由 AgentTerminal 的 5s fallback 或重试机制处理。
 	};
@@ -592,7 +597,7 @@ export function mockCompose(
 	compB: string,
 	connection: ComposeConnection,
 ): Promise<ComposeResult> {
-	console.log(
+	console.debug(
 		"[mockApi] 调用 mockCompose，组件A:",
 		compA,
 		"组件B:",
@@ -698,7 +703,7 @@ export function mockCheckCompatibility(
 	contractB: string,
 	connection: ComposeConnection,
 ): Promise<CompatibilityResult> {
-	console.log(
+	console.debug(
 		"[mockApi] 调用 mockCheckCompatibility，contractA:",
 		contractA,
 		"contractB:",
@@ -727,7 +732,7 @@ export function mockCheckCompatibility(
  * mock 获取待审批列表
  */
 export function mockGetPendingApprovals(): Promise<HITLApproval[]> {
-	console.log("[mockApi] 调用 mockGetPendingApprovals");
+	console.debug("[mockApi] 调用 mockGetPendingApprovals");
 	return new Promise((resolve) => {
 		setTimeout(() => {
 			resolve([...mockHITLPending]);
@@ -742,7 +747,7 @@ export function mockApprove(
 	requestId: string,
 	comments: string,
 ): Promise<{ success: boolean; reviewer: string; reviewed_at: number }> {
-	console.log(
+	console.debug(
 		"[mockApi] 调用 mockApprove，requestId:",
 		requestId,
 		"comments:",
@@ -778,7 +783,7 @@ export function mockReject(
 	requestId: string,
 	comments: string,
 ): Promise<{ success: boolean; reviewer: string; reviewed_at: number }> {
-	console.log(
+	console.debug(
 		"[mockApi] 调用 mockReject，requestId:",
 		requestId,
 		"comments:",
@@ -811,7 +816,7 @@ export function mockReject(
  * mock 获取 HITL 审批历史
  */
 export function mockGetHITLHistory(): Promise<HITLHistoryItem[]> {
-	console.log("[mockApi] 调用 mockGetHITLHistory");
+	console.debug("[mockApi] 调用 mockGetHITLHistory");
 	return new Promise((resolve) => {
 		setTimeout(() => {
 			resolve([...mockHITLHistory]);
@@ -825,7 +830,7 @@ export function mockGetHITLHistory(): Promise<HITLHistoryItem[]> {
 export function mockGenerateReport(
 	result: GenerateResult,
 ): Promise<ReportResult> {
-	console.log("[mockApi] 调用 mockGenerateReport，输入结果:", result);
+	console.debug("[mockApi] 调用 mockGenerateReport，输入结果:", result);
 	return new Promise((resolve) => {
 		setTimeout(() => {
 			const { reportId, summary, html } = buildReport(result);
@@ -840,7 +845,7 @@ export function mockGenerateReport(
 
 /** mock 搜索 MISRA 规则 */
 export function mockSearchMisra(query: string): Promise<MisraRule[]> {
-	console.log("[mockApi] 调用 mockSearchMisra，查询：", query);
+	console.debug("[mockApi] 调用 mockSearchMisra，查询：", query);
 	return new Promise((resolve) => {
 		setTimeout(() => {
 			const q = query.trim().toLowerCase();
@@ -872,7 +877,7 @@ export function mockSearchRules(
 	query: string,
 	standardId?: string,
 ): Promise<MisraRule[]> {
-	console.log(
+	console.debug(
 		"[mockApi] 调用 mockSearchRules，查询：",
 		query,
 		"规则集：",
@@ -912,7 +917,7 @@ export function mockSearchRules(
 
 /** mock 获取所有可用规则集列表 */
 export function mockGetRuleStandards(): Promise<RuleStandard[]> {
-	console.log("[mockApi] 调用 mockGetRuleStandards");
+	console.debug("[mockApi] 调用 mockGetRuleStandards");
 	return new Promise((resolve) => {
 		setTimeout(() => {
 			resolve([...MOCK_RULE_STANDARDS]);
@@ -927,7 +932,7 @@ export function mockSimulateByCode(
 	faultType?: string,
 	faultParams?: FaultParams,
 ): Promise<SimulationResult> {
-	console.log(
+	console.debug(
 		"[mockApi] 调用 mockSimulateByCode，代码长度：",
 		code.length,
 		"故障：",
@@ -945,7 +950,7 @@ export function mockSimulateByCode(
 
 /** mock 获取故障类型列表 */
 export function mockGetFaultTypes(): Promise<FaultType[]> {
-	console.log("[mockApi] 调用 mockGetFaultTypes");
+	console.debug("[mockApi] 调用 mockGetFaultTypes");
 	return new Promise((resolve) => {
 		setTimeout(() => {
 			resolve([
@@ -970,7 +975,7 @@ export function mockGetFaultTypes(): Promise<FaultType[]> {
 export function mockGenerateReportByPipeline(
 	pipelineResult: GenerateResult,
 ): Promise<ReportResult> {
-	console.log("[mockApi] 调用 mockGenerateReportByPipeline");
+	console.debug("[mockApi] 调用 mockGenerateReportByPipeline");
 	if (pipelineResult?.contract && pipelineResult.code) {
 		return mockGenerateReport(pipelineResult);
 	}
@@ -1001,7 +1006,7 @@ export function mockDownloadReport(): string {
 export function mockVerifyContract(
 	payload: VerifyRequest,
 ): Promise<VerificationResult> {
-	console.log(
+	console.debug(
 		"[mockApi] 调用 mockVerifyContract，contract 长度:",
 		payload?.contract?.length ?? 0,
 		"contract_path:",
@@ -1096,7 +1101,7 @@ function mockGetLLMConfig(): Promise<LLMConfig> {
 async function mockSaveLLMConfig(
 	config: LLMConfig,
 ): Promise<{ ok: boolean; message: string }> {
-	console.log("[mockApi] mockSaveLLMConfig", config);
+	console.debug("[mockApi] mockSaveLLMConfig", config);
 	return { ok: true, message: "mock saved" };
 }
 

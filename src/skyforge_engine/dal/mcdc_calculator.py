@@ -23,13 +23,7 @@ from skyforge_engine.utils.log_util import logger
 
 @dataclass
 class Condition:
-    """单个条件（用于 MC/DC 分析）。
-
-    Attributes:
-        expression: 条件表达式文本。
-        line: 条件所在行号。
-        is_compound: 是否为复合条件（含 && / ||）。
-    """
+    """单个条件（用于 MC/DC 分析）。"""
 
     expression: str = ""
     line: int = 0
@@ -41,18 +35,7 @@ class Condition:
 
 @dataclass
 class DecisionPoint:
-    """单个判定节点。
-
-    Attributes:
-        line: 行号（1-based）。
-        type: 判定类型（"if" / "while" / "for" / "switch"）。
-        raw_condition: 原始条件表达式。
-        conditions: 独立条件列表（按 && / || 拆分，支持括号嵌套）。
-        operator: 逻辑运算符（"&&" / "||" / "mixed" / "single"）。
-        test_count: 已执行的测试用例数（stub 默认 0）。
-        required_tests: MC/DC 最小测试用例数。
-        test_vectors: 建议的测试向量（展示条件独立性）。
-    """
+    """单个判定节点。"""
 
     line: int = 0
     type: str = ""
@@ -265,10 +248,7 @@ def _generate_test_vectors(dp: DecisionPoint) -> list[str]:
     """生成 MC/DC 测试向量建议。
 
     对每个条件，说明如何独立影响判定结果：
-      - 固定其他条件，翻转目标条件 → 判定应翻转
-
-    Returns:
-        测试向量描述列表，如 ["T1: x>0=T,y<10=T → true", "T2: x>0=F,y<10=T → false"]
+    - 固定其他条件，翻转目标条件 → 判定应翻转
     """
     if dp.condition_count == 0:
         return []
@@ -310,16 +290,10 @@ def analyze_coverage(code: str) -> CoverageResult:
     """分析 C 代码的覆盖率（V3.3 增强版）。
 
     改进:
-      - 括号感知的条件拆分
-      - 自动生成 MC/DC 测试向量
-      - 更准确的语句计数
-      - switch 语句 case 覆盖分析
-
-    Args:
-        code: C 源代码字符串。
-
-    Returns:
-        CoverageResult：覆盖率分析结果。
+    - 括号感知的条件拆分
+    - 自动生成 MC/DC 测试向量
+    - 更准确的语句计数
+    - switch 语句 case 覆盖分析
     """
     result = CoverageResult()
 

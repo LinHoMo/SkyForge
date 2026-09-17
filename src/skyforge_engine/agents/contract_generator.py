@@ -74,14 +74,7 @@ class ContractGeneratorAgent:
         self.strategy = strategy
 
     async def run(self, requirement_json: dict[str, Any]) -> str:
-        """根据结构化需求生成 .contract YAML 字符串。
-
-        Args:
-            requirement_json: 结构化需求字典（含 req_id/desc/type/params 等）。
-
-        Returns:
-            .contract YAML 文本。
-        """
+        """根据结构化需求生成 .contract YAML 字符串。"""
         logger.info(
             f"ContractGeneratorAgent:开始:为 {requirement_json.get('req_id')} 生成契约"
         )

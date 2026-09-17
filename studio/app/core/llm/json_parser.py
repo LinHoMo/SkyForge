@@ -21,17 +21,7 @@ class JSONParseError(ValueError):
 
 
 def safe_parse_llm_json(text: str) -> dict:
-    """三级降级解析 LLM 输出的 JSON。
-
-    Args:
-        text: LLM 输出的原始文本。
-
-    Returns:
-        解析成功返回 dict。
-
-    Raises:
-        JSONParseError: 三级解析均失败时抛出。
-    """
+    """三级降级解析 LLM 输出的 JSON。"""
     if not text or not text.strip():
         raise JSONParseError("输入文本为空或仅含空白字符")
 

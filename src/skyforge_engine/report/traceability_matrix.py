@@ -36,19 +36,7 @@ _MISRA_TAG_RE = re.compile(r"\[MISRA-Rule-([\d.]+)\]")
 
 @dataclass
 class TraceEntry:
-    """追溯矩阵单行：HLR → LLR → Contract → Code → Test（四层追溯）。
-
-    Attributes:
-        req_id: HLR Tag（如 REQ-001）。
-        req_desc: HLR 描述（自然语言）。
-        llr_id: LLR Tag（如 LLR-001），V3.2 新增。
-        llr_desc: LLR 描述，V3.2 新增。
-        contract_id: 契约 Tag（如 CON-001）。
-        code_line: 代码含 Tag 注释的行号（1-based；0 表示无匹配）。
-        code_snippet: 该行代码文本（去前后空白）。
-        test_id: 测试 Tag（如 TST-001）。
-        test_result: 测试结果（"通过" / "失败" / ""）。
-    """
+    """追溯矩阵单行：HLR → LLR → Contract → Code → Test（四层追溯）。"""
 
     req_id: str = ""
     req_desc: str = ""
@@ -67,14 +55,7 @@ class TraceEntry:
 
 @dataclass
 class ReverseTraceEntry:
-    """反向追溯条目：从代码/测试回溯到 LLR/HLR。
-
-    Attributes:
-        source_type: 来源类型（"code" / "test"）。
-        source_id: 来源标识（行号 / TST-xxx）。
-        llr_id: 对应的 LLR Tag。
-        req_id: 对应的 HLR Tag。
-    """
+    """反向追溯条目：从代码/测试回溯到 LLR/HLR。"""
 
     source_type: str = ""
     source_id: str = ""
@@ -90,15 +71,7 @@ def build_matrix(
     pipeline_result: dict[str, Any],
     include_llr: bool = True,
 ) -> list[TraceEntry]:
-    """构建四层追溯矩阵：HLR → LLR → Code → Test。
-
-    Args:
-        pipeline_result: 全流程结果字典。
-        include_llr: 是否包含 LLR 层（V3.2 新增，默认 True）。
-
-    Returns:
-        list[TraceEntry]：追溯表行列表，每行对应一个 [REQ-xxx]。
-    """
+    """构建四层追溯矩阵：HLR → LLR → Code → Test。"""
     requirements = _extract_requirements(pipeline_result)
     req_to_con = _extract_contract_mapping(pipeline_result, requirements)
     req_to_code = _extract_code_trace_lines(pipeline_result)
@@ -164,12 +137,6 @@ def build_reverse_matrix(
     """构建反向追溯矩阵：代码/测试 → LLR → HLR。
 
     用于验证"每一行代码/每一个测试都可追溯到需求"。
-
-    Args:
-        pipeline_result: 全流程结果字典。
-
-    Returns:
-        list[ReverseTraceEntry]：反向追溯条目列表。
     """
     # 先构建正向矩阵做索引
     forward = build_matrix(pipeline_result, include_llr=True)
@@ -215,15 +182,7 @@ def _extract_llr_mapping(
     pipeline_result: dict[str, Any],
     requirements: list[dict[str, Any]],
 ) -> dict[str, list[dict[str, Any]]]:
-    """从 pipeline_result 提取 LLR 映射：REQ → LLR 列表。
-
-    Args:
-        pipeline_result: 全流程结果字典。
-        requirements: HLR 列表。
-
-    Returns:
-        {req_id: [{llr_id, description, category}, ...]}。
-    """
+    """从 pipeline_result 提取 LLR 映射：REQ → LLR 列表。"""
     result: dict[str, list[dict[str, Any]]] = {}
 
     llr_result = pipeline_result.get("llr_result")
@@ -340,11 +299,7 @@ def _extract_contract_mapping(
 def _extract_code_trace_lines(
     pipeline_result: dict[str, Any],
 ) -> dict[str, list[tuple[int, str]]]:
-    """从 C 代码中提取含 [REQ-xxx] 的注释行号。
-
-    Returns:
-        {req_id: [(line_no, snippet), ...]}，line_no 为 1-based。
-    """
+    """从 C 代码中提取含 [REQ-xxx] 的注释行号。"""
     code: str = pipeline_result.get("final_code") or pipeline_result.get("code") or ""
     result: dict[str, list[tuple[int, str]]] = {}
     if not code:
@@ -370,12 +325,9 @@ def _extract_test_mapping(
     """从契约校验结果 + 仿真结果合成 [TST-xxx] 测试点。
 
     规则：
-      - contract_check_result 的每个检查项（pre/post/inv/fh）算一个 TST-xxx
-      - simulation_result 算一个 TST-xxx（代表数字孪生仿真整体测试）
-      - 通过 REQ ← CON 反查映射回 [REQ-xxx]
-
-    Returns:
-        {req_id: [(test_id, test_result), ...]}，test_result 为 "通过" / "失败"。
+    - contract_check_result 的每个检查项（pre/post/inv/fh）算一个 TST-xxx
+    - simulation_result 算一个 TST-xxx（代表数字孪生仿真整体测试）
+    - 通过 REQ ← CON 反查映射回 [REQ-xxx]
     """
     con_to_req: dict[str, str] = {con: req for req, con in req_to_con.items()}
     result: dict[str, list[tuple[str, str]]] = {}

@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Query, WebSocket, WebSocketDisconnect
+from fastapi.concurrency import run_in_threadpool
 from pydantic import BaseModel, Field
 
 from app.core.auth import require_write_access
@@ -18,6 +19,7 @@ from app.core.streaming import get_task_stream_registry
 from app.core.hil.hil_manager import get_hil_manager
 from app.db import get_db
 from app.repositories import task_repo
+from app.schemas.task_event import TaskEventOut
 from app.services.task_service import get_task_service
 from skyforge_engine.config import settings
 
@@ -90,7 +92,12 @@ async def list_tasks(
     }
 
 
-@router.get("/tasks/{task_id}")
+@router.get(
+    "/tasks/{task_id}",
+    # 把事件模型挂到 responses，使 PipelineStage 枚举与 round_number/
+    # remaining_violations 字段进入 /openapi.json 的 components（WS 事件不产 OpenAPI）。
+    responses={200: {"model": TaskEventOut}},
+)
 async def get_task(task_id: str, db: Session = Depends(get_db)) -> dict[str, Any]:
     task = task_repo.get(db, task_id)
     if task is None:
@@ -291,13 +298,18 @@ async def hardware_hil_preflight() -> dict[str, Any]:
 
 @router.get("/recordings")
 async def list_recordings() -> dict[str, Any]:
-    recordings = []
-    if _RECORDINGS_DIR.exists():
-        for path in sorted(_RECORDINGS_DIR.glob("*.manifest.json")):
-            try:
-                recordings.append(_load_recording_manifest(path))
-            except (OSError, ValueError, KeyError, json.JSONDecodeError):
-                continue
+    def _collect() -> list[dict[str, Any]]:
+        recordings = []
+        if _RECORDINGS_DIR.exists():
+            for path in sorted(_RECORDINGS_DIR.glob("*.manifest.json")):
+                try:
+                    recordings.append(_load_recording_manifest(path))
+                except (OSError, ValueError, KeyError, json.JSONDecodeError):
+                    continue
+        return recordings
+
+    # glob + 逐文件 sha256 校验为同步 IO/CPU，放线程池避免阻塞事件循环
+    recordings = await run_in_threadpool(_collect)
     return {"recordings": recordings}
 
 
@@ -305,12 +317,17 @@ async def list_recordings() -> dict[str, Any]:
 async def get_recording(recording_id: str) -> dict[str, Any]:
     if not recording_id.replace("-", "").isalnum():
         raise HTTPException(status_code=400, detail="invalid recording id")
-    matches = list(_RECORDINGS_DIR.glob("*.manifest.json"))
-    for path in matches:
-        manifest = _load_recording_manifest(path)
-        if manifest.get("id") != recording_id:
-            continue
-        source_path = (path.parent / manifest["source_log"]).resolve()
-        manifest["run"] = json.loads(source_path.read_text(encoding="utf-8"))
-        return manifest
-    raise HTTPException(status_code=404, detail="recording not found")
+
+    def _find() -> dict[str, Any]:
+        matches = list(_RECORDINGS_DIR.glob("*.manifest.json"))
+        for path in matches:
+            manifest = _load_recording_manifest(path)
+            if manifest.get("id") != recording_id:
+                continue
+            source_path = (path.parent / manifest["source_log"]).resolve()
+            manifest["run"] = json.loads(source_path.read_text(encoding="utf-8"))
+            return manifest
+        raise HTTPException(status_code=404, detail="recording not found")
+
+    # glob + sha256 + 读日志文件为同步 IO，放线程池避免阻塞事件循环
+    return await run_in_threadpool(_find)

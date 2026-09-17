@@ -182,17 +182,7 @@ async def fault_types() -> dict[str, Any]:
 
 @router.post("/api/verify")
 async def verify(req: VerifyRequest) -> dict[str, Any]:
-    """对契约执行形式化验证（Z3 SMT + CBMC 有界模型检查）。
-
-    Returns:
-        {
-            "status": "passed|failed|skipped",
-            "summary": {total, passed, failed, skipped},
-            "checks": [{name, status, duration_ms, counter_example, tool}],
-            "total_duration_ms": int,
-            "tool": "Z3|CBMC|Z3+CBMC"
-        }
-    """
+    """对契约执行形式化验证（Z3 SMT + CBMC 有界模型检查）。"""
 
     from skyforge_engine.tools.contract_formal_verifier import verify_contract
 

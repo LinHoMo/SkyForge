@@ -80,6 +80,8 @@ def append_event(
     agent: str,
     message: str,
     evidence_status: str = "observed",
+    round_number: int | None = None,
+    remaining_violations: int | None = None,
 ) -> TaskEvent:
     current = db.execute(
         select(func.max(TaskEvent.seq)).where(TaskEvent.task_id == task_id)
@@ -92,6 +94,8 @@ def append_event(
         agent=agent,
         message=message,
         evidence_status=evidence_status,
+        round_number=round_number,
+        remaining_violations=remaining_violations,
     )
     db.add(event)
     db.commit()
@@ -200,7 +204,7 @@ def serialize_task(task: Task, *, include_result: bool = True) -> dict[str, Any]
 
 
 def serialize_event(event: TaskEvent) -> dict[str, Any]:
-    return {
+    data: dict[str, Any] = {
         "seq": event.seq,
         "task_id": event.task_id,
         "stage": event.stage,
@@ -211,3 +215,9 @@ def serialize_event(event: TaskEvent) -> dict[str, Any]:
         "evidence_status": event.evidence_status,
         "time": event.created_at.isoformat() if event.created_at else None,
     }
+    # 修复轮次指示：仅在有值时下发，避免前端拿到 null 噪声。
+    if event.round_number is not None:
+        data["round_number"] = event.round_number
+    if event.remaining_violations is not None:
+        data["remaining_violations"] = event.remaining_violations
+    return data

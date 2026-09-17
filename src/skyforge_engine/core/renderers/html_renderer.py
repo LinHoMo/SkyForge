@@ -25,12 +25,5 @@ class HTMLRenderer:
         return "html"
 
     def render(self, data: dict[str, Any]) -> str:
-        """渲染 HTML 报告。
-
-        Args:
-            data: 报告数据字典（通常来自 ReportDataCollector.get_data）。
-
-        Returns:
-            完整 HTML 报告字符串（含内嵌 CSS）。
-        """
+        """渲染 HTML 报告。"""
         return generate_report(data)

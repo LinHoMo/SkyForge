@@ -55,20 +55,39 @@ class RepairLoopStage:
         await hook("REPAIR", "info", f"修复闭环启动 max_iterations={self._max_iterations}")
 
         for iteration in range(1, self._max_iterations + 1):
-            await hook("REPAIR", "info", f"第 {iteration} 轮：扫描违规")
+            await hook(
+                "REPAIR",
+                "info",
+                f"第 {iteration} 轮：扫描违规",
+                meta={"stage": "misra", "round_number": iteration},
+            )
             sync_cb, pending_logs = _make_sync_log_collector()
             violations = scanner.scan(current_code, language=language)
             await _flush_collected_logs(hook, pending_logs)
             final_violations = violations
 
             if not violations:
-                await hook("REPAIR", "success", f"第 {iteration} 轮：无违规，跳出循环")
+                await hook(
+                    "REPAIR",
+                    "success",
+                    f"第 {iteration} 轮：无违规，跳出循环",
+                    meta={
+                        "stage": "misra",
+                        "round_number": iteration,
+                        "remaining_violations": 0,
+                    },
+                )
                 break
 
             await hook(
                 "REPAIR",
                 "warn",
                 f"第 {iteration} 轮：检出 {len(violations)} 条违规",
+                meta={
+                    "stage": "misra",
+                    "round_number": iteration,
+                    "remaining_violations": len(violations),
+                },
             )
 
             await _push_agent_thought(
@@ -82,6 +101,11 @@ class RepairLoopStage:
                 "REPAIR",
                 "success",
                 f"第 {iteration} 轮：修复完成 actions={len(repair_result.actions)}",
+                meta={
+                    "stage": "misra",
+                    "round_number": iteration,
+                    "remaining_violations": len(post_repair_violations),
+                },
             )
 
             # 不退步检测：修复后重新扫描，防止引入新违规

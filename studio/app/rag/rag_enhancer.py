@@ -51,14 +51,7 @@ _AGENT_DISPLAY_NAMES: dict[str, str] = {
 
 
 def _format_rule_for_context(rule: MisraRule) -> str:
-    """将单条 MisraRule 格式化为上下文文本片段。
-
-    Args:
-        rule: MisraRule 实例。
-
-    Returns:
-        格式化后的文本（含规则 ID、标题、严重程度、描述、示例预览）。
-    """
+    """将单条 MisraRule 格式化为上下文文本片段。"""
     lines = [f"### {rule.rule_id} ({rule.severity or '未知'})"]
     if rule.title:
         lines.append(f"**标题**: {rule.title}")
@@ -90,11 +83,7 @@ class RagEnhancer:
     """
 
     def __init__(self, searcher: Optional[MisraRuleSearcher] = None) -> None:
-        """初始化 RAG 增强器。
-
-        Args:
-            searcher: 可选的 MisraRuleSearcher 实例（不传则使用单例）。
-        """
+        """初始化 RAG 增强器。"""
         self._searcher = searcher or MisraRuleSearcher.get_instance()
         self._enabled: bool = bool(getattr(settings, "RAG_ENABLED", False))
         self._top_k: int = int(getattr(settings, "RAG_TOP_K", 5))
@@ -110,16 +99,7 @@ class RagEnhancer:
         logger.info(f"RagEnhancer:RAG 已{'启用' if enabled else '禁用'}")
 
     def enhance_prompt(self, agent_name: str, task: str) -> str:
-        """根据任务检索相关 MISRA 规则，注入到 Agent prompt。
-
-        Args:
-            agent_name: Agent 名称（如 "code_generator" / "code_repairer"）。
-            task: Agent 当前任务描述。
-
-        Returns:
-            注入 MISRA 规则上下文后的增强 prompt 字符串。
-            若 RAG 未启用或无相关规则，返回空字符串。
-        """
+        """根据任务检索相关 MISRA 规则，注入到 Agent prompt。"""
         if not self._enabled:
             logger.debug("RagEnhancer:RAG 未启用，跳过增强")
             return ""
@@ -181,14 +161,7 @@ class RagEnhancer:
         """构建指定规则 ID 集合的 MISRA 上下文。
 
         参考 1.6.4 节：静态红线规则 + 动态检索规则 + 去重。
-        本方法接收一组规则 ID，返回格式化的上下文文本。
         若 RAG 未启用，返回空字符串。
-
-        Args:
-            rule_ids: 规则 ID 列表（如 ["Rule 8.1", "Rule 21.3"]）。
-
-        Returns:
-            格式化的 MISRA 规则上下文文本。
         """
         if not self._enabled:
             logger.debug("RagEnhancer:RAG 未启用，跳过构建上下文")
@@ -289,25 +262,10 @@ def _get_enhancer() -> RagEnhancer:
 
 
 def enhance_prompt(agent_name: str, task: str) -> str:
-    """模块级便捷函数：根据任务检索相关 MISRA 规则，注入到 Agent prompt。
-
-    Args:
-        agent_name: Agent 名称。
-        task: 任务描述。
-
-    Returns:
-        增强 prompt 字符串。若 RAG 未启用返回空字符串。
-    """
+    """模块级便捷函数：根据任务检索相关 MISRA 规则，注入到 Agent prompt。"""
     return _get_enhancer().enhance_prompt(agent_name, task)
 
 
 def build_misra_context(rule_ids: list[str]) -> str:
-    """模块级便捷函数：构建指定规则 ID 集合的 MISRA 上下文。
-
-    Args:
-        rule_ids: 规则 ID 列表。
-
-    Returns:
-        上下文文本字符串。
-    """
+    """模块级便捷函数：构建指定规则 ID 集合的 MISRA 上下文。"""
     return _get_enhancer().build_misra_context(rule_ids)

@@ -905,3 +905,51 @@
 		animation-delay: 0ms;
 	}
 }
+
+/* ===================== LiveMetrics Dark Mode ===================== */
+.dark .live-metrics-card.live-metrics-card {
+	border: 1px solid hsl(240 3% 22% / 0.8);
+	background: linear-gradient(135deg, hsl(240 4% 12%) 0%, hsl(240 4% 10%) 100%);
+	box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+}
+.dark .live-metrics-card .lm-title {
+	color: hsl(0 0% 88%);
+}
+.dark .live-metrics-card .lm-pulse {
+	background: hsl(240 2% 38%);
+}
+.dark .live-metrics-card .lm-loading { color: hsl(210 100% 65%); }
+.dark .live-metrics-card .lm-updated { color: hsl(130 55% 60%); }
+.dark .live-metrics-card .lm-error { color: hsl(3 100% 70%); }
+.dark .live-metrics-card .lm-cell {
+	border: 1px solid hsl(240 3% 22%);
+	background: hsl(240 3% 16% / 0.6);
+}
+.dark .live-metrics-card .lm-label {
+	color: hsl(240 2% 62%);
+}
+.dark .live-metrics-card .metric-value,
+.dark .live-metrics-card .db-value,
+.dark .live-metrics-card .switch-value {
+	color: hsl(0 0% 95%);
+}
+.dark .live-metrics-card .task-stat {
+	color: hsl(0 0% 90%);
+}
+.dark .live-metrics-card .task-stat small {
+	color: hsl(240 2% 60%);
+}
+.dark .live-metrics-card .llm-model {
+	color: hsl(0 0% 90%);
+}
+.dark .live-metrics-card .backend-state {
+	color: hsl(240 2% 62%);
+}
+.dark .live-metrics-card .tool-chip.unknown {
+	background: hsl(240 2% 40% / 0.12);
+	color: hsl(240 2% 65%);
+	border-color: hsl(240 2% 40% / 0.3);
+}
+.dark .live-metrics-card .tool-chip.unknown .tool-led {
+	background: hsl(240 2% 45%);
+}

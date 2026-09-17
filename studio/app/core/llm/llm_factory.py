@@ -13,11 +13,7 @@ class LLMFactory:
         self.task_id = task_id
 
     def get_all_llms(self) -> tuple[LLM, LLM, LLM, LLM]:
-        """创建所有 Agent 的 LLM 实例。
-
-        Returns:
-            包含 (req_parser_llm, con_gen_llm, code_gen_llm, reviewer_llm) 的元组。
-        """
+        """创建所有 Agent 的 LLM 实例。"""
         req_parser_llm = LLM(
             api_type=settings.REQ_PARSER_API_TYPE,
             api_key=settings.REQ_PARSER_API_KEY,

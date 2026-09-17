@@ -210,14 +210,7 @@ class CleanupManager:
         target.errors.extend(source.errors)
 
     def cleanup_work_dirs(self, ttl_seconds: Optional[int] = None) -> CleanupStats:
-        """清理过期的任务工作目录。
-
-        Args:
-            ttl_seconds: 保留时长，默认使用配置值
-
-        Returns:
-            清理统计
-        """
+        """清理过期的任务工作目录。"""
         stats = CleanupStats()
         ttl = ttl_seconds if ttl_seconds is not None else self.work_dir_ttl
         now = time.time()
@@ -250,14 +243,7 @@ class CleanupManager:
         return stats
 
     def cleanup_logs(self, ttl_seconds: Optional[int] = None) -> CleanupStats:
-        """清理过期的日志文件。
-
-        Args:
-            ttl_seconds: 保留时长，默认使用配置值
-
-        Returns:
-            清理统计
-        """
+        """清理过期的日志文件。"""
         stats = CleanupStats()
         ttl = ttl_seconds if ttl_seconds is not None else self.log_ttl
         now = time.time()
@@ -290,14 +276,7 @@ class CleanupManager:
         return stats
 
     def cleanup_evidence(self, ttl_seconds: Optional[int] = None) -> CleanupStats:
-        """清理过期的证据包。
-
-        Args:
-            ttl_seconds: 保留时长，默认使用配置值
-
-        Returns:
-            清理统计
-        """
+        """清理过期的证据包。"""
         stats = CleanupStats()
         ttl = ttl_seconds if ttl_seconds is not None else self.evidence_ttl
         now = time.time()
@@ -333,9 +312,6 @@ class CleanupManager:
         """清理系统临时目录下残留的 skyforge_* 临时目录。
 
         这些是 tempfile.mkdtemp(prefix="skyforge_*") 创建但因崩溃未清理的。
-
-        Returns:
-            清理统计
         """
         stats = CleanupStats()
         prefixes = (
@@ -377,9 +353,6 @@ class CleanupManager:
 
         仅在开发/测试环境调用，生产环境不自动清理。
         由 CLEANUP_PYCACHE 环境变量控制，默认 false。
-
-        Returns:
-            清理统计
         """
         stats = CleanupStats()
         if os.environ.get("CLEANUP_PYCACHE", "false").lower() != "true":
@@ -417,14 +390,7 @@ class CleanupManager:
         return stats
 
     def cleanup_task_dir(self, task_id: str) -> bool:
-        """立即清理指定任务的工作目录（双重校验路径）。
-
-        Args:
-            task_id: 任务 ID
-
-        Returns:
-            是否成功清理
-        """
+        """立即清理指定任务的工作目录（双重校验路径）。"""
         if not task_id:
             return False
         task_dir = (self._work_dir_root / task_id).resolve()

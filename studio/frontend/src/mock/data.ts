@@ -22,71 +22,88 @@ export const MOCK_AGENT_LOGS: AgentLog[] = [
 	{
 		agent: "REQ-Parser",
 		level: "info",
+		stage: "requirement",
 		thought:
 			"正在解析需求... 识别关键词: 低通滤波器 / 截止频率 10Hz / 一阶 IIR",
 	},
 	{
 		agent: "REQ-Parser",
 		level: "success",
+		stage: "requirement",
 		thought:
 			"需求解析完成：生成需求标签 [REQ-001] 截止频率 fc=10Hz；[REQ-002] 输出范围 [0, 65535]",
 	},
 	{
 		agent: "CON-Gen",
 		level: "info",
+		stage: "contract",
 		thought: "生成契约中：postcondition output >= 0 且 output <= 65535",
 	},
 	{
 		agent: "CON-Gen",
 		level: "success",
+		stage: "contract",
 		thought: "契约生成完成 [CON-001-POST-001]；invariant: alpha ∈ [0, 1]",
 	},
 	{
 		agent: "CODE-Gen",
 		level: "info",
+		stage: "code",
 		thought:
 			"正在生成 filter() 函数... 采用一阶 IIR 结构 y[n] = alpha*x[n] + (1-alpha)*y[n-1]",
 	},
 	{
 		agent: "CODE-Gen",
 		level: "success",
+		stage: "code",
 		thought: "C 代码生成完成，已标注 [REQ-001] [REQ-002] [MISRA-Rule-8.1]",
 	},
 	{
 		agent: "SYSTEM",
 		level: "info",
+		stage: "misra",
 		thought: "$ cppcheck --addon=misra --enable=all code.c",
 	},
 	{
 		agent: "TERMINAL",
 		level: "warn",
+		stage: "misra",
 		thought:
 			"[code.c:12] (style) Variable 'alpha' not initialized. [MISRA-Rule-9.1]",
 	},
 	{
 		agent: "REPAIR",
 		level: "info",
+		stage: "misra",
+		round_number: 1,
+		remaining_violations: 4,
 		thought:
 			"检测到违规 [MISRA-Rule-9.1]：变量 alpha 未初始化，正在自动修复...",
 	},
 	{
 		agent: "REPAIR",
 		level: "success",
+		stage: "misra",
+		round_number: 1,
+		remaining_violations: 1,
 		thought: "已添加初始化 alpha = 0.0f；并补充类型声明 [MISRA-Rule-8.1]",
 	},
 	{
 		agent: "SYSTEM",
 		level: "info",
+		stage: "simulation",
 		thought: "$ gcc -c code.c -o code.o && gcc test_harness.c code.o -o sim",
 	},
 	{
 		agent: "TERMINAL",
 		level: "success",
+		stage: "simulation",
 		thought: "$ ./sim < input.bin  →  全部测试用例通过 (8/8)",
 	},
 	{
 		agent: "SYSTEM",
 		level: "success",
+		stage: "report",
 		thought: "✅ 全流程完成：5 秒合规检查，5 分钟完整交付",
 	},
 ];

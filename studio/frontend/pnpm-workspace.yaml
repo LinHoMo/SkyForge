@@ -6,6 +6,3 @@ onlyBuiltDependencies:
   - core-js-pure
   - leveldown
   - "@fortawesome/fontawesome-free"
-
-overrides:
-  dompurify: 3.4.12

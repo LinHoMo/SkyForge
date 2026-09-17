@@ -5,6 +5,7 @@
 
 from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
+from fastapi.concurrency import run_in_threadpool
 
 from app.core.tool_manager import TOOLS_REQUIREMENTS, check_all_tools
 
@@ -20,7 +21,7 @@ async def get_tool_registry() -> JSONResponse:
 
     前端系统设置页面通过此接口动态渲染工具链状态列表。
     """
-    tools = check_all_tools()
+    tools = await run_in_threadpool(check_all_tools)
     return JSONResponse(
         content=[
             {
@@ -88,7 +89,7 @@ async def execute_tool(
     args = payload.get("args") or []
     timeout = int(payload.get("timeout") or 60)
 
-    result = ToolExecutor.run(tool_name=tool_name, args=args, timeout=timeout)
+    result = await run_in_threadpool(lambda: ToolExecutor.run(tool_name=tool_name, args=args, timeout=timeout))
 
     return JSONResponse(
         content={

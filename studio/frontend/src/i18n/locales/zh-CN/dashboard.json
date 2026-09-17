@@ -46,6 +46,7 @@
 			"todayDone": "已完成",
 			"totalCount": "总任务数",
 			"trendTitle": "违规数趋势",
+			"trendHint": "较上一次：违规减少=↑ 改善，增加=↓ 恶化",
 			"noTrend": "暂无趋势数据",
 			"violationAxis": "违规数"
 		}

@@ -47,6 +47,27 @@ from app.repositories import task_repo
 from app.db import Base, SessionLocal, engine
 
 
+def _ensure_task_event_columns() -> None:
+    """为已有 dev 库幂等补齐 task_events 的新列（SQLite create_all 不补列）。
+
+    round_number / remaining_violations 为新增可空列；新库由 create_all 直接建出，
+    老库此处 ALTER TABLE 补齐，避免查询时缺列报错。失败仅告警，不阻断启动。
+    """
+    from sqlalchemy import inspect, text
+
+    inspector = inspect(engine)
+    if "task_events" not in inspector.get_table_names():
+        return
+    existing = {col["name"] for col in inspector.get_columns("task_events")}
+    with engine.begin() as conn:
+        if "round_number" not in existing:
+            conn.execute(text("ALTER TABLE task_events ADD COLUMN round_number INTEGER"))
+        if "remaining_violations" not in existing:
+            conn.execute(
+                text("ALTER TABLE task_events ADD COLUMN remaining_violations INTEGER")
+            )
+
+
 # Rate limiter
 limiter = Limiter(key_func=get_remote_address)
 
@@ -84,6 +105,7 @@ async def lifespan(app: FastAPI):
     # 初始化数据库：自动建表
     try:
         Base.metadata.create_all(engine)
+        _ensure_task_event_columns()
         with SessionLocal() as db:
             legacy = task_repo.migrate_legacy_history(db)
             interrupted = task_repo.mark_running_interrupted(db)

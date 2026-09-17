@@ -243,11 +243,7 @@ class LustreLexer:
     """Lustre 词法分析器。"""
 
     def __init__(self, source: str):
-        """初始化词法分析器。
-
-        Args:
-            source: Lustre 源代码字符串。
-        """
+        """初始化词法分析器。"""
         self.source = source
         self.pos = 0
         self.line = 1
@@ -263,11 +259,7 @@ class LustreLexer:
             self.patterns.append((token_type, compiled))
 
     def tokenize(self) -> list[Token]:
-        """执行词法分析，返回 Token 列表。
-
-        Returns:
-            Token 列表。
-        """
+        """执行词法分析，返回 Token 列表。"""
         while self.pos < len(self.source):
             matched = False
             for token_type, pattern in self.patterns:
@@ -316,13 +308,6 @@ class LustreLexer:
 
 
 def tokenize(source: str) -> list[Token]:
-    """便捷函数：对 Lustre 源代码进行词法分析。
-
-    Args:
-        source: Lustre 源代码字符串。
-
-    Returns:
-        Token 列表。
-    """
+    """便捷函数：对 Lustre 源代码进行词法分析。"""
     lexer = LustreLexer(source)
     return lexer.tokenize()

@@ -21,19 +21,7 @@ from skyforge_engine.utils.log_util import logger
 
 @dataclass
 class CompositionSimulationResult:
-    """组合仿真验证结果。
-
-    Attributes:
-        passed: 组合仿真是否通过（契约满足 + 进程正常退出）。
-        total_steps: 仿真步数。
-        contract_satisfied: 组合契约是否满足（无违约）。
-        violation_location: 契约违约位置（步号），无违约为 None。
-        violation_message: 违约消息，无违约为空字符串。
-        output_waveform: 输出波形（list[float]）。
-        statistics: 仿真统计信息。
-        terminal_log: 终端日志（用于前端展示）。
-        simulation_result: 原始 SimulationResult.to_dict()（含完整信息）。
-    """
+    """组合仿真验证结果。"""
 
     passed: bool = False
     total_steps: int = 0
@@ -76,16 +64,7 @@ class CompositionSimulator:
         composed_contract: str,
         steps: int = 200,
     ) -> CompositionSimulationResult:
-        """运行组合后仿真，验证组合契约是否满足。
-
-        Args:
-            composed_code: 组合后的 C 代码字符串（含 double filter(double) 函数）。
-            composed_contract: 组合后的 .contract YAML 字符串。
-            steps: 仿真步数（默认 200）。
-
-        Returns:
-            CompositionSimulationResult。
-        """
+        """运行组合后仿真，验证组合契约是否满足。"""
         logger.info(
             f"CompositionSimulator:开始 composed_code={len(composed_code)}B "
             f"steps={steps}"
@@ -136,15 +115,6 @@ def simulate_composition(
     composed_contract: str,
     steps: int = 200,
 ) -> CompositionSimulationResult:
-    """组合仿真模块级入口（便捷封装）。
-
-    Args:
-        composed_code: 组合后的 C 代码字符串。
-        composed_contract: 组合后的 .contract YAML 字符串。
-        steps: 仿真步数。
-
-    Returns:
-        CompositionSimulationResult。
-    """
+    """组合仿真模块级入口（便捷封装）。"""
     simulator = CompositionSimulator()
     return simulator.simulate(composed_code, composed_contract, steps)

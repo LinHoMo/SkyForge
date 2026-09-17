@@ -4,6 +4,7 @@
 """
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
@@ -76,8 +77,9 @@ async def get_system_status(db: Session = Depends(get_db)) -> dict:
     except Exception as e:
         logger.warning(f"Dashboard system-status: LLM 状态查询失败: {e}")
 
-    # 工具链可用性（统一调用工具链注册表）
-    tool_list = check_all_tools()
+    # 工具链可用性（统一调用工具链注册表）。check_all_tools 内部对每个工具
+    # 执行 subprocess --version，放线程池避免阻塞事件循环（dashboard 会轮询此接口）。
+    tool_list = await run_in_threadpool(check_all_tools)
     tools = {t.name: t.found for t in tool_list}
 
     # 持久化状态

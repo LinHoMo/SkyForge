@@ -17,12 +17,7 @@ from skyforge_engine.utils.log_util import logger
 
 
 def _try_real_coverage(code: str, test_inputs: list | None) -> dict | None:
-    """尝试使用真实 GCC 14.2 + lcov 收集覆盖率。
-
-    Returns:
-        dict: 真实覆盖率结果（包含 method="gcov"），成功时返回。
-        None: 工具不可用或收集失败时返回 None，调用方应回退静态分析。
-    """
+    """尝试使用真实 GCC 14.2 + lcov 收集覆盖率。"""
     try:
         from skyforge_engine.dal.gcov_collector import collect_coverage
 
@@ -51,29 +46,6 @@ def analyze_code_coverage(
 
     V3.3 集成增强 MC/DC 计算器，支持括号感知条件拆分和测试向量生成。
     V0.4 P2: 优先尝试 GCC 14.2+ lcov 2.0+ 真实收集，工具不可用时回退静态分析。
-
-    Args:
-        code: C 源代码字符串。
-        fault_injected: 是否执行了故障注入测试。
-        dal: DAL 等级（用于设定目标覆盖率阈值）。
-        test_inputs: 测试输入列表（用于真实覆盖率收集）。
-        use_real_coverage: 是否尝试使用真实 gcov/lcov（默认 True）。
-
-    Returns:
-        覆盖率结果字典:
-        {
-            "statement_coverage": float,
-            "decision_coverage": float,
-            "mcdc_coverage": float,
-            "statement_target": float,
-            "decision_target": float,
-            "mcdc_target": float,
-            "decision_points": [...],
-            "switch_cases": [...],
-            "analyzed": bool,
-            "version": "V1.0-Real+Static",
-            "method": "gcov" | "static_analysis",
-        }
     """
     if not code:
         return _empty_result("代码为空")

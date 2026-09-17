@@ -69,6 +69,7 @@ const postconditions = ref(
 const invariants = ref("0.0f <= alpha <= 1.0f");
 
 const isSimulating = ref(false);
+const simError = ref("");
 const multiCompareEnabled = ref(false);
 const activeTab = ref("code");
 
@@ -127,6 +128,7 @@ fault_handling:
 
 async function runSimulation(faultType?: FaultType, faultParams?: FaultParams) {
 	isSimulating.value = true;
+	simError.value = "";
 	try {
 		const contract = buildContractYaml();
 		const result = await getApi().simulate(
@@ -139,6 +141,9 @@ async function runSimulation(faultType?: FaultType, faultParams?: FaultParams) {
 		if (multiCompareEnabled.value) {
 			simulationHistory.value.push(result);
 		}
+	} catch (err) {
+		console.error("[CapabilityLab] 仿真失败：", err);
+		simError.value = String(err instanceof Error ? err.message : err);
 	} finally {
 		isSimulating.value = false;
 	}
@@ -286,6 +291,7 @@ function computeVariance(data: number[]): number {
 							{{ isSimulating ? $t("lab.btn.simulating") : $t("lab.btn.start") }}
 						</Button>
 					</div>
+					<p v-if="simError" class="text-sm text-destructive mt-2">{{ simError }}</p>
 				</CardContent>
 			</Card>
 

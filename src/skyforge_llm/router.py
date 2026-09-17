@@ -81,13 +81,7 @@ class ModelRouter:
         base_url: Optional[str] = None,
         timeout: int = 30,
     ) -> None:
-        """初始化模型路由器。
-
-        Args:
-            base_url: 本地 LLM API 地址，默认从环境变量 LOCAL_LLM_BASE_URL 读取
-                （旧名 LMSTUDIO_BASE_URL 仍兼容，会触发 DeprecationWarning）。
-            timeout: 单次模型调用超时阈值（秒），超过则触发降级。
-        """
+        """初始化模型路由器。"""
         self.base_url = base_url or _resolve_local_llm_base_url()
         self.timeout = timeout
         # 模型调用耗时记录：{model_id: last_latency_seconds}
@@ -101,16 +95,10 @@ class ModelRouter:
         """根据任务类型选择模型 ID。
 
         选择策略：
-          1. 若已通过 set_manual_selection 手动指定，直接返回该模型
-          2. 否则按 task_type → 复杂度 → 候选模型列表 → 匹配已加载模型
-          3. 全部候选都未加载时，返回 LM Studio 中第一个可用模型
-          4. 若 LM Studio 不可用 / 无模型，返回环境变量 LMSTUDIO_MODEL 默认值
-
-        Args:
-            task_type: 任务类型，如 requirement_parse / code_generation。
-
-        Returns:
-            模型 ID 字符串。
+        1. 若已通过 set_manual_selection 手动指定，直接返回该模型
+        2. 否则按 task_type → 复杂度 → 候选模型列表 → 匹配已加载模型
+        3. 全部候选都未加载时，返回 LM Studio 中第一个可用模型
+        4. 若 LM Studio 不可用 / 无模型，返回环境变量 LMSTUDIO_MODEL 默认值
         """
         # 1. 手动选择优先
         if self._manual_selection:
@@ -147,14 +135,7 @@ class ModelRouter:
         return default_model
 
     def get_model_info(self, model_id: str) -> dict[str, Any]:
-        """获取模型信息（名称、大小、是否已加载）。
-
-        Args:
-            model_id: 模型 ID。
-
-        Returns:
-            dict：含 id / loaded / size / type / context_length / last_latency。
-        """
+        """获取模型信息（名称、大小、是否已加载）。"""
         loaded_models = self.list_available_models()
         for m in loaded_models:
             if m["id"] == model_id:
@@ -179,12 +160,7 @@ class ModelRouter:
         }
 
     def list_available_models(self) -> list[dict[str, Any]]:
-        """列出 LM Studio 中所有已加载的模型。
-
-        Returns:
-            模型信息列表，每项含 id / size / type / context_length 等字段。
-            LM Studio 不可用时返回空列表。
-        """
+        """列出 LM Studio 中所有已加载的模型。"""
         try:
             resp = httpx.get(f"{self.base_url}/models", timeout=5)
             if resp.status_code != 200:
@@ -210,12 +186,7 @@ class ModelRouter:
             return []
 
     def record_latency(self, model_id: str, latency: float) -> None:
-        """记录模型调用耗时（用于超时降级决策）。
-
-        Args:
-            model_id: 模型 ID。
-            latency: 本次调用耗时（秒）。
-        """
+        """记录模型调用耗时（用于超时降级决策）。"""
         self._latency[model_id] = latency
         if latency > self.timeout:
             logger.warning(
@@ -227,12 +198,6 @@ class ModelRouter:
         """选择模型并在超时时降级到备用模型。
 
         若首选模型最近一次调用耗时超过 self.timeout，自动切换到候选列表中的下一个。
-
-        Args:
-            task_type: 任务类型。
-
-        Returns:
-            模型 ID。
         """
         complexity = _TASK_COMPLEXITY.get(task_type, _TASK_COMPLEXITY["default"])
         candidates = _MODEL_CANDIDATES.get(complexity, _MODEL_CANDIDATES["small"])
@@ -254,11 +219,7 @@ class ModelRouter:
         return self.select_model(task_type)
 
     def set_manual_selection(self, model_id: Optional[str]) -> None:
-        """手动指定模型（None 表示清除手动选择，恢复自动路由）。
-
-        Args:
-            model_id: 模型 ID，传 None 清除。
-        """
+        """手动指定模型（None 表示清除手动选择，恢复自动路由）。"""
         self._manual_selection = model_id
         if model_id:
             logger.info(f"ModelRouter:已手动选择模型 {model_id}")

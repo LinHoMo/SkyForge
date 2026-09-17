@@ -76,7 +76,26 @@
 		},
 		"misra": {
 			"title": "MISRA 校验",
-			"noViolations": "无 MISRA 违规"
+			"noViolations": "无 MISRA 违规",
+			"autoFixed": "已自动修复",
+			"needsManual": "需人工处理",
+			"viewFix": "查看修复",
+			"hideFix": "收起修复"
+		},
+		"repairRound": {
+			"label": "第 {round} 轮修复 / 剩余 {remaining} 个违规"
+		},
+		"pipeline": {
+			"stage": {
+				"req": "需求解析",
+				"arch": "架构设计",
+				"con": "契约生成",
+				"code": "代码生成",
+				"repair": "MISRA修复",
+				"sim": "仿真",
+				"verify": "形式化验证",
+				"report": "报告"
+			}
 		},
 		"simulation": {
 			"title": "仿真结果"

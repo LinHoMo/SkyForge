@@ -128,14 +128,7 @@ class RequirementParserAgent:
         self.strategy = strategy
 
     async def run(self, requirement: str) -> dict[str, Any]:
-        """解析自然语言需求，返回结构化需求字典。
-
-        Args:
-            requirement: 自然语言需求字符串。
-
-        Returns:
-            结构化需求字典，至少包含 req_id / desc / type 字段。
-        """
+        """解析自然语言需求，返回结构化需求字典。"""
         logger.info("RequirementParserAgent:开始:解析需求")
         self._counter += 1
         req_id = f"REQ-{self._counter:03d}"

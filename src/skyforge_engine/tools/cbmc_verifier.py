@@ -28,16 +28,7 @@ from skyforge_engine.core.verifiers.cbmc_verifier import CBMCVerifier as _CBMCVe
 
 @dataclass
 class CBMCResult:
-    """CBMC 验证结果。
-
-    Attributes:
-        passed: True 表示验证通过。
-        status: 原始状态（SUCCESS / FAILURE）。
-        violations: 违反的断言列表。
-        trace: 反例追踪（验证失败时）。
-        time_ms: 验证耗时（毫秒）。
-        tool_available: CBMC 工具是否可用。
-    """
+    """CBMC 验证结果。"""
 
     passed: bool = False
     status: str = ""
@@ -68,16 +59,7 @@ def run_cbmc_verification(
     """对 C 代码运行 CBMC 有界模型检查。
 
     .. deprecated::
-        使用 ``CBMCVerifier().verify(code, unwind=..., function=...)`` 替代。
-
-    Args:
-        code: C 源代码字符串。
-        unwind: 循环展开次数（默认 10）。
-        function: 指定入口函数（None=自动检测 main）。
-        property_flags: 额外属性标志。
-
-    Returns:
-        CBMCResult: 验证结果。
+    使用 ``CBMCVerifier().verify(code, unwind=..., function=...)`` 替代。
     """
     warnings.warn(
         "run_cbmc_verification is deprecated, use CBMCVerifier instead",

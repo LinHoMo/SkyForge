@@ -723,16 +723,7 @@ HLR [REQ-xxx] → LLR [LLR-xxx] → 契约 [CON-xxx] →
 
 
 def generate_report(pipeline_result: dict[str, Any]) -> str:
-    """生成 DO-178C 合规报告（HTML 格式）。
-
-    Args:
-        pipeline_result: 全流程结果字典，至少包含 requirement / contract / final_code
-            （或 code）/ contract_check_result / simulation_result / repair_history /
-            final_violations / cppcheck_result 字段。
-
-    Returns:
-        完整 HTML 报告字符串（含内嵌 CSS，可直接写入 .html 文件）。
-    """
+    """生成 DO-178C 合规报告（HTML 格式）。"""
     logger.info("ReportGenerator:开始生成 DO-178C 合规报告")
 
     # 1) 构建追溯矩阵

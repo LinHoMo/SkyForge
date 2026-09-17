@@ -118,15 +118,6 @@ def categorize_rule(
     2. 规则号前缀映射（如 Rule 6.x → type）
     3. 其他关键词匹配
     4. 默认 fallback 为 "declaration"
-
-    Args:
-        title: 规则标题（如 "Types shall be explicitly specified"）。
-        description: 规则描述（可选）。
-        language: 目标语言（默认 "c"），用于从注册表获取对应分类映射。
-
-    Returns:
-        分类字符串（type/memory/control/expression/declaration/
-        preprocessor/std_library 之一）。
     """
     from skyforge_engine.coding_standards.base import get_registry
 
@@ -176,12 +167,6 @@ def _extract_examples(block_lines: list[str]) -> list[str]:
 
     识别 "示例:" / "非合规代码示例:" / "合规代码示例:" 标签，
     将其后的代码内容（直到下一个标签或段落结束）作为一个 example。
-
-    Args:
-        block_lines: 该规则正文的所有行。
-
-    Returns:
-        示例代码字符串列表。
     """
     examples: list[str] = []
     current_example: list[str] = []
@@ -248,15 +233,7 @@ def _extract_examples(block_lines: list[str]) -> list[str]:
 
 
 def _extract_field(lines: list[str], field_name: str) -> str:
-    """从规则正文中提取指定字段（如 '要求'/'解释'）的内容。
-
-    Args:
-        lines: 规则正文行列表。
-        field_name: 字段名（"要求" / "解释"）。
-
-    Returns:
-        字段内容字符串（去除首尾空白）。
-    """
+    """从规则正文中提取指定字段（如 '要求'/'解释'）的内容。"""
     patterns = [
         rf"^{field_name}\s*[:：]\s*(.*)$",
         rf"^{field_name}[:：](.*)$",
@@ -297,12 +274,6 @@ def _parse_detailed_rules(content: str) -> list[MisraRule]:
     - 规则头："Rule X.Y (强制): 标题" 或 "Dir X.Y 标题:"
     - 段落：要求: / 解释: / 示例: / 非合规代码示例: / 合规代码示例:
     - 一直延续到下一个规则头或章节标题
-
-    Args:
-        content: 完整文件内容。
-
-    Returns:
-        解析出的 MisraRule 列表（详解部分）。
     """
     lines = content.splitlines()
     rules: list[MisraRule] = []
@@ -405,21 +376,14 @@ def _parse_quick_reference(
     """解析速查手册表格格式（文件后半部分）。
 
     表格格式为 5-6 行一组：
-        C2301            <- Analyze 编号
-        Dir 1.1           <- 规则 ID
-        如果程序的输出...   <- 规则名称
-        要求              <- 类别（强制/要求/建议）
-        不可判定          <- 可判定性
-        否                <- 是否支持
+    C2301            <- Analyze 编号
+    Dir 1.1           <- 规则 ID
+    如果程序的输出...   <- 规则名称
+    要求              <- 类别（强制/要求/建议）
+    不可判定          <- 可判定性
+    否                <- 是否支持
 
     详解部分已有的规则会补充 severity；详解部分没有的规则会新建。
-
-    Args:
-        content: 速查手册部分的内容。
-        existing_rules: 详解部分已解析的规则字典 {rule_id: MisraRule}。
-
-    Returns:
-        速查手册中新增/更新的规则列表。
     """
     lines = content.splitlines()
     new_rules: list[MisraRule] = []
@@ -500,12 +464,6 @@ def parse_misra_rules(content: str) -> list[MisraRule]:
     解析流程：
     1. 先解析详解格式部分（含示例代码、要求、解释）。
     2. 再解析速查手册附录部分，补充详解未覆盖的规则。
-
-    Args:
-        content: misra_rules.txt 文件完整内容。
-
-    Returns:
-        MisraRule 列表（按规则 ID 排序）。
     """
     # 1) 解析详解部分
     detailed_rules = _parse_detailed_rules(content)

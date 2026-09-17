@@ -37,18 +37,7 @@ class CheckItem:
 
 @dataclass
 class CheckResult:
-    """契约校验结果。
-
-    Attributes:
-        passed: 整体是否通过（所有检查项均通过）。
-        preconditions: 前置条件检查项列表。
-        postconditions: 后置条件检查项列表。
-        invariants: 不变式检查项列表。
-        fault_handling: 故障处理检查项列表。
-        assert_code: 自动生成的 C 断言插桩代码。
-        violations: 未通过项汇总（便于追溯）。
-        cppcheck_violations: Cppcheck 检测到的违规列表。
-    """
+    """契约校验结果。"""
 
     passed: bool = False
     preconditions: list[CheckItem] = field(default_factory=list)
@@ -351,16 +340,7 @@ class CppcheckVerifier:
         return shutil.which("cppcheck") is not None
 
     def verify(self, code: str, contract_type: str = None) -> dict[str, Any]:
-        """运行 Cppcheck 验证代码。
-
-        Args:
-            code: C 代码字符串
-            contract_type: 契约类型
-                (precondition/postcondition/invariant/fault_handling)
-
-        Returns:
-            验证结果字典
-        """
+        """运行 Cppcheck 验证代码。"""
         if not self.available:
             return {
                 "available": False,
@@ -847,15 +827,6 @@ def check(code: str, contract_yaml: str, cid: str = "CON-001", *, language: str 
     2. 使用 AST 分析器解析代码结构
     3. 使用静态分析工具验证（C 用 Cppcheck，Python 用 Mypy+Ruff）
     4. 执行语义检查，生成置信度评分
-
-    Args:
-        code: 待校验的代码字符串。
-        contract_yaml: .contract YAML 文本。
-        cid: 契约 ID，用于断言追溯 Tag。
-        language: 代码语言 ("c", "cpp", "python")。
-
-    Returns:
-        CheckResult：包含各检查项结果 + 断言插桩代码 + 违规汇总。
     """
     logger.info(f"ContractChecker:开始 cid={cid}")
 

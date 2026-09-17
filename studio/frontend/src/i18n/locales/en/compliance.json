@@ -187,6 +187,7 @@
 			"title": "DO-178C Objective Coverage Matrix",
 			"description": "19 software-level objectives × 5 process areas",
 			"generateReport": "Generate Compliance Report",
+			"exportFullReport": "Export Full Report",
 			"colObjective": "Objective",
 			"colLevel": "Level",
 			"level": "Level {level}",

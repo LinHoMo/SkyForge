@@ -60,12 +60,6 @@ def safe_tempdir(prefix: str = "skyforge_") -> Generator[str, None, None]:
     相比 tempfile.TemporaryDirectory，额外保证：
     1. 即使 with 块内发生任何异常也会清理
     2. 注册到 atexit，万一上下文未正常退出也兜底清理
-
-    Args:
-        prefix: 目录名前缀，建议 skyforge_xxx_ 便于识别
-
-    Yields:
-        临时目录路径
     """
     tmpdir = tempfile.mkdtemp(prefix=prefix)
     _ensure_atexit()
@@ -90,15 +84,6 @@ def safe_tempfile(
     """安全临时文件上下文管理器。
 
     返回 (文件路径, 文件对象)，退出时自动删除。
-
-    Args:
-        mode: 打开模式
-        suffix: 文件名后缀
-        prefix: 文件名前缀
-        encoding: 编码
-
-    Yields:
-        (文件路径, 文件对象)
     """
 
     tmpdir_ctx = safe_tempdir(prefix=prefix)
@@ -126,9 +111,6 @@ def cleanup_stale_tempdirs(min_age_seconds: int = 3600) -> int:
     通常在服务启动时调用一次，清理上次崩溃遗留的临时文件。
     默认只清理至少 1 小时以前创建/修改的目录，避免删除当前测试或
     运行中的编译产物。
-
-    Returns:
-        清理的目录数量
     """
     sys_tmp = Path(tempfile.gettempdir())
     count = 0

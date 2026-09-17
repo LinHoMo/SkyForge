@@ -32,14 +32,7 @@ VALID_CONNECTIONS = {"sequential", "parallel", "feedback"}
 
 @dataclass
 class CheckedPair:
-    """单对契约检查项结果（A 的某条 postcondition vs B 的某条 precondition）。
-
-    Attributes:
-        a_postcondition: A 的后置条件表达式（或描述）。
-        b_precondition: B 的前置条件表达式（或描述）。
-        satisfied: 是否满足（兼容）。
-        message: 检查结果说明。
-    """
+    """单对契约检查项结果（A 的某条 postcondition vs B 的某条 precondition）。"""
 
     a_postcondition: str
     b_precondition: str
@@ -57,15 +50,7 @@ class CheckedPair:
 
 @dataclass
 class CompatibilityResult:
-    """兼容性检查结果。
-
-    Attributes:
-        compatible: 整体是否兼容（所有强制检查项均通过）。
-        checked_pairs: 检查的契约对列表（CheckedPair.to_dict()）。
-        violations: 不满足的契约对（与 checked_pairs 中 satisfied=False 项对应）。
-        warnings: 警告信息列表（非致命，例如无法自动判定的项）。
-        connection: 实际使用的连接方式。
-    """
+    """兼容性检查结果。"""
 
     compatible: bool = False
     checked_pairs: list[dict[str, Any]] = field(default_factory=list)
@@ -97,16 +82,7 @@ class CompatibilityChecker:
         contract_b_yaml: str,
         connection: str = "sequential",
     ) -> CompatibilityResult:
-        """检查两个契约在指定连接方式下是否兼容。
-
-        Args:
-            contract_a_yaml: A 组件的 .contract YAML 字符串。
-            contract_b_yaml: B 组件的 .contract YAML 字符串。
-            connection: 连接方式（sequential / parallel / feedback）。
-
-        Returns:
-            CompatibilityResult。
-        """
+        """检查两个契约在指定连接方式下是否兼容。"""
         if connection not in VALID_CONNECTIONS:
             raise ValueError(
                 f"不支持的连接方式: {connection}，支持: {VALID_CONNECTIONS}"
@@ -391,16 +367,7 @@ def check_compatibility(
     contract_b_yaml: str,
     connection: str = "sequential",
 ) -> CompatibilityResult:
-    """契约兼容性检查模块级入口（便捷封装）。
-
-    Args:
-        contract_a_yaml: A 组件的 .contract YAML 字符串。
-        contract_b_yaml: B 组件的 .contract YAML 字符串。
-        connection: 连接方式（sequential / parallel / feedback）。
-
-    Returns:
-        CompatibilityResult。
-    """
+    """契约兼容性检查模块级入口（便捷封装）。"""
     checker = CompatibilityChecker()
     return checker.check(contract_a_yaml, contract_b_yaml, connection)
 
@@ -511,18 +478,10 @@ def _check_precondition_satisfied(
 
     判定规则：
     1) 若前置条件是数值边界检查（如 "x >= 0"）：
-       用 A 的输出范围 [min, max] 验证（所有 A 输出值必须满足 B 前置）
+    用 A 的输出范围 [min, max] 验证（所有 A 输出值必须满足 B 前置）
     2) 若前置条件是 NULL 检查：
-       检查 A 的后置条件中是否包含 NULL 检查
+    检查 A 的后置条件中是否包含 NULL 检查
     3) 其他：默认通过（避免阻塞，仅做占位 mock）
-
-    Args:
-        pre_str: B 的前置条件表达式字符串。
-        a_post_strs: A 的所有后置条件表达式字符串列表。
-        a_output_range: A 的输出范围 (min, max) 或 None。
-
-    Returns:
-        (satisfied, message)
     """
     pre_lower = pre_str.lower()
 
@@ -641,11 +600,8 @@ def _assess_feedback_stability(
 
     真实实现需通过仿真迭代收敛性分析；此处采用启发式：
     - 若 A 或 B 的后置条件中含 abs / delta 限定（如 |x| < eps），
-      视为有界约束，倾向稳定；
+    视为有界约束，倾向稳定；
     - 否则默认通过（mock），由仿真进一步验证。
-
-    Returns:
-        (stable, message)
     """
     bounded = False
     for post in a_posts + b_posts:

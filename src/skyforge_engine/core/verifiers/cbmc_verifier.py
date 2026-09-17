@@ -68,20 +68,7 @@ class CBMCVerifier:
         return preprocess_with_gcc(code, tmpdir)
 
     def verify(self, code: str, contract: str | None = None, *, language: str = "c", **kwargs: Any) -> VerificationResult:
-        """执行 CBMC 有界模型检查.
-
-        Args:
-            code: C 源代码字符串。
-            contract: 可选契约文本。
-            language: 代码语言，CBMC 仅支持 C。
-            **kwargs: 支持 unwind, function, property_flags。
-
-        Returns:
-            VerificationResult: 验证结果。
-
-        Raises:
-            ToolNotFoundError: CBMC 不可用时抛出。
-        """
+        """执行 CBMC 有界模型检查."""
         if not self.is_available():
             raise ToolNotFoundError(self.tool_name)
 

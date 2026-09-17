@@ -49,18 +49,7 @@ class ScheduleError(Exception):
 
 @dataclass
 class Partition:
-    """ARINC 653 分区定义。
-
-    Attributes:
-        name: 分区名称 (唯一标识)。
-        period_ms: 分区主时间帧周期 (默认 200 ms，应等于调度器 MTF)。
-        time_slice_ms: 单个 MTF 内分配给该分区的时间片 (ms)。
-        entry_point: 分区入口函数名 (C 代码生成时使用)。
-        err_handler: 分区健康监控处理函数名。
-        state: 分区当前运行时状态。
-        deadline_misses: 错过截止时间次数 (统计)。
-        overrun_count: 超时次数 (统计)。
-    """
+    """ARINC 653 分区定义。"""
 
     name: str
     period_ms: int = 200
@@ -74,13 +63,7 @@ class Partition:
 
 @dataclass
 class ScheduleEntry:
-    """调度表条目 (一个分区在一个 MTF 内的时间片分配)。
-
-    Attributes:
-        partition: 关联的分区对象。
-        start_offset_ms: 在 MTF 内的起始偏移 (ms)。
-        duration_ms: 持续时间 (ms)，等于 partition.time_slice_ms。
-    """
+    """调度表条目 (一个分区在一个 MTF 内的时间片分配)。"""
 
     partition: Partition
     start_offset_ms: int
@@ -110,11 +93,7 @@ class Arinc653Adapter:
     CONTEXT_SWITCH_MAX_MS = 1.0
 
     def __init__(self, mtf_ms: int = 200) -> None:
-        """初始化 ARINC 653 分区调度器。
-
-        Args:
-            mtf_ms: 主时间帧周期 (ms)，默认 200 ms。
-        """
+        """初始化 ARINC 653 分区调度器。"""
         self.mtf_ms = mtf_ms
         self.partitions: dict[str, Partition] = {}
         self.schedule_table: list[ScheduleEntry] = []
@@ -125,14 +104,7 @@ class Arinc653Adapter:
         self.context_switches: int = 0
 
     def create_partition(self, partition: Partition) -> None:
-        """创建新分区并重建调度表。
-
-        Args:
-            partition: 分区定义对象。
-
-        Raises:
-            ScheduleError: 分区名已存在，或时间片总和超过 MTF。
-        """
+        """创建新分区并重建调度表。"""
         if partition.name in self.partitions:
             raise ScheduleError(f"Partition {partition.name} already exists")
         self.partitions[partition.name] = partition
@@ -148,14 +120,7 @@ class Arinc653Adapter:
         )
 
     def delete_partition(self, name: str) -> None:
-        """删除分区并重建调度表。
-
-        Args:
-            name: 分区名称。
-
-        Raises:
-            ScheduleError: 分区不存在。
-        """
+        """删除分区并重建调度表。"""
         if name not in self.partitions:
             raise ScheduleError(f"Partition {name} not found")
         del self.partitions[name]
@@ -165,11 +130,7 @@ class Arinc653Adapter:
         logger.info(f"Arinc653Adapter:删除分区 {name}")
 
     def _rebuild_schedule_table(self) -> None:
-        """重建调度表 (按分区创建顺序分配时间片)。
-
-        Raises:
-            ScheduleError: 时间片总和超过 MTF。
-        """
+        """重建调度表 (按分区创建顺序分配时间片)。"""
         self.schedule_table = []
         offset = 0
         for partition in self.partitions.values():
@@ -188,18 +149,7 @@ class Arinc653Adapter:
             )
 
     def tick(self, elapsed_ms: int) -> dict[str, Any]:
-        """推进模拟时间，自动切换到当前应运行的分区。
-
-        Args:
-            elapsed_ms: 推进的毫秒数。
-
-        Returns:
-            状态报告 dict，包含:
-            - status: "idle" | "running" | "mtf_boundary"
-            - active_partition: 当前运行的分区名 (无则 None)
-            - offset_ms: 当前 MTF 内偏移 (仅 running 时返回)
-            - remaining_ms: 当前时间片剩余 ms (仅 running 时返回)
-        """
+        """推进模拟时间，自动切换到当前应运行的分区。"""
         if not self.schedule_table:
             return {"status": "idle", "active_partition": None}
 
@@ -253,16 +203,6 @@ class Arinc653Adapter:
 
         模拟分区执行时间超过分配时间片的场景，触发健康监控事件，
         并将分区状态置为 STOPPED (本 MTF 内不再调度)。
-
-        Args:
-            partition_name: 分区名。
-            overrun_ms: 超时毫秒数。
-
-        Returns:
-            HM 事件 dict，包含 type / partition / overrun_ms / handler / timestamp / action。
-
-        Raises:
-            ScheduleError: 分区不存在。
         """
         if partition_name not in self.partitions:
             raise ScheduleError(f"Partition {partition_name} not found")
@@ -297,17 +237,7 @@ class Arinc653Adapter:
         dst_partition: str,
         max_message_size: int = 4096,
     ) -> None:
-        """创建跨分区通信端口 (ARINC 653 Sampling/Queuing Port 抽象)。
-
-        Args:
-            port_name: 端口名 (唯一标识)。
-            src_partition: 源分区名。
-            dst_partition: 目标分区名。
-            max_message_size: 单条消息最大长度 (字符/字节/元素数)。
-
-        Raises:
-            ScheduleError: 源/目标分区不存在。
-        """
+        """创建跨分区通信端口 (ARINC 653 Sampling/Queuing Port 抽象)。"""
         if src_partition not in self.partitions:
             raise ScheduleError(f"Source partition {src_partition} not found")
         if dst_partition not in self.partitions:
@@ -321,15 +251,7 @@ class Arinc653Adapter:
         }
 
     def send_message(self, port_name: str, message: Any) -> None:
-        """通过端口发送消息 (跨分区通信)。
-
-        Args:
-            port_name: 端口名。
-            message: 消息内容 (str/bytes/list 或其他对象)。
-
-        Raises:
-            ScheduleError: 端口不存在，或消息超过最大长度。
-        """
+        """通过端口发送消息 (跨分区通信)。"""
         if port_name not in self.ports:
             raise ScheduleError(f"Port {port_name} not found")
 
@@ -351,17 +273,7 @@ class Arinc653Adapter:
         )
 
     def receive_message(self, port_name: str) -> Any | None:
-        """从端口接收消息 (FIFO 队列)。
-
-        Args:
-            port_name: 端口名。
-
-        Returns:
-            消息内容，队列空时返回 None。
-
-        Raises:
-            ScheduleError: 端口不存在。
-        """
+        """从端口接收消息 (FIFO 队列)。"""
         if port_name not in self.ports:
             raise ScheduleError(f"Port {port_name} not found")
 
@@ -371,13 +283,7 @@ class Arinc653Adapter:
         return port["queue"].pop(0)["data"]
 
     def get_state(self) -> dict[str, Any]:
-        """获取完整状态快照 (供 UI 展示 / 测试断言)。
-
-        Returns:
-            状态 dict，包含 mtf_ms / current_offset_ms / current_partition /
-            partitions / schedule_table / hm_events (最近 10 条) /
-            context_switches / ports。
-        """
+        """获取完整状态快照 (供 UI 展示 / 测试断言)。"""
         return {
             "mtf_ms": self.mtf_ms,
             "current_offset_ms": self.current_offset_ms,
@@ -414,16 +320,7 @@ class Arinc653Adapter:
         }
 
     def validate_constraints(self) -> list[str]:
-        """验证 ARINC 653 关键约束 (用于形式化验证自检)。
-
-        Returns:
-            违反的约束描述列表 (空列表表示全部通过)。
-
-        检查项:
-        1. 时间片总和 ≤ MTF
-        2. 每个分区时间片 > 0
-        3. 每个分区周期 == MTF
-        """
+        """验证 ARINC 653 关键约束 (用于形式化验证自检)。"""
         violations: list[str] = []
 
         # 约束 1: 时间片总和 <= MTF (对应 contract CON-A653-INV-002)

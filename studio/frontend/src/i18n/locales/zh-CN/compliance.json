@@ -187,6 +187,7 @@
 			"title": "DO-178C 目标覆盖矩阵",
 			"description": "19 个软件级目标 × 5 个过程域",
 			"generateReport": "生成合规报告",
+			"exportFullReport": "导出完整报告",
 			"colObjective": "目标",
 			"colLevel": "级别",
 			"level": "Level {level}",

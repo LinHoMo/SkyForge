@@ -8,11 +8,7 @@ from skyforge_engine.core.protocols import ToolNotFoundError, VerificationResult
 
 
 class VerifierChain:
-    """验证器链，支持顺序执行多个验证器.
-
-    Attributes:
-        fail_fast: 为 True 时，第一个验证失败或工具不可用即停止/抛出。
-    """
+    """验证器链，支持顺序执行多个验证器."""
 
     def __init__(self, verifiers: list[VerifierProtocol] | None = None, fail_fast: bool = False):
         self._verifiers = list(verifiers) if verifiers else []
@@ -24,19 +20,7 @@ class VerifierChain:
         return self
 
     def verify_all(self, code: str, contract: str | None = None, **kwargs: Any) -> list[VerificationResult]:
-        """顺序执行所有验证器，返回结果列表.
-
-        Args:
-            code: 待验证代码。
-            contract: 可选契约文本。
-            **kwargs: 传递给每个验证器的额外参数。
-
-        Returns:
-            各验证器的结果列表。
-
-        Raises:
-            ToolNotFoundError: 当 fail_fast=True 且某个验证器不可用时抛出。
-        """
+        """顺序执行所有验证器，返回结果列表."""
         results: list[VerificationResult] = []
         for verifier in self._verifiers:
             try:
@@ -61,14 +45,6 @@ class VerifierChain:
         """尝试各验证器，返回第一个通过的验证结果.
 
         如果所有验证器都失败或不可用，返回一个失败的 VerificationResult。
-
-        Args:
-            code: 待验证代码。
-            contract: 可选契约文本。
-            **kwargs: 传递给每个验证器的额外参数。
-
-        Returns:
-            第一个通过的验证结果，或汇总失败结果。
         """
         last_error: Exception | None = None
         for verifier in self._verifiers:

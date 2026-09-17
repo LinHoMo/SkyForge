@@ -18,16 +18,7 @@ from app.utils.log_util import logger
 
 @dataclass
 class ToolInfo:
-    """外部工具信息。
-
-    Attributes:
-        name: 工具名称（可执行文件）。
-        min_version: 最低版本要求。
-        description: 用途描述。
-        install_hint: 安装提示信息。
-        found: 是否已在系统 PATH 中找到。
-        version: 实际检测到的版本字符串（未找到时为空）。
-    """
+    """外部工具信息。"""
 
     name: str
     min_version: str
@@ -38,12 +29,49 @@ class ToolInfo:
 
 
 # SkyForge 核心外部工具清单
+#
+# 说明：
+# - pip 可安装的工具（z3、semgrep）已纳入 pyproject.toml 依赖，
+#   运行 `uv sync` 即可安装，install_hint 因此指向 uv sync / pip。
+# - 系统级工具（cbmc、gcc、lcov、cppcheck）需各自平台的包管理器或安装包，
+#   install_hint 给出分平台指引。
 TOOLS_REQUIREMENTS: list[ToolInfo] = [
-    ToolInfo(name="cbmc", min_version="6.0", description="形式化验证", install_hint="→ https://github.com/diffblue/cbmc/releases"),
-    ToolInfo(name="z3", min_version="4.12", description="SMT约束求解", install_hint="→ pip install z3-solver"),
-    ToolInfo(name="semgrep", min_version="1.60", description="静态分析", install_hint="→ pip install semgrep"),
-    ToolInfo(name="gcc", min_version="14.0", description="代码编译", install_hint=""),
-    ToolInfo(name="lcov", min_version="2.0", description="覆盖率收集", install_hint="→ choco install lcov (Windows) / apt install lcov (Linux) / brew install lcov (macOS)"),
+    ToolInfo(
+        name="cbmc",
+        min_version="6.0",
+        description="形式化验证",
+        install_hint="系统工具：Windows 用 winget/choco 安装 cbmc 或从 https://github.com/diffblue/cbmc/releases 下载；Linux: apt install cbmc",
+    ),
+    ToolInfo(
+        name="z3",
+        min_version="4.12",
+        description="SMT约束求解",
+        install_hint="运行 uv sync（已纳入项目依赖）或 pip install z3-solver",
+    ),
+    ToolInfo(
+        name="semgrep",
+        min_version="1.60",
+        description="静态分析",
+        install_hint="运行 uv sync（已纳入项目依赖）或 pip install semgrep",
+    ),
+    ToolInfo(
+        name="cppcheck",
+        min_version="2.0",
+        description="C/C++ 静态分析",
+        install_hint="系统工具：Windows 从 https://cppcheck.sourceforge.io 下载或 MSYS2 执行 pacman -S mingw-w64-ucrt-x86_64-cppcheck；Linux: apt install cppcheck",
+    ),
+    ToolInfo(
+        name="gcc",
+        min_version="14.0",
+        description="代码编译",
+        install_hint="系统工具：Windows 安装 MinGW-w64 或 MSYS2；Linux: apt install gcc；macOS: xcode-select --install",
+    ),
+    ToolInfo(
+        name="lcov",
+        min_version="2.0",
+        description="覆盖率收集",
+        install_hint="系统工具：Linux: apt install lcov；macOS: brew install lcov；Windows 经 MSYS2 安装（或改用 OpenCppCoverage）",
+    ),
 ]
 
 
@@ -68,13 +96,6 @@ def check_tool_available(name: str, min_version: str) -> Optional[str]:
     使用正则提取版本号并与 *min_version* 比较。
 
     对于 ``z3``，额外检测 Python ``z3-solver`` 包的导入可用性。
-
-    Args:
-        name: 可执行文件名称。
-        min_version: 最低版本要求（如 ``6.0``）。
-
-    Returns:
-        工具版本字符串（首行），若未找到或版本不足则返回 ``None``。
     """
     # z3 特殊处理：优先检测 Python 包，其次检测命令行二进制
     if name == "z3":
@@ -129,11 +150,7 @@ def check_tool_available(name: str, min_version: str) -> Optional[str]:
 
 
 def check_all_tools() -> list[ToolInfo]:
-    """检查 ``TOOLS_REQUIREMENTS`` 中所有工具的状态。
-
-    Returns:
-        包含检测结果的 ``ToolInfo`` 列表（原地更新后返回新列表副本）。
-    """
+    """检查 ``TOOLS_REQUIREMENTS`` 中所有工具的状态。"""
     results: list[ToolInfo] = []
     for req in TOOLS_REQUIREMENTS:
         version = check_tool_available(req.name, req.min_version)
@@ -156,9 +173,6 @@ def check_tools_on_startup() -> list[ToolInfo]:
 
     对缺失或版本不足的工具打印 ``warning`` 日志，
     便于运维人员快速定位环境缺失问题。
-
-    Returns:
-        检测结果列表。
     """
     results = check_all_tools()
     for info in results:
@@ -236,18 +250,7 @@ class ToolExecutor:
         cwd: str | None = None,
         env: dict[str, str] | None = None,
     ) -> ToolExecutionResult:
-        """执行指定工具并返回标准化结果。
-
-        Args:
-            tool_name: 工具名称（必须已在 TOOLS_REQUIREMENTS 中注册）
-            args: 命令行参数列表
-            timeout: 超时时间（秒）
-            cwd: 工作目录
-            env: 环境变量覆盖
-
-        Returns:
-            ToolExecutionResult 标准化执行结果
-        """
+        """执行指定工具并返回标准化结果。"""
         import time as _time
 
         start = _time.monotonic()
@@ -308,37 +311,35 @@ class ToolExecutor:
 
 
 def get_install_hint(tool_name: str) -> dict[str, str]:
-    """返回指定工具在不同平台上的安装指引。
-
-    Args:
-        tool_name: 工具名称
-
-    Returns:
-        包含各平台安装命令的字典
-    """
+    """返回指定工具在不同平台上的安装指引。"""
     hints: dict[str, dict[str, str]] = {
         "cbmc": {
-            "windows": "choco install cbmc 或从 https://github.com/diffblue/cbmc/releases 下载",
+            "windows": "winget install DiffBlue.CBMC 或 choco install cbmc；也可从 https://github.com/diffblue/cbmc/releases 下载",
             "linux": "apt install cbmc 或 dnf install cbmc",
             "macos": "brew install cbmc",
         },
         "z3": {
-            "windows": "pip install z3-solver 或从 https://github.com/Z3Prover/z3/releases 下载",
-            "linux": "pip install z3-solver 或 apt install z3",
-            "macos": "pip install z3-solver 或 brew install z3",
+            "windows": "运行 uv sync（已纳入项目依赖）；或 pip install z3-solver",
+            "linux": "运行 uv sync（已纳入项目依赖）；或 pip install z3-solver / apt install z3",
+            "macos": "运行 uv sync（已纳入项目依赖）；或 pip install z3-solver / brew install z3",
         },
         "semgrep": {
-            "windows": "pip install semgrep 或 choco install semgrep",
-            "linux": "pip install semgrep",
-            "macos": "pip install semgrep 或 brew install semgrep",
+            "windows": "运行 uv sync（已纳入项目依赖）；或 pip install semgrep",
+            "linux": "运行 uv sync（已纳入项目依赖）；或 pip install semgrep",
+            "macos": "运行 uv sync（已纳入项目依赖）；或 pip install semgrep / brew install semgrep",
+        },
+        "cppcheck": {
+            "windows": "从 https://cppcheck.sourceforge.io 下载安装包；或 MSYS2 执行 pacman -S mingw-w64-ucrt-x86_64-cppcheck",
+            "linux": "apt install cppcheck 或 dnf install cppcheck",
+            "macos": "brew install cppcheck",
         },
         "gcc": {
-            "windows": "choco install mingw 或安装 MSYS2",
+            "windows": "安装 MinGW-w64 或 MSYS2（winget install MSYS2.MSYS2）",
             "linux": "apt install gcc 或 dnf install gcc",
             "macos": "xcode-select --install",
         },
         "lcov": {
-            "windows": "choco install lcov 或使用 Git Bash 自带",
+            "windows": "经 MSYS2 安装（pacman -S mingw-w64-ucrt-x86_64-lcov）；或改用 OpenCppCoverage",
             "linux": "apt install lcov 或 dnf install lcov",
             "macos": "brew install lcov",
         },

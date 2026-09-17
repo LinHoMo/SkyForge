@@ -46,6 +46,7 @@
 			"todayDone": "Completed",
 			"totalCount": "Total Tasks",
 			"trendTitle": "Violation Trend",
+			"trendHint": "vs previous: fewer violations = ↑ improving, more = ↓ worsening",
 			"noTrend": "No trend data",
 			"violationAxis": "Violations"
 		}

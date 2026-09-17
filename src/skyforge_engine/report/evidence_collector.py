@@ -103,10 +103,6 @@ class EvidenceCollector:
     """
 
     def __init__(self, output_dir: Optional[str] = None):
-        """
-        Args:
-            output_dir: 证据包输出目录，默认为 ./evidence_package
-        """
         self._output_dir = output_dir or os.path.join(
             os.getcwd(), "evidence_package"
         )
@@ -116,11 +112,7 @@ class EvidenceCollector:
     # 会话管理
 
     def start_session(self, pipeline_version: str = "v1.0") -> str:
-        """开始新的证据收集会话。
-
-        Returns:
-            session_id
-        """
+        """开始新的证据收集会话。"""
         session_id = f"EVD-{uuid.uuid4().hex[:12].upper()}"
         self._session = EvidenceSession(
             session_id=session_id,
@@ -152,14 +144,7 @@ class EvidenceCollector:
     # 证据记录方法
 
     def record_requirement_parsed(self, req_json: dict[str, Any]) -> EvidenceItem:
-        """记录需求解析证据 (DO-178C A-7.6 需求可追溯性)。
-
-        Args:
-            req_json: 结构化需求 JSON
-
-        Returns:
-            EvidenceItem
-        """
+        """记录需求解析证据 (DO-178C A-7.6 需求可追溯性)。"""
         data = {
             "req_id": req_json.get("req_id", ""),
             "type": req_json.get("type", ""),
@@ -177,12 +162,7 @@ class EvidenceCollector:
         )
 
     def record_llr_generated(self, llr_list: list[dict[str, Any]], hlr_req_id: str) -> EvidenceItem:
-        """记录低层需求生成证据 (DO-178C A-2.1 HLR/LLR 追溯)。
-
-        Args:
-            llr_list: LLR 列表
-            hlr_req_id: 对应 HLR ID
-        """
+        """记录低层需求生成证据 (DO-178C A-2.1 HLR/LLR 追溯)。"""
         return self._add_item(
             category="traceability",
             do178c_ref="A-2.1",
@@ -195,12 +175,7 @@ class EvidenceCollector:
         )
 
     def record_contract_generated(self, contract_yaml: str, req_id: str) -> EvidenceItem:
-        """记录契约生成证据。
-
-        Args:
-            contract_yaml: 契约 YAML 文本
-            req_id: 关联需求 ID
-        """
+        """记录契约生成证据。"""
         contract_hash = hashlib.sha256(contract_yaml.encode()).hexdigest()[:16]
 
         # 提取组件名
@@ -228,13 +203,7 @@ class EvidenceCollector:
         req_id: str,
         contract_component: str = "",
     ) -> EvidenceItem:
-        """记录代码生成证据 (DO-178C A-5.1 源代码合规性)。
-
-        Args:
-            code: 生成的 C 代码
-            req_id: 关联需求 ID
-            contract_component: 关联组件名
-        """
+        """记录代码生成证据 (DO-178C A-5.1 源代码合规性)。"""
         code_hash = hashlib.sha256(code.encode()).hexdigest()[:16]
         lines = code.count("\n") + 1
 
@@ -265,13 +234,7 @@ class EvidenceCollector:
         scan_type: str = "cppcheck",
         real_scan: bool = True,
     ) -> EvidenceItem:
-        """记录静态分析证据 (DO-178C A-5.2 静态分析)。
-
-        Args:
-            violations: 违规列表
-            scan_type: 扫描类型 (cppcheck | semgrep)
-            real_scan: 是否使用真实工具
-        """
+        """记录静态分析证据 (DO-178C A-5.2 静态分析)。"""
         violation_count = len(violations) if violations else 0
         critical = sum(1 for v in violations if getattr(v, "severity", "") == "error")
         warnings = sum(1 for v in violations if getattr(v, "severity", "") == "warning")
@@ -350,12 +313,7 @@ class EvidenceCollector:
         sim_result: Any,
         fault_injected: bool = False,
     ) -> EvidenceItem:
-        """记录仿真测试证据 (DO-178C A-6.2 仿真测试覆盖)。
-
-        Args:
-            sim_result: 仿真结果
-            fault_injected: 是否注入故障
-        """
+        """记录仿真测试证据 (DO-178C A-6.2 仿真测试覆盖)。"""
         if hasattr(sim_result, "__dict__"):
             data = sim_result.__dict__
         elif isinstance(sim_result, dict):
@@ -381,11 +339,7 @@ class EvidenceCollector:
         self,
         coverage_data: dict[str, Any],
     ) -> EvidenceItem:
-        """记录覆盖率证据 (DO-178C A-7.5/A-7.7/A-7.8)。
-
-        Args:
-            coverage_data: 覆盖率数据
-        """
+        """记录覆盖率证据 (DO-178C A-7.5/A-7.7/A-7.8)。"""
         statement = coverage_data.get("statement_coverage", 0)
         decision = coverage_data.get("decision_coverage", 0)
         mcdc = coverage_data.get("mcdc_coverage", 0)
@@ -420,12 +374,7 @@ class EvidenceCollector:
         report_type: str,
         format: str = "html",
     ) -> EvidenceItem:
-        """记录报告生成证据 (DO-178C A-8.3 问题报告)。
-
-        Args:
-            report_type: 报告类型 (PSAC/SDP/SVP/compliance)
-            format: 输出格式
-        """
+        """记录报告生成证据 (DO-178C A-8.3 问题报告)。"""
         return self._add_item(
             category="reporting",
             do178c_ref="A-8.3",
@@ -443,14 +392,7 @@ class EvidenceCollector:
         command: str = "",
         exit_code: int = 0,
     ) -> EvidenceItem:
-        """记录工具使用证据 (DO-330 §12.2 工具鉴定)。
-
-        Args:
-            tool_name: 工具名称
-            tool_version: 工具版本
-            command: 执行的命令
-            exit_code: 退出码
-        """
+        """记录工具使用证据 (DO-330 §12.2 工具鉴定)。"""
         return self._add_item(
             category="tools",
             do178c_ref="DO-330 §12.2",
@@ -488,11 +430,7 @@ class EvidenceCollector:
         self,
         files: list[dict[str, str]],
     ) -> EvidenceItem:
-        """记录配置快照证据 (DO-178C A-8.1 配置管理)。
-
-        Args:
-            files: 文件列表 [{path, hash}, ...]
-        """
+        """记录配置快照证据 (DO-178C A-8.1 配置管理)。"""
         return self._add_item(
             category="configuration",
             do178c_ref="A-8.1",
@@ -511,15 +449,7 @@ class EvidenceCollector:
         exit_code: int,
         warnings: list[str] | None = None,
     ) -> EvidenceItem:
-        """记录编译验证证据 (DO-178C A-5.3 编译验证)。
-
-        Args:
-            compiler: 编译器名称 (gcc/clang)
-            compiler_version: 编译器版本
-            source_file: 源文件路径
-            exit_code: 编译退出码 (0=成功)
-            warnings: 编译警告列表
-        """
+        """记录编译验证证据 (DO-178C A-5.3 编译验证)。"""
         return self._add_item(
             category="verification",
             do178c_ref="A-5.3",
@@ -542,14 +472,7 @@ class EvidenceCollector:
         branch: str,
         status: str = "open",
     ) -> EvidenceItem:
-        """记录正式 PR 系统证据 (DO-178C A-8.2 正式 PR)。
-
-        Args:
-            pr_id: PR 编号 (PR-YYYY-NNNN)
-            title: PR 标题
-            branch: 分支名
-            status: 状态 (open/merged/closed)
-        """
+        """记录正式 PR 系统证据 (DO-178C A-8.2 正式 PR)。"""
         return self._add_item(
             category="configuration",
             do178c_ref="A-8.2",
@@ -571,15 +494,7 @@ class EvidenceCollector:
         breach_type: str = "postcondition",
         stderr_output: str = "",
     ) -> EvidenceItem:
-        """记录契约违约检测证据 (OBJ-12 契约违约处理)。
-
-        Args:
-            contract_id: 违约的契约 ID
-            failed_step: 违约发生的仿真步骤
-            assertion_message: 断言失败消息
-            breach_type: 违约类型 (postcondition/invariant/precondition/fault_handling)
-            stderr_output: 标准错误输出
-        """
+        """记录契约违约检测证据 (OBJ-12 契约违约处理)。"""
         return self._add_item(
             category="verification",
             do178c_ref="OBJ-12",
@@ -600,13 +515,7 @@ class EvidenceCollector:
         resolution_method: str,
         repair_iteration: int = 0,
     ) -> EvidenceItem:
-        """记录契约违约解决证据 (OBJ-12 契约违约处理)。
-
-        Args:
-            contract_id: 违约的契约 ID
-            resolution_method: 解决方式 (code_repair/contract_relaxation/false_positive/no_breach)
-            repair_iteration: 修复迭代次数
-        """
+        """记录契约违约解决证据 (OBJ-12 契约违约处理)。"""
         return self._add_item(
             category="verification",
             do178c_ref="OBJ-12",
@@ -629,17 +538,7 @@ class EvidenceCollector:
         approved: bool = True,
         comments: str = "",
     ) -> EvidenceItem:
-        """记录独立审查证据 (OBJ-17 独立验证)。
-
-        Args:
-            reviewer_id: 审查者标识
-            reviewer_role: 审查者角色 (tool/automated_tool/human_reviewer/ci_system)
-            is_author: 是否为代码作者 (False = 真正独立)
-            scope: 审查范围 (code_review/contract_review/simulation_review/static_analysis)
-            findings: 审查发现
-            approved: 是否通过
-            comments: 审查意见
-        """
+        """记录独立审查证据 (OBJ-17 独立验证)。"""
         return self._add_item(
             category="review",
             do178c_ref="OBJ-17",
@@ -663,13 +562,7 @@ class EvidenceCollector:
         passed: bool,
         details: dict[str, Any],
     ) -> EvidenceItem:
-        """记录形式化验证证据。
-
-        Args:
-            verifier_type: 验证器类型 (Z3 / CBMC / Frama-C)
-            passed: 是否通过
-            details: 详细结果
-        """
+        """记录形式化验证证据。"""
         do178c_refs = {
             "Z3": "A-3.1",
             "CBMC": "A-5.2",
@@ -689,11 +582,7 @@ class EvidenceCollector:
     # 证据包生成
 
     def generate_package(self) -> str:
-        """生成完整的 DO-178C 合规证据包。
-
-        Returns:
-            证据包目录路径
-        """
+        """生成完整的 DO-178C 合规证据包。"""
         if not self._session:
             logger.error("无活动会话，请先调用 start_session()")
             return ""
@@ -1049,11 +938,7 @@ class EvidenceCollector:
         self,
         coupling_result: dict[str, Any],
     ) -> EvidenceItem:
-        """记录数据耦合与控制耦合分析证据 (OBJ-20/OBJ-21)。
-
-        Args:
-            coupling_result: coupling_analyzer.analyze_coupling() 的返回字典
-        """
+        """记录数据耦合与控制耦合分析证据 (OBJ-20/OBJ-21)。"""
         summary = coupling_result.get("summary", {})
         return self._add_item(
             category="verification",

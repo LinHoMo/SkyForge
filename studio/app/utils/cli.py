@@ -2,12 +2,7 @@
 
 
 def center_cli_str(text: str, width: int | None = None):
-    """将多行文本在终端中居中显示。
-
-    Args:
-        text: 待居中的多行文本。
-        width: 终端宽度，默认自动检测。
-    """
+    """将多行文本在终端中居中显示。"""
     import shutil
 
     width = width or shutil.get_terminal_size().columns
@@ -19,14 +14,7 @@ def center_cli_str(text: str, width: int | None = None):
 
 
 def get_ascii_banner(center: bool = True) -> str:
-    """获取项目 ASCII 横幅。
-
-    Args:
-        center: 是否居中显示。
-
-    Returns:
-        ASCII 横幅字符串。
-    """
+    """获取项目 ASCII 横幅。"""
     text = "SkyForge (天锻): AI智能体驱动的机载软件轻量化开发工具"
     if center:
         return center_cli_str(text)

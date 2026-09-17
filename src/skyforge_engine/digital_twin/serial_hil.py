@@ -175,12 +175,7 @@ class SerialHILAdapter(HILAdapter):
         self._serial.write(frame)
 
     def _read_frame(self, timeout: float) -> Optional[dict[str, Any]]:
-        """从串口读取并解析一帧。
-
-        Returns:
-            dict with keys: seq, cmd, len, data, crc_ok
-            or None on timeout / parse failure.
-        """
+        """从串口读取并解析一帧。"""
         if self._serial is None:
             return None
 

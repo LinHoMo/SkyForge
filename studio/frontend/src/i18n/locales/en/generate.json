@@ -76,7 +76,26 @@
 		},
 		"misra": {
 			"title": "MISRA Check",
-			"noViolations": "No MISRA violations"
+			"noViolations": "No MISRA violations",
+			"autoFixed": "Auto-fixed",
+			"needsManual": "Needs manual",
+			"viewFix": "View fix",
+			"hideFix": "Hide fix"
+		},
+		"repairRound": {
+			"label": "Repair round {round} / {remaining} violations left"
+		},
+		"pipeline": {
+			"stage": {
+				"req": "Parse",
+				"arch": "Arch",
+				"con": "Contract",
+				"code": "Code",
+				"repair": "Repair",
+				"sim": "Sim",
+				"verify": "Verify",
+				"report": "Report"
+			}
 		},
 		"simulation": {
 			"title": "Simulation Result"

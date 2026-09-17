@@ -7,11 +7,37 @@
 			"layers": "Six-Layer Architecture",
 			"pipeline": "Pipeline",
 			"quickstart": "Quick Start",
-			"standards": "Coding Standards"
+			"standards": "Coding Standards",
+			"traceability": "Traceability"
 		},
 		"layerLabels": {
 			"mainEntry": "Main Entry",
 			"keyFiles": "Key Files"
+		},
+		"traceability": {
+			"title": "Requirement-Code-Test Traceability",
+			"description": "REQ → CON (Contract) → CODE (Code Unit) → TST (Test/Verification) bidirectional traceability matrix",
+			"expandAll": "Expand All",
+			"collapseAll": "Collapse All",
+			"columns": {
+				"node": "Node",
+				"type": "Type",
+				"status": "Status",
+				"detail": "Detail"
+			},
+			"types": {
+				"req": "Requirement",
+				"con": "Contract",
+				"code": "Code",
+				"tst": "Test"
+			},
+			"status": {
+				"covered": "Covered",
+				"partial": "Partially covered",
+				"uncovered": "Uncovered",
+				"verified": "Verified",
+				"failed": "Failed"
+			}
 		},
 		"layers": {
 			"orchestration": {

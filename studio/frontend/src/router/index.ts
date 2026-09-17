@@ -76,11 +76,15 @@ const router = createRouter({
 	routes,
 });
 
-router.afterEach((to) => {
+/** 在导航前预加载目标路由的 locale 模块，避免组件渲染时 key 尚未就绪产生警告 */
+router.beforeEach(async (to) => {
 	const localeModule = to.meta.locale as LocaleModuleKey | undefined;
 	if (localeModule) {
-		void loadLocaleModule(currentLocale.value, localeModule);
+		await loadLocaleModule(currentLocale.value, localeModule);
 	}
+});
+
+router.afterEach((to) => {
 	const titleKey = to.meta.title as string | undefined;
 	if (titleKey) {
 		const title = i18n.global.t(`routes.${titleKey}`);

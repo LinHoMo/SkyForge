@@ -46,11 +46,7 @@ class SerialHIL:
             return False
 
     def connect(self) -> None:
-        """建立串口连接。
-
-        Raises:
-            RuntimeError: 连接失败时抛出。
-        """
+        """建立串口连接。"""
         result = self._adapter.connect()
         if not result:
             raise RuntimeError("SerialHIL: 串口连接失败")
@@ -60,11 +56,7 @@ class SerialHIL:
         self._adapter.disconnect()
 
     def send(self, data: bytes) -> None:
-        """通过串口发送原始字节数据。
-
-        Raises:
-            RuntimeError: 未连接或发送失败时抛出。
-        """
+        """通过串口发送原始字节数据。"""
         if not self._adapter._connected or self._adapter._serial is None:
             raise RuntimeError("SerialHIL: 未连接")
         try:
@@ -73,17 +65,7 @@ class SerialHIL:
             raise RuntimeError(f"SerialHIL: 发送失败 — {exc}") from exc
 
     def receive(self, timeout_ms: int = 5000) -> bytes:
-        """从串口接收原始字节数据。
-
-        Args:
-            timeout_ms: 超时时间（毫秒）。
-
-        Returns:
-            接收到的字节数据。
-
-        Raises:
-            RuntimeError: 未连接时抛出。
-        """
+        """从串口接收原始字节数据。"""
         if not self._adapter._connected or self._adapter._serial is None:
             raise RuntimeError("SerialHIL: 未连接")
         original_timeout = self._adapter._serial.timeout
@@ -116,11 +98,7 @@ class QEMUAdapter:
         return shutil.which("qemu-system-arm") is not None
 
     def connect(self) -> None:
-        """启动 QEMU 进程。
-
-        Raises:
-            RuntimeError: 启动失败时抛出。
-        """
+        """启动 QEMU 进程。"""
         try:
             result = asyncio.run(self._adapter.connect())
         except Exception as exc:
@@ -136,11 +114,7 @@ class QEMUAdapter:
             pass
 
     def send(self, data: bytes) -> None:
-        """向 QEMU 进程 stdin 发送数据。
-
-        Raises:
-            RuntimeError: 未连接或发送失败时抛出。
-        """
+        """向 QEMU 进程 stdin 发送数据。"""
         if (
             self._adapter._process is None
             or self._adapter._process.returncode is not None
@@ -154,17 +128,7 @@ class QEMUAdapter:
             raise RuntimeError(f"QEMUAdapter: 发送失败 — {exc}") from exc
 
     def receive(self, timeout_ms: int = 5000) -> bytes:
-        """从 QEMU 进程 stdout 接收数据。
-
-        Args:
-            timeout_ms: 超时时间（毫秒）。
-
-        Returns:
-            接收到的字节数据。
-
-        Raises:
-            RuntimeError: 未连接时抛出。
-        """
+        """从 QEMU 进程 stdout 接收数据。"""
         if (
             self._adapter._process is None
             or self._adapter._process.returncode is not None
@@ -222,9 +186,6 @@ class VirtualMCUAdapter:
         支持两种编码：
         - 8 字节倍数的二进制数据，按小端 float64 解析
         - 其他情况按 UTF-8 文本 CSV 解析
-
-        Raises:
-            RuntimeError: 未连接或解析失败时抛出。
         """
         if not self._connected:
             raise RuntimeError("VirtualMCUAdapter: 未连接")
@@ -243,17 +204,7 @@ class VirtualMCUAdapter:
             raise RuntimeError(f"VirtualMCUAdapter: 输入数据解析失败 — {exc}") from exc
 
     def receive(self, timeout_ms: int = 5000) -> bytes:
-        """运行 mock 滤波器并返回输出数据。
-
-        Args:
-            timeout_ms: 超时时间（毫秒，当前未使用）。
-
-        Returns:
-            小端 float64 编码的输出字节数据。
-
-        Raises:
-            RuntimeError: 未连接或运行失败时抛出。
-        """
+        """运行 mock 滤波器并返回输出数据。"""
         if not self._connected:
             raise RuntimeError("VirtualMCUAdapter: 未连接")
         if self._last_input is None or len(self._last_input) == 0:
@@ -281,18 +232,7 @@ class HILAdapterFactory:
     def create(
         cls, adapter_type: str, config: dict[str, Any] | None = None
     ) -> HILAdapterProtocol:
-        """创建适配器实例。
-
-        Args:
-            adapter_type: 适配器类型标识（如 "serial", "qemu", "virtual_mcu"）。
-            config: 可选的配置字典。
-
-        Returns:
-            适配器实例。
-
-        Raises:
-            ValueError: 不支持的适配器类型。
-        """
+        """创建适配器实例。"""
         adapter_cls = cls._registry.get(adapter_type)
         if adapter_cls is None:
             raise ValueError(f"不支持的适配器类型: {adapter_type}")
@@ -300,12 +240,7 @@ class HILAdapterFactory:
 
     @classmethod
     def register(cls, adapter_type: str, adapter_cls: type) -> None:
-        """注册新的适配器类型。
-
-        Args:
-            adapter_type: 类型标识。
-            adapter_cls: 实现 HILAdapterProtocol 的类。
-        """
+        """注册新的适配器类型。"""
         cls._registry[adapter_type] = adapter_cls
 
     @classmethod

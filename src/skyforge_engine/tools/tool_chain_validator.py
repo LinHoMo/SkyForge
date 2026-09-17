@@ -32,15 +32,7 @@ from skyforge_engine.utils.log_util import logger
 
 @dataclass
 class ToolCheckResult:
-    """单工具检查结果。
-
-    Attributes:
-        tool: 工具名称。
-        required: 是否必须。
-        available: 是否可用。
-        version: 版本字符串。
-        message: 额外信息。
-    """
+    """单工具检查结果。"""
 
     tool: str
     required: bool
@@ -211,15 +203,7 @@ def _check_do178c_docs(project_root: str) -> list[DocCheckResult]:
 
 
 def validate(project_root: str | None = None) -> ValidationReport:
-    """执行完整工具链验证。
-
-    Args:
-        project_root: 项目根目录，默认为 src/ 的父目录的父目录
-                     （即 SkyForge 根目录）。
-
-    Returns:
-        ValidationReport：验证报告。
-    """
+    """执行完整工具链验证。"""
     if project_root is None:
         # 默认推算: src/skyforge_engine/tools/ -> SkyForge/
         project_root = os.path.abspath(

@@ -17,15 +17,7 @@ from enum import Enum
 
 
 class DAL(Enum):
-    """Design Assurance Level — 软件安全等级。
-
-    Attributes:
-        A: 灾难性 (Catastrophic) — 失效导致机毁人亡。
-        B: 危险 (Hazardous) — 失效导致严重伤害或飞机严重损坏。
-        C: 重大 (Major) — 失效导致人员不适或飞机性能降低。
-        D: 轻微 (Minor) — 失效导致轻微不便。
-        E: 无影响 (No Effect) — 失效不影响安全。
-    """
+    """Design Assurance Level — 软件安全等级。"""
 
     A = "DAL-A"
     B = "DAL-B"
@@ -118,15 +110,7 @@ DAL_OBJECTIVE_IDS: dict[DAL, list[str]] = {
 
 @dataclass
 class DALObjectiveDefinition:
-    """DO-178C 单项目标定义。
-
-    Attributes:
-        obj_id: 目标 ID（如 OBJ-1）。
-        name: 目标名称。
-        description: 目标描述。
-        do178_table: 引用的 DO-178C 附录表。
-        applicable_dals: 适用的 DAL 等级集合。
-    """
+    """DO-178C 单项目标定义。"""
 
     obj_id: str
     name: str
@@ -275,14 +259,7 @@ ALL_OBJECTIVES: list[DALObjectiveDefinition] = [
 
 
 def get_objectives_for_dal(dal: DAL) -> list[DALObjectiveDefinition]:
-    """根据 DAL 等级返回适用的目标清单。
-
-    Args:
-        dal: 软件安全等级。
-
-    Returns:
-        适用的目标定义列表。
-    """
+    """根据 DAL 等级返回适用的目标清单。"""
     applicable_ids = DAL_OBJECTIVE_IDS.get(dal, [])
     obj_map = {o.obj_id: o for o in ALL_OBJECTIVES}
     return [obj_map[oid] for oid in applicable_ids if oid in obj_map]

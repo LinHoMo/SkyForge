@@ -36,12 +36,6 @@ def parse_cors(value: str | list) -> list[str]:
     - "url1,url2" → ["url1", "url2"]
     - '["url1","url2"]' → ["url1", "url2"]
     - ["url1", "url2"] → ["url1", "url2"]（已是列表）
-
-    Args:
-        value: CORS 配置值。
-
-    Returns:
-        解析后的 URL 列表。
     """
     if isinstance(value, list):
         return value
@@ -194,11 +188,7 @@ class Settings(BaseSettings):
 
     @classmethod
     def from_env(cls, env: str | None = None):
-        """根据环境名称加载对应配置。
-
-        Args:
-            env: 环境名称（如 dev、prod），默认从 ENV 环境变量获取。
-        """
+        """根据环境名称加载对应配置。"""
         env = env or os.getenv("ENV", "dev")
         return cls(
             _env_file=_env_files(env),

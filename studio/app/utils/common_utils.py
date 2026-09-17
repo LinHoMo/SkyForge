@@ -12,15 +12,7 @@ WORK_DIR_ROOT = Path("project/work_dir").resolve()
 
 
 def transform_link(task_id: str, content: str) -> str:
-    """将内容中的文件路径转换为可点击的链接。
-
-    Args:
-        task_id: 任务 ID，用于构建链接路径。
-        content: 包含文件路径的文本内容。
-
-    Returns:
-        转换后的文本内容。
-    """
+    """将内容中的文件路径转换为可点击的链接。"""
     if not content:
         return content
 
@@ -36,14 +28,7 @@ def transform_link(task_id: str, content: str) -> str:
 
 
 def split_footnotes(content: str) -> tuple[str, str]:
-    """分离正文和脚注内容。
-
-    Args:
-        content: 包含脚注标记的文本内容。
-
-    Returns:
-        (正文, 脚注) 元组。
-    """
+    """分离正文和脚注内容。"""
     if not content:
         return content, ""
 
@@ -72,17 +57,7 @@ def create_task_id() -> str:
 
 
 def ensure_safe_task_id(task_id: str) -> str:
-    """验证任务 ID 的合法性，防止路径遍历攻击。
-
-    Args:
-        task_id: 待验证的任务 ID。
-
-    Returns:
-        验证通过的任务 ID。
-
-    Raises:
-        ValueError: 任务 ID 不合法时抛出。
-    """
+    """验证任务 ID 的合法性，防止路径遍历攻击。"""
     normalized = (task_id or "").strip()
     if not normalized or not TASK_ID_PATTERN.fullmatch(normalized):
         raise ValueError("非法 task_id")
@@ -90,14 +65,7 @@ def ensure_safe_task_id(task_id: str) -> str:
 
 
 def create_work_dir(task_id: str) -> str:
-    """为指定任务创建工作目录。
-
-    Args:
-        task_id: 任务 ID。
-
-    Returns:
-        工作目录路径。
-    """
+    """为指定任务创建工作目录。"""
     work_dir = os.path.join("project", "work_dir", task_id)
 
     try:
@@ -109,17 +77,7 @@ def create_work_dir(task_id: str) -> str:
 
 
 def get_work_dir(task_id: str) -> str:
-    """获取指定任务的工作目录路径。
-
-    Args:
-        task_id: 任务 ID。
-
-    Returns:
-        工作目录路径。
-
-    Raises:
-        FileNotFoundError: 工作目录不存在时抛出。
-    """
+    """获取指定任务的工作目录路径。"""
     work_dir = os.path.join("project", "work_dir", task_id)
     if os.path.exists(work_dir):
         return work_dir
@@ -129,12 +87,7 @@ def get_work_dir(task_id: str) -> str:
 
 
 def get_current_files(folder_path: str, type: str = "all") -> list[str]:
-    """获取指定目录下的文件列表。
-
-    Args:
-        folder_path: 目录路径。
-        type: 文件类型过滤（all/md/data/image）。
-    """
+    """获取指定目录下的文件列表。"""
     files = os.listdir(folder_path)
     if type == "all":
         return files
@@ -152,17 +105,7 @@ def get_current_files(folder_path: str, type: str = "all") -> list[str]:
 
 
 def safe_resolve_workdir(relative_path: str) -> Path:
-    """安全地将相对路径解析到工作目录内，拒绝遍历。
-
-    Args:
-        relative_path: 相对于工作目录的路径。
-
-    Returns:
-        解析后的绝对路径。
-
-    Raises:
-        ValueError: 路径为空、为绝对路径、或解析后超出工作目录。
-    """
+    """安全地将相对路径解析到工作目录内，拒绝遍历。"""
     if not relative_path or not relative_path.strip():
         raise ValueError("path must not be empty")
     candidate = Path(relative_path)

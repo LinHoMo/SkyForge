@@ -37,15 +37,7 @@ _FILTER_DEF_PATTERN = re.compile(r"\b(double\s+filter\s*\(\s*double\s+\w+\s*\)\s
 
 @dataclass
 class CompositionResult:
-    """组件组合结果。
-
-    Attributes:
-        composed_code: 组合后的 C 代码字符串（含单一 double filter(double) 入口）。
-        composed_contract: 组合后的 .contract YAML 字符串。
-        compatibility_check: 兼容性检查结果字典（CompatibilityResult.to_dict()）。
-        warnings: 警告信息列表。
-        connection: 实际使用的连接方式。
-    """
+    """组件组合结果。"""
 
     composed_code: str = ""
     composed_contract: str = ""
@@ -86,20 +78,7 @@ class ComponentCombinator:
         component_b_contract: str,
         connection: str = "sequential",
     ) -> CompositionResult:
-        """组合两个组件。
-
-        Args:
-            component_a_code: A 组件的 C 代码字符串
-                （必须含 double filter(double) 函数）。
-            component_a_contract: A 组件的 .contract YAML 字符串。
-            component_b_code: B 组件的 C 代码字符串
-                （必须含 double filter(double) 函数）。
-            component_b_contract: B 组件的 .contract YAML 字符串。
-            connection: 连接方式（sequential / parallel / feedback）。
-
-        Returns:
-            CompositionResult：包含组合后代码、契约、兼容性检查结果。
-        """
+        """组合两个组件。"""
         if connection not in VALID_CONNECTIONS:
             raise ValueError(
                 f"不支持的连接方式: {connection}，支持: {VALID_CONNECTIONS}"
@@ -298,18 +277,7 @@ def compose(
     component_b_contract: str,
     connection: str = "sequential",
 ) -> CompositionResult:
-    """组件组合模块级入口（便捷封装）。
-
-    Args:
-        component_a_code: A 组件的 C 代码字符串。
-        component_a_contract: A 组件的 .contract YAML 字符串。
-        component_b_code: B 组件的 C 代码字符串。
-        component_b_contract: B 组件的 .contract YAML 字符串。
-        connection: 连接方式（sequential / parallel / feedback）。
-
-    Returns:
-        CompositionResult。
-    """
+    """组件组合模块级入口（便捷封装）。"""
     combinator = ComponentCombinator()
     return combinator.compose(
         component_a_code,

@@ -39,14 +39,7 @@ _LLM_TIMEOUT_SEC = float(os.environ.get("LLM_REQUEST_TIMEOUT_MS", "180000")) / 1
 
 
 def _resolve_local_llm_base_url(default: str = "http://localhost:11434/v1") -> str:
-    """读取本地 LLM 服务地址，优先 LOCAL_LLM_BASE_URL，回退到已弃用的 LMSTUDIO_BASE_URL。
-
-    Args:
-        default: 两个环境变量都未设置时的默认值。
-
-    Returns:
-        本地 LLM API 地址。
-    """
+    """读取本地 LLM 服务地址，优先 LOCAL_LLM_BASE_URL，回退到已弃用的 LMSTUDIO_BASE_URL。"""
     new_url = os.environ.get("LOCAL_LLM_BASE_URL")
     if new_url:
         return new_url
@@ -75,14 +68,7 @@ class LMStudioClient:
         use_llm: Optional[bool] = None,
         timeout: int = 900,
     ):
-        """初始化本地 LLM 客户端。
-
-        Args:
-            base_url: 本地 LLM API 地址，默认从环境变量读取
-            model: 模型 ID，默认从环境变量读取
-            use_llm: 是否使用真实 LLM，默认从环境变量 USE_LLM 读取
-            timeout: 请求超时时间（秒），本地 LLM 首次推理可能较慢，默认900秒（15分钟）
-        """
+        """初始化本地 LLM 客户端。"""
         self.base_url = base_url or _resolve_local_llm_base_url()
         self.model = model or os.getenv("LLM_MODEL") or os.getenv("LMSTUDIO_MODEL", "qwen3:8b")
         self.use_llm = (
@@ -128,12 +114,6 @@ class LMStudioClient:
         """检查本地 LLM 是否可用（server 已启动 + 至少一个模型已加载）。
 
         使用 TTL 缓存，避免频繁请求。默认每 60 秒重新检查一次。
-
-        Args:
-            force_recheck: 强制重新检查，忽略缓存
-
-        Returns:
-            True 如果本地 LLM 可用且 USE_LLM=true
         """
         if not self.use_llm:
             return False
@@ -173,17 +153,7 @@ class LMStudioClient:
         temperature: float = 0.7,
         max_tokens: int = 2048,
     ) -> str:
-        """同步调用本地 LLM 生成回复。
-
-        Args:
-            prompt: 用户提示词
-            system_prompt: 系统提示词（可选）
-            temperature: 温度参数
-            max_tokens: 最大输出 token 数
-
-        Returns:
-            LLM 生成的文本，如果不可用则返回空字符串
-        """
+        """同步调用本地 LLM 生成回复。"""
         if not self.is_available():
             return ""
 
@@ -225,17 +195,7 @@ class LMStudioClient:
         temperature: float = 0.7,
         max_tokens: int = 2048,
     ) -> str:
-        """异步调用本地 LLM 生成回复。
-
-        Args:
-            prompt: 用户提示词
-            system_prompt: 系统提示词
-            temperature: 温度参数
-            max_tokens: 最大输出 token 数
-
-        Returns:
-            LLM 生成的文本
-        """
+        """异步调用本地 LLM 生成回复。"""
         if not self.is_available():
             return ""
 
@@ -272,11 +232,7 @@ class LMStudioClient:
         temperature: float = 0.7,
         max_tokens: int = 2048,
     ):
-        """流式调用本地 LLM，逐 token 生成（用于 Patch 4 打字机效果）。
-
-        Yields:
-            每个 token 的文本片段
-        """
+        """流式调用本地 LLM，逐 token 生成（用于 Patch 4 打字机效果）。"""
         if not self.is_available():
             return
 
@@ -315,11 +271,7 @@ class LMStudioClient:
             logger.error(f"本地 LLM 流式调用失败: {e}")
 
     def get_available_models(self) -> list[str]:
-        """获取本地 LLM 中已加载的模型列表。
-
-        Returns:
-            模型 ID 列表
-        """
+        """获取本地 LLM 中已加载的模型列表。"""
         try:
             client = self._get_sync_client()
             resp = client.get(f"{self.base_url}/models")
@@ -447,11 +399,7 @@ class UnifiedLLMClient:
         return self._async_client
 
     def _resolve_backend(self) -> str:
-        """解析当前可用的后端，优先级：override > Local > 本地 LLM > mock。
-
-        Returns:
-            "mock" | "api-openai" | "api-anthropic" | "lmstudio" | "local"
-        """
+        """解析当前可用的后端，优先级：override > Local > 本地 LLM > mock。"""
         # 优先使用 override 配置
         if self._override_mode == "mock":
             return "mock"

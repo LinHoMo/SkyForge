@@ -50,21 +50,7 @@ class ContractVerifier:
             return False
 
     def verify(self, code: str = "", contract: str | None = None, *, language: str = "c", **kwargs: Any) -> VerificationResult:
-        """对契约执行完整的形式化验证.
-
-        Args:
-            code: 可选的 C 代码（用于 CBMC 验证）。
-            contract: 契约 YAML 文本。
-            language: 代码语言，CBMC 仅支持 C/C++。
-            **kwargs: 支持 max_test_cases。
-
-        Returns:
-            VerificationResult: 验证结果。
-
-        Raises:
-            ToolNotFoundError: PyYAML 未安装时抛出。
-            ValueError: 契约格式无效时抛出。
-        """
+        """对契约执行完整的形式化验证."""
         if not self.is_available():
             raise ToolNotFoundError(self.tool_name, "PyYAML 未安装")
 

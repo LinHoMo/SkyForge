@@ -10,16 +10,12 @@ import {
 	ShieldCheck,
 	Wrench,
 } from "@lucide/vue";
-import { BarChart, LineChart } from "echarts/charts";
-import {
-	GridComponent,
-	LegendComponent,
-	TooltipComponent,
-} from "echarts/components";
-import { use } from "echarts/core";
-import { CanvasRenderer } from "echarts/renderers";
-import { computed, onBeforeUnmount, onMounted, ref } from "vue";
-import VChart from "vue-echarts";
+import { computed, defineAsyncComponent, onBeforeUnmount, onMounted, ref } from "vue";
+// 图表异步加载：echarts/vue-echarts 不进入 dashboard 首屏 chunk，
+// 仅在有趋势数据需要渲染时才下载。
+const ComplianceTrendChart = defineAsyncComponent(() =>
+	import("./ComplianceTrendChart.vue"),
+);
 import { useI18n } from "vue-i18n";
 import { useRouter } from "vue-router";
 import SourceBadge from "@/components/SourceBadge.vue";
@@ -32,15 +28,6 @@ import type {
 	RecentTask,
 	SystemStatus,
 } from "@/types/domain";
-
-use([
-	CanvasRenderer,
-	LineChart,
-	BarChart,
-	GridComponent,
-	TooltipComponent,
-	LegendComponent,
-]);
 
 const router = useRouter();
 const { t } = useI18n();
@@ -165,6 +152,48 @@ const languageBadge = (lang: string) => {
 };
 
 const lastTask = computed(() => recentTasks.value[0] ?? null);
+
+/**
+ * KPI 颜色编码（对标 SonarQube）：
+ * 合规率 >=80% 绿，50~80% 黄，<50% 红。
+ */
+const complianceRate = computed(() =>
+	dashboardStats.value
+		? Math.round(dashboardStats.value.avg_compliance_rate * 100)
+		: 0,
+);
+
+const complianceRateColor = computed(() => {
+	const r = complianceRate.value;
+	if (r >= 80) return "hsl(var(--success))";
+	if (r >= 50) return "hsl(var(--warning))";
+	return "hsl(var(--destructive))";
+});
+
+/**
+ * 合规趋势指示：对比最近两个趋势点的总违规数。
+ * 违规减少 = 改善(↑)，增加 = 恶化(↓)，持平 = →。
+ */
+const complianceTrendDir = computed<"up" | "down" | "flat">(() => {
+	const data = complianceTrend.value;
+	if (data.length < 2) return "flat";
+	const prev = data[data.length - 2].total;
+	const curr = data[data.length - 1].total;
+	if (curr < prev) return "up";
+	if (curr > prev) return "down";
+	return "flat";
+});
+
+const trendMeta = computed(() => {
+	switch (complianceTrendDir.value) {
+		case "up":
+			return { symbol: "↑", color: "hsl(var(--success))" };
+		case "down":
+			return { symbol: "↓", color: "hsl(var(--destructive))" };
+		default:
+			return { symbol: "→", color: "hsl(var(--muted-foreground))" };
+	}
+});
 
 function handleNewTask() {
 	router.push("/generate");
@@ -491,12 +520,11 @@ onBeforeUnmount(() => {
 					</CardHeader>
 					<CardContent class="compliance-stats-content">
 						<div class="compliance-rate">
-							<span class="compliance-rate-value">
-								{{
-									dashboardStats
-										? Math.round(dashboardStats.avg_compliance_rate * 100)
-										: 0
-								}}%
+							<span class="compliance-rate-value" :style="{ color: complianceRateColor }">
+								{{ complianceRate }}%
+							</span>
+							<span class="compliance-trend" :style="{ color: trendMeta.color }" :title="$t('dashboard.compliance.trendHint')">
+								{{ trendMeta.symbol }}
 							</span>
 							<span class="compliance-rate-label">{{ $t("dashboard.compliance.avgRate") }}</span>
 						</div>
@@ -522,11 +550,9 @@ onBeforeUnmount(() => {
 						<CardTitle class="compliance-card-title">{{ $t("dashboard.compliance.trendTitle") }}</CardTitle>
 					</CardHeader>
 					<CardContent class="compliance-chart-content">
-						<v-chart
+						<ComplianceTrendChart
 							v-if="complianceTrend.length > 0"
 							:option="complianceChartOption"
-							class="compliance-chart"
-							autoresize
 						/>
 						<div v-else class="chart-empty">
 							<Activity :size="32" class="empty-icon" />
@@ -917,11 +943,18 @@ onBeforeUnmount(() => {
 }
 
 .compliance-rate-value {
-	font-size: 40px;
+	font-size: 44px;
 	font-weight: 700;
-	color: hsl(var(--success));
 	line-height: 1;
 	letter-spacing: -0.02em;
+	transition: color 0.2s ease;
+}
+
+.compliance-trend {
+	font-size: 22px;
+	font-weight: 700;
+	line-height: 1;
+	margin-left: 2px;
 }
 
 .compliance-rate-label {
@@ -945,7 +978,7 @@ onBeforeUnmount(() => {
 }
 
 .metric-value {
-	font-size: 20px;
+	font-size: 24px;
 	font-weight: 700;
 	color: hsl(var(--foreground));
 	line-height: 1.2;
@@ -959,11 +992,6 @@ onBeforeUnmount(() => {
 
 .compliance-chart-content {
 	padding: 12px;
-}
-
-.compliance-chart {
-	height: 240px;
-	width: 100%;
 }
 
 .chart-empty {

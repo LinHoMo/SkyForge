@@ -347,13 +347,7 @@ class LustreProgram(ASTNode):
 
 @dataclass
 class Variable:
-    """向后兼容的变量定义。
-
-    Attributes:
-        name: 变量名。
-        type: 变量类型（real/int/bool 等）。
-        range: 取值范围 [min, max]，来自注释，可能为 None。
-    """
+    """向后兼容的变量定义。"""
     name: str
     type: str
     range: Optional[list[float]] = None
@@ -368,16 +362,7 @@ class Equation:
 
 @dataclass
 class ParsedLustre:
-    """向后兼容的解析结果。
-
-    Attributes:
-        node_name: 节点名。
-        inputs: 输入变量列表。
-        outputs: 输出变量列表。
-        locals: 局部变量列表。
-        equations: 等式列表（output = expression）。
-        raw_content: 原始 Lustre 文本。
-    """
+    """向后兼容的解析结果。"""
     node_name: str = ""
     inputs: list[Variable] = field(default_factory=list)
     outputs: list[Variable] = field(default_factory=list)
@@ -401,15 +386,7 @@ def _type_to_string(type_node: TypeNode) -> str:
 
 
 def ast_to_parsed_lustre(program: LustreProgram, raw_content: str = "") -> ParsedLustre:
-    """将 AST 转换为向后兼容的 ParsedLustre 格式。
-
-    Args:
-        program: Lustre AST 程序节点。
-        raw_content: 原始 Lustre 文本。
-
-    Returns:
-        向后兼容的 ParsedLustre 解析结果。
-    """
+    """将 AST 转换为向后兼容的 ParsedLustre 格式。"""
     # 查找第一个节点声明
     for decl in program.declarations:
         if isinstance(decl, NodeDecl):

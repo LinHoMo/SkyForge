@@ -27,15 +27,18 @@ from skyforge_engine.pipeline import run_full_pipeline
 from skyforge_engine.utils.log_util import logger
 
 
+# Agent 徽章名 → (Pipeline 阶段枚举, 进度 0-100)。
+# 阶段枚举值与前端 Generate.vue 8 阶段进度条一一对应，见 app/schemas/enums.py
+# 的 PipelineStage。前端直接读 event.stage，不再靠日志关键字猜测。
 _STAGE_PROGRESS: dict[str, tuple[str, int]] = {
     "REQ-Parser": ("requirement", 14),
-    "LLR-Gen": ("llr", 28),
+    "LLR-Gen": ("requirement", 28),
     "ARCH-Designer": ("architecture", 36),
     "CON-Gen": ("contract", 45),
     "CODE-Gen": ("code", 60),
-    "REPAIR": ("repair", 75),
-    "TERMINAL": ("verification", 86),
-    "SYSTEM": ("verification", 86),
+    "REPAIR": ("misra", 75),
+    "TERMINAL": ("verify", 86),
+    "SYSTEM": ("verify", 86),
 }
 
 
@@ -270,12 +273,20 @@ class TaskService:
         level: str,
         message: str,
         evidence_status: str = "observed",
+        meta: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
-        stage, progress = _STAGE_PROGRESS.get(agent, ("verification", 86))
+        stage, progress = _STAGE_PROGRESS.get(agent, ("verify", 86))
         if "仿真" in message:
             stage, progress = "simulation", 92
         if "证据" in message or level == "complete":
-            stage, progress = "evidence", 98
+            stage, progress = "report", 98
+        # meta 可显式覆盖 stage（如修复阶段直接声明 stage="misra"），
+        # 并透传 round_number / remaining_violations 给前端修复轮次指示。
+        meta = meta or {}
+        if meta.get("stage"):
+            stage = str(meta["stage"])
+        round_number = meta.get("round_number")
+        remaining_violations = meta.get("remaining_violations")
         event_lock = self._event_locks.setdefault(task_id, asyncio.Lock())
         async with event_lock:
             with SessionLocal() as db:
@@ -287,6 +298,8 @@ class TaskService:
                     agent=agent,
                     message=message,
                     evidence_status=evidence_status,
+                    round_number=round_number,
+                    remaining_violations=remaining_violations,
                 )
                 task_repo.update_task(
                     db,
@@ -327,7 +340,12 @@ class TaskService:
             ),
         )
 
-        async def log_hook(agent: str, level: str, message: str) -> None:
+        async def log_hook(
+            agent: str,
+            level: str,
+            message: str,
+            meta: dict[str, Any] | None = None,
+        ) -> None:
             evidence_status = "observed"
             if "Mock" in message or "mock" in message or "降级" in message:
                 evidence_status = "simulated"
@@ -337,6 +355,7 @@ class TaskService:
                 level=level,
                 message=message,
                 evidence_status=evidence_status,
+                meta=meta,
             )
 
         try:

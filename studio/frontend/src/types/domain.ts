@@ -22,6 +22,17 @@ export interface AgentLog {
 	thought: string;
 	/** 时间戳，由前端在收到消息时填充 */
 	ts?: number;
+	/**
+	 * Pipeline 阶段标识（V1 通道透传）。
+	 * 取值如 "req" / "arch" / "con" / "code" / "repair" / "sim" / "verify" / "report"，
+	 * 用于驱动 Generate.vue 的 8 阶段进度条；缺省时回退到 agent 字段推断。
+	 */
+	stage?: string;
+	/** 当前修复轮次（1-based），仅 misra 阶段事件有值。
+	 *  后端修复循环事件下发，用于"第 N 轮 / 剩余 N 违规"指示。 */
+	round_number?: number;
+	/** 当前剩余 MISRA 违规数，仅 misra 阶段事件有值。 */
+	remaining_violations?: number;
 }
 
 /** 契约条件 */

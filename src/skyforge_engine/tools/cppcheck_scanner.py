@@ -121,23 +121,15 @@ def scan(
     """扫描 C 代码，返回 MISRA-C 违规列表（向后兼容接口）。
 
     .. deprecated::
-        使用 ``CppcheckVerifier().verify(code)`` 替代（真实 Cppcheck 模式）。
+    使用 ``CppcheckVerifier().verify(code)`` 替代（真实 Cppcheck 模式）。
 
     内部委托 scan_with_result() 获取完整 ScanResult，此处仅返回 violations 列表
     以保持向后兼容。新代码应优先使用 scan_with_result()。
 
     扫描模式由 settings.USE_REAL_CPPCHECK 控制：
     - True（默认）：调用真实 `cppcheck --addon=misra --dump`。当系统未安装 cppcheck 或
-      执行失败时，抛出异常。
+    执行失败时，抛出异常。
     - False：使用 Mock 扫描（基于代码模式匹配），不依赖系统 cppcheck。
-
-    Args:
-        code: 待扫描的 C 代码字符串。
-        log_callback: 终端日志回调 (agent, level, message)，用于 Patch 4
-            WebSocket 流式推送终端命令和输出。为 None 时不推送。
-
-    Returns:
-        违规列表（行号 + 规则ID + 描述）。
     """
     warnings.warn(
         "scan is deprecated, use CppcheckVerifier instead",
@@ -155,7 +147,7 @@ def scan_with_result(
     """扫描 C 代码，返回包含引擎元信息的完整 ScanResult。
 
     .. deprecated::
-        使用 ``CppcheckVerifier().verify(code)`` 替代（真实 Cppcheck 模式）。
+    使用 ``CppcheckVerifier().verify(code)`` 替代（真实 Cppcheck 模式）。
 
     与 scan() 的区别：返回 ScanResult 包含 engine、cppcheck_version、
     degraded 等元信息，用于合规审计和日志追溯。
@@ -163,13 +155,6 @@ def scan_with_result(
     扫描模式由 settings.USE_REAL_CPPCHECK 控制：
     - True（默认）：调用真实 `cppcheck --addon=misra --dump`。
     - False：使用 Mock 扫描（基于代码模式匹配）。
-
-    Args:
-        code: 待扫描的 C 代码字符串。
-        log_callback: 终端日志回调。
-
-    Returns:
-        ScanResult 包含违规列表和扫描引擎元信息。
     """
     warnings.warn(
         "scan_with_result is deprecated, use CppcheckVerifier instead",
@@ -297,13 +282,6 @@ def _scan_real_cppcheck(
     列表。临时文件用完即删。
 
     异常（如 subprocess.TimeoutExpired、文件系统错误）会向上抛出。
-
-    Args:
-        code: 待扫描的 C 代码字符串。
-        log_callback: 终端日志回调。
-
-    Returns:
-        违规列表。
     """
     with safe_tempdir(prefix="skyforge_cppcheck_") as tmp_dir:
         src_path = os.path.join(tmp_dir, "code.c")
@@ -534,18 +512,11 @@ def repair(code: str, violations: list[Violation]) -> str:
     """修复代码（当前 Mock 实现，已被 code_repairer_agent 取代，保留向后兼容）。
 
     .. deprecated::
-        使用 ``code_repairer_agent.CodeRepairerAgent.repair()`` 替代。
+    使用 ``code_repairer_agent.CodeRepairerAgent.repair()`` 替代。
 
     查改解耦：scan() 只查不修，repair() 只修不查。
     当前 Mock 行为：在原代码顶部插入违规修复注释，原代码语义不变。
     真实修复闭环请使用 code_repairer_agent.CodeRepairerAgent.repair()。
-
-    Args:
-        code: 原始 C 代码字符串。
-        violations: scan() 返回的违规列表。
-
-    Returns:
-        修复后的 C 代码字符串。
     """
     warnings.warn(
         "repair is deprecated, use CodeRepairerAgent instead",

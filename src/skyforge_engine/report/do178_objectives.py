@@ -45,16 +45,7 @@ STATUS_NA = "不适用"  # 目标不适用于当前 DAL 等级
 
 @dataclass
 class ObjectiveResult:
-    """DO-178C 单项目标符合性检查结果。
-
-    Attributes:
-        obj_id: 目标 ID（如 OBJ-1）。
-        name: 目标名称。
-        description: 目标描述。
-        status: 符合状态，"满足" / "部分满足" / "未满足" / "不适用"。
-        evidence: 证据说明（pipeline_result 中的具体来源）。
-        do178_table: DO-178C 表引用。
-    """
+    """DO-178C 单项目标符合性检查结果。"""
 
     obj_id: str
     name: str
@@ -72,17 +63,7 @@ def check_objectives(
     pipeline_result: dict[str, Any],
     dal: DAL | str | None = None,
 ) -> list[ObjectiveResult]:
-    """对 pipeline_result 执行 DO-178C DAL 自适应目标符合性检查。
-
-    Args:
-        pipeline_result: 全流程结果字典。
-        dal: 软件安全等级。支持 DAL 枚举 / "DAL-A" 字符串 / None（默认 DAL-C）。
-             若 pipeline_result 中 requirement.safety_level 存在且 dal 参数未指定，
-             则从 pipeline_result 自动推断。
-
-    Returns:
-        list[ObjectiveResult]：当前 DAL 等级适用的所有目标检查结果。
-    """
+    """对 pipeline_result 执行 DO-178C DAL 自适应目标符合性检查。"""
     # 延迟导入，避免循环依赖
 
     # 推断 DAL 等级

@@ -177,13 +177,7 @@ class SemanticMisraSearcher:
         model_name: str = _DEFAULT_MODEL_NAME,
         persist_dir: Optional[str] = None,
     ) -> None:
-        """初始化语义搜索引擎。
-
-        Args:
-            rules_path: misra_rules.txt 路径。
-            model_name: sentence-transformers 模型名称。
-            persist_dir: ChromaDB 持久化目录。
-        """
+        """初始化语义搜索引擎。"""
         self._model_name = model_name
         self._persist_dir = persist_dir or _DEFAULT_PERSIST_DIR
         self._model: Optional["SentenceTransformer"] = None
@@ -221,11 +215,7 @@ class SemanticMisraSearcher:
             logger.error(f"SemanticMisraSearcher:加载规则失败: {e}")
 
     def _init_engine(self) -> str:
-        """初始化向量搜索引擎，返回引擎模式。
-
-        Returns:
-            "chromadb" | "in_memory" | "keyword_only"
-        """
+        """初始化向量搜索引擎，返回引擎模式。"""
         # 尝试 ChromaDB 模式
         if _HAS_SENTENCE_TRANSFORMERS and _HAS_CHROMADB:
             try:
@@ -311,17 +301,7 @@ class SemanticMisraSearcher:
         category_filter: Optional[str] = None,
         severity_filter: Optional[str] = None,
     ) -> list[SemanticSearchResult]:
-        """语义搜索 MISRA-C 规则。
-
-        Args:
-            query: 查询字符串（支持中英文混合）。
-            top_k: 返回最多 top_k 条结果。
-            category_filter: 可选的分类过滤（如 "memory", "type"）。
-            severity_filter: 可选的严重程度过滤（如 "强制", "要求"）。
-
-        Returns:
-            按相关性排序的 SemanticSearchResult 列表。
-        """
+        """语义搜索 MISRA-C 规则。"""
         if not self._rules or not query or not query.strip():
             return []
 
@@ -450,14 +430,7 @@ class SemanticMisraSearcher:
     # 精确查找
 
     def get_rule(self, rule_id: str) -> Optional[MisraRule]:
-        """按规则 ID 精确查找（兼容 MisraRuleSearcher 接口）。
-
-        Args:
-            rule_id: 规则 ID（如 "Rule 8.1", "Dir 4.1"）。
-
-        Returns:
-            MisraRule 或 None。
-        """
+        """按规则 ID 精确查找（兼容 MisraRuleSearcher 接口）。"""
         if not rule_id:
             return None
         # 直接查字典
@@ -498,14 +471,6 @@ class SemanticMisraSearcher:
         """根据 Agent 类型和任务描述进行上下文感知的规则推荐。
 
         结合 Agent 角色语义和任务语义，推荐最相关的 MISRA 规则。
-
-        Args:
-            agent_name: Agent 名称（如 "code_repairer", "code_generator"）。
-            task_description: 任务描述文本。
-            top_k: 返回最多 top_k 条推荐。
-
-        Returns:
-            按相关性排序的 SemanticSearchResult 列表。
         """
         if not self._rules or not task_description:
             return []

@@ -60,6 +60,7 @@ interface TaskCount {
 }
 
 const execution = useExecutionStore();
+const { t } = useI18n();
 
 /** 轮询周期（毫秒） */
 const POLL_INTERVAL_MS = 5000;
@@ -176,7 +177,6 @@ const toolChips = computed<ToolChip[]>(() => {
 const llmModeRaw = computed(() => status.value?.llm?.mode ?? "");
 
 const llmModeLabel = computed(() => {
-	const { t } = useI18n();
 	const mode = llmModeRaw.value;
 	if (!mode) return t("liveMetrics.llmUnknown");
 	if (mode === "mock") return t("liveMetrics.llmMock");

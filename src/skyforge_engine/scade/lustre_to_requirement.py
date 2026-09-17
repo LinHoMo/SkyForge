@@ -30,16 +30,9 @@ def convert(parsed: ParsedLustre, req_id: str = "REQ-001") -> str:
     """将 G-Lustre 解析结果转换为自然语言需求。
 
     生成格式：
-        [REQ-xxx] 实现一个 {node_name}，输入为 {inputs}，输出为 {outputs}。
-        功能描述：{equations}。
-        约束条件：{range_constraints}。
-
-    Args:
-        parsed: G-Lustre 解析结果。
-        req_id: 需求 ID（用于追溯 Tag）。
-
-    Returns:
-        自然语言需求字符串。
+    [REQ-xxx] 实现一个 {node_name}，输入为 {inputs}，输出为 {outputs}。
+    功能描述：{equations}。
+    约束条件：{range_constraints}。
     """
     logger.info(f"LustreToReq:开始转换 node={parsed.node_name} req_id={req_id}")
 
@@ -89,13 +82,6 @@ def convert_to_contract(parsed: ParsedLustre, req_id: str = "REQ-001") -> str:
     - postconditions：输出范围约束
     - invariants：类型约束
     - fault_handling：默认故障处理
-
-    Args:
-        parsed: G-Lustre 解析结果。
-        req_id: 需求 ID（用于 traceability 字段）。
-
-    Returns:
-        .contract YAML 文本。
     """
     logger.info(f"LustreToReq:开始生成契约 node={parsed.node_name} req_id={req_id}")
 

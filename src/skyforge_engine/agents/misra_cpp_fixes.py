@@ -37,6 +37,19 @@ def _append_comment_fixer(
     return new_code, action
 
 
+def _bounds(code: str, line: int) -> tuple[list[str], str]:
+    lines = code.splitlines(keepends=True)
+    if 0 < line <= len(lines):
+        return lines, lines[line - 1]
+    return lines, ""
+
+
+def _oob(code: str, v, rule_name: str) -> tuple[str, object]:
+    return code, RepairAction(
+        rule_id=v.rule_id, line=v.line, description=f"{rule_name}: 行号越界，跳过"
+    )
+
+
 def _fix_rule_0_1_1(code: str, v: "Violation") -> tuple[str, RepairAction]:
     """Rule 0_1_1：A project shall not contain unreachable code."""
     return _append_comment_fixer(code, v, comment='/* [Rule-0-1-1] TODO: 移除不可达代码 */', description='A project shall not contain unreachable code.', rule_id_override='0_1_1')
@@ -341,7 +354,7 @@ def _fix_rule_3_2_1(code: str, v: "Violation") -> tuple[str, RepairAction]:
     """Rule 3-2-1: The character sequences // and /* shall not be used within a // comment."""
     ls, old = _bounds(code, v.line)
     if not old:
-        return _ooB(v, "Rule 3-2-1")
+        return _oob(code, v, "Rule 3-2-1")
     new_line = re.sub(r"(//\s*)/\*", r"\1 / *", old)
     new_line = re.sub(r"(//\s*)\b//\b", r"\1 / /", new_line)
     if new_line == old:
@@ -359,7 +372,7 @@ def _fix_rule_3_3_1(code: str, v: "Violation") -> tuple[str, RepairAction]:
     """Rule 3-3-1: The slash-star and star-slash sequences shall not be used within a // comment."""
     ls, old = _bounds(code, v.line)
     if not old:
-        return _ooB(v, "Rule 3-3-1")
+        return _oob(code, v, "Rule 3-3-1")
     new_line = re.sub(r"(//\s*)/\*", r"\1 / *", old)
     new_line = re.sub(r"(//\s*)\*/", r"\1 * /", new_line)
     if new_line == old:
@@ -377,7 +390,7 @@ def _fix_rule_6_6_3(code: str, v: "Violation") -> tuple[str, RepairAction]:
     """Rule 6-6-3: An enumerator value shall not be explicitly initialized to zero."""
     ls, old = _bounds(code, v.line)
     if not old:
-        return _ooB(v, "Rule 6-6-3")
+        return _oob(code, v, "Rule 6-6-3")
     new_line = re.sub(r"=\s*0\s*", " /* [Rule-6-6-3] fix: 移除 = 0 */ ", old)
     if new_line == old:
         new_line = old.rstrip("\n") + "  /* [Rule-6-6-3] TODO: 移除显式零初始化 */\n"
@@ -394,7 +407,7 @@ def _fix_rule_7_3_4(code: str, v: "Violation") -> tuple[str, RepairAction]:
     """Rule 7-3-4: A using-directive shall not be used in a header file."""
     ls, old = _bounds(code, v.line)
     if not old:
-        return _ooB(v, "Rule 7-3-4")
+        return _oob(code, v, "Rule 7-3-4")
     new_line = re.sub(
         r"using\s+namespace\s+(\w+)\s*;",
         r"/* [Rule-7-3-4] fix: 移除头文件中的 using-directive */",
@@ -415,7 +428,7 @@ def _fix_rule_7_3_6(code: str, v: "Violation") -> tuple[str, RepairAction]:
     """Rule 7-3-6: Using-declarations shall not be used in a header file."""
     ls, old = _bounds(code, v.line)
     if not old:
-        return _ooB(v, "Rule 7-3-6")
+        return _oob(code, v, "Rule 7-3-6")
     new_line = re.sub(
         r"using\s+(\w+::\w+)\s*;",
         r"/* [Rule-7-3-6] fix: 移除头文件中的 using-declaration */",
@@ -436,7 +449,7 @@ def _fix_rule_10_3_1(code: str, v: "Violation") -> tuple[str, RepairAction]:
     """Rule 10-3-1: Implicit conversion of an enumeration to an integer shall not be used."""
     ls, old = _bounds(code, v.line)
     if not old:
-        return _ooB(v, "Rule 10-3-1")
+        return _oob(code, v, "Rule 10-3-1")
     m = re.search(r"\bstatic_cast\s*<\s*int\s*>\s*\(\s*(\w+)\s*\)", old)
     if m:
         new_line = old  # already has static_cast
@@ -464,7 +477,7 @@ def _fix_rule_17_3_3(code: str, v: "Violation") -> tuple[str, RepairAction]:
     """Rule 17-3-3: A function shall not have an empty parameter list."""
     ls, old = _bounds(code, v.line)
     if not old:
-        return _ooB(v, "Rule 17-3-3")
+        return _oob(code, v, "Rule 17-3-3")
     new_line = re.sub(r"\(\s*\)", "(void)", old)
     if new_line == old:
         new_line = old.rstrip("\n") + "  /* [Rule-17-3-3] TODO: 将 () 替换为 (void) */\n"
@@ -483,7 +496,7 @@ def _fix_rule_17_3_6(code: str, v: "Violation") -> tuple[str, RepairAction]:
     """Rule 17-3-6: The address of a function shall not be taken explicitly."""
     ls, old = _bounds(code, v.line)
     if not old:
-        return _ooB(v, "Rule 17-3-6")
+        return _oob(code, v, "Rule 17-3-6")
     new_line = re.sub(r"&(\w+)\s*\(", r"\1(", old)
     if new_line == old:
         new_line = old.rstrip("\n") + "  /* [Rule-17-3-6] TODO: 不要显式取函数地址 */\n"
@@ -505,7 +518,7 @@ def _fix_rule_18_5_1(code: str, v: "Violation") -> tuple[str, RepairAction]:
     """Rule 18-5-1: new and delete should not be used."""
     ls, old = _bounds(code, v.line)
     if not old:
-        return _ooB(v, "Rule 18-5-1")
+        return _oob(code, v, "Rule 18-5-1")
     replacements = {
         r"\bnew\s+(\w+)\s*\(": r"std::make_unique<\1>(",
         r"\bnew\s+(\w+)\[": r"std::make_unique_array<\1[",
@@ -533,12 +546,6 @@ def _fix_rule_18_5_1(code: str, v: "Violation") -> tuple[str, RepairAction]:
 # 总计 59 条规则修复函数（JSF AV C++: 5 + MISRA-C++: 54）
 
 CPP_FIXERS: dict[str, "Callable[[str, Violation], tuple[str, RepairAction]]"] = {
-    # JSF AV C++ (5条)
-    "jsf-3-1-1": _fix_jsf_3_1_1,
-    "jsf-5-2-1": _fix_jsf_5_2_1,
-    "jsf-6-6-1": _fix_jsf_6_6_1,
-    "jsf-12-1-2": _fix_jsf_12_1_2,
-    "jsf-18-4-1": _fix_jsf_18_4_1,
     # MISRA-C++ Rule 0: 程序说明 (6条)
     "0-1-1": _fix_rule_0_1_1,
     "0-1-2": _fix_rule_0_1_2,

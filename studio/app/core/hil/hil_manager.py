@@ -63,11 +63,7 @@ class ApprovalRequest:
     _result: Optional[dict[str, Any]] = None
 
     def to_dict(self, include_internal: bool = False) -> dict[str, Any]:
-        """转换为可序列化字典。
-
-        Args:
-            include_internal: 是否包含内部字段（_event / _result），默认不包含。
-        """
+        """转换为可序列化字典。"""
         d: dict[str, Any] = {
             "request_id": self.request_id,
             "checkpoint": self.checkpoint,
@@ -152,12 +148,7 @@ class HILManager:
         enabled: Optional[bool] = None,
         default_timeout: Optional[int] = None,
     ) -> None:
-        """初始化 HIL 管理器。
-
-        Args:
-            enabled: 是否启用 HITL，默认从环境变量 HITL_ENABLED 读取。
-            default_timeout: 默认超时时间（秒），默认从 HITL_TIMEOUT 读取。
-        """
+        """初始化 HIL 管理器。"""
         # HIL_ENABLED/HIL_TIMEOUT are accepted for one compatibility release;
         # new deployments must use HITL_* so hardware HIL remains independent.
         configured_enabled = os.getenv("HITL_ENABLED")
@@ -329,15 +320,6 @@ class HILManager:
         - HIL_ENABLED=false：直接返回 approved=False，不阻塞流程（status=skipped）
         - HIL_ENABLED=true：创建请求，asyncio.Event 等待 approve/reject 或超时
         - 超时：返回 approved=False（status=timeout）
-
-        Args:
-            checkpoint: 检查点名称（必须在 VALID_CHECKPOINTS 中）。
-            content: 待审批的内容（如需求 JSON / 契约 YAML / 代码字符串）。
-            timeout: 超时时间（秒），None 用 default_timeout。
-
-        Returns:
-            审批结果字典：{approved, comments, reviewer,
-                timestamp, status, request_id, checkpoint}
         """
         # 1. 未启用 → 直接跳过（视为 system 批准，pipeline 可继续）
         if not self.enabled:
@@ -474,11 +456,7 @@ class HILManager:
         return approval_result.to_dict()
 
     def get_pending_approvals(self) -> list[dict[str, Any]]:
-        """获取所有待审批请求（status=pending）。
-
-        Returns:
-            审批请求字典列表（不含内部 _event / _result 字段）。
-        """
+        """获取所有待审批请求（status=pending）。"""
         return [
             req.to_dict(include_internal=False)
             for req in self._requests.values()
@@ -488,16 +466,7 @@ class HILManager:
     async def approve(
         self, request_id: str, comments: str = "", reviewer: str = "reviewer"
     ) -> dict[str, Any]:
-        """批准指定审批请求。
-
-        Args:
-            request_id: 审批请求 ID。
-            comments: 审批意见（可选）。
-            reviewer: 审批人标识（可选）。
-
-        Returns:
-            审批结果字典。若 request_id 不存在或已处理，返回 error 字段。
-        """
+        """批准指定审批请求。"""
         return await self._resolve(
             request_id=request_id,
             approved=True,
@@ -509,16 +478,7 @@ class HILManager:
     async def reject(
         self, request_id: str, comments: str = "", reviewer: str = "reviewer"
     ) -> dict[str, Any]:
-        """拒绝指定审批请求。
-
-        Args:
-            request_id: 审批请求 ID。
-            comments: 拒绝原因（可选）。
-            reviewer: 审批人标识（可选）。
-
-        Returns:
-            审批结果字典。若 request_id 不存在或已处理，返回 error 字段。
-        """
+        """拒绝指定审批请求。"""
         return await self._resolve(
             request_id=request_id,
             approved=False,
@@ -528,19 +488,11 @@ class HILManager:
         )
 
     def get_history(self) -> list[dict[str, Any]]:
-        """获取所有已完成的审批历史。
-
-        Returns:
-            审批结果字典列表（按时间顺序）。
-        """
+        """获取所有已完成的审批历史。"""
         return [r.to_dict() for r in self._history]
 
     def set_enabled(self, enabled: bool) -> None:
-        """运行时切换 HIL 启用状态（不影响已在等待的请求）。
-
-        Args:
-            enabled: True 启用，False 禁用。
-        """
+        """运行时切换 HIL 启用状态（不影响已在等待的请求）。"""
         self.enabled = enabled
         logger.info(f"HILManager:HIL 已{'启用' if enabled else '禁用'}")
 

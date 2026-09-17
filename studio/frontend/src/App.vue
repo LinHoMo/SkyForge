@@ -2,6 +2,9 @@
 import ConfirmDialog from "@/components/ConfirmDialog.vue";
 import TopStatusBar from "@/components/TopStatusBar.vue";
 import Toaster from "@/components/ui/toast/Toaster.vue";
+import { useTheme } from "@/composables/useTheme";
+
+useTheme();
 </script>
 
 <template>

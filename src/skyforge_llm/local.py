@@ -30,14 +30,7 @@ class LocalLLMClient:
         n_gpu_layers: int = -1,
         verbose: bool = False,
     ):
-        """初始化本地 LLM 客户端。
-
-        Args:
-            model_path: GGUF 模型文件路径，None 则自动下载
-            n_ctx: 上下文窗口大小
-            n_gpu_layers: GPU 层数，-1 为自动选择
-            verbose: 是否输出详细日志
-        """
+        """初始化本地 LLM 客户端。"""
         self.model_path = model_path
         self.n_ctx = n_ctx
         self.n_gpu_layers = n_gpu_layers
@@ -138,18 +131,7 @@ class LocalLLMClient:
         max_tokens: int = 2048,
         stop: Optional[list[str]] = None,
     ) -> str:
-        """同步生成文本。
-
-        Args:
-            prompt: 用户提示词
-            system_prompt: 系统提示词
-            temperature: 温度参数
-            max_tokens: 最大输出 token 数
-            stop: 停止词列表
-
-        Returns:
-            生成的文本
-        """
+        """同步生成文本。"""
         if not self.is_available():
             return ""
 
@@ -198,11 +180,7 @@ class LocalLLMClient:
         temperature: float = 0.7,
         max_tokens: int = 2048,
     ) -> AsyncGenerator[str, None]:
-        """流式生成文本。
-
-        Yields:
-            每个 token 的文本片段
-        """
+        """流式生成文本。"""
         if not self.is_available():
             return
 

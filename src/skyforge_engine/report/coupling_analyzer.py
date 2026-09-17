@@ -94,14 +94,7 @@ _STDLIB_FUNCS = {
 # 核心分析函数
 
 def analyze_coupling(code: str) -> CouplingResult:
-    """分析 C 代码的数据耦合和控制耦合。
-
-    Args:
-        code: C 源代码字符串。
-
-    Returns:
-        CouplingResult: 耦合分析结果。
-    """
+    """分析 C 代码的数据耦合和控制耦合。"""
     if not code or not code.strip():
         return CouplingResult(error="代码为空", analyzed=False)
 
@@ -146,11 +139,7 @@ def analyze_coupling(code: str) -> CouplingResult:
 # 函数提取
 
 def _extract_functions(code: str) -> dict[str, dict[str, Any]]:
-    """提取所有函数定义及其信息。
-
-    Returns:
-        {func_name: {line, params, body, body_start, body_end}, ...}
-    """
+    """提取所有函数定义及其信息。"""
     functions: dict[str, dict[str, Any]] = {}
 
     for match in _FUNC_DEF_RE.finditer(code):

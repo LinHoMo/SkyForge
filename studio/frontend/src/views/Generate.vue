@@ -8,16 +8,23 @@
  * 阶段 3: 结果面板（8 个 Tab：代码/修复/契约/仿真/验证/报告/追溯/审核）
  */
 import {
+	Activity,
 	ArrowLeft,
+	Boxes,
 	Check,
+	ClipboardCheck,
+	Code2,
 	Copy,
 	Download,
 	FileCode2,
+	FileText,
 	Loader2,
 	Play,
 	RotateCcw,
+	ScrollText,
 	ShieldCheck,
 	UserCheck,
+	Wrench,
 } from "@lucide/vue";
 import { computed, nextTick, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
@@ -29,6 +36,7 @@ import ContractViewer from "@/components/ContractViewer.vue";
 import DecisionTrace from "@/components/DecisionTrace.vue";
 import FaultInjectPanel from "@/components/FaultInjectPanel.vue";
 import FormalVerificationResult from "@/components/FormalVerificationResult.vue";
+import MonacoDiffEditor from "@/components/MonacoDiffEditor.vue";
 import RepairTimeline from "@/components/RepairTimeline.vue";
 import ReportDownload from "@/components/ReportDownload.vue";
 import SimulationResultView from "@/components/SimulationResult.vue";
@@ -39,6 +47,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/components/ui/toast/use-toast";
 import { getHITLStatus, getTaskDetail, toggleHITL } from "@/services/api";
 import { getApi } from "@/services/apiSwitcher";
+import { downloadTextFile } from "@/utils/download";
 import {
 	type Contract,
 	type ContractCheckResult as ContractCheckResultType,
@@ -93,9 +102,9 @@ const highlightEnabled = ref<boolean>(true);
  *  由需求区 / 代码区 / 契约区任一 Tag 点击驱动，三区联动高亮。 */
 const activeTag = ref<string | null>(null);
 
-/** 当前激活的 tab：result / repair / contract / simulation / verify / report */
+/** 当前激活的 tab：result / repair / contract / simulation / verify / report / trace */
 const activeTab = ref<
-	"result" | "repair" | "contract" | "simulation" | "verify" | "report"
+	"result" | "repair" | "contract" | "simulation" | "verify" | "report" | "trace"
 >("result");
 
 /** 聚焦面板：null=三栏均显示，'code'/'contract'/'misra'=聚焦某一个 */
@@ -246,6 +255,55 @@ const onTerminalComplete = (payload?: StreamCompletePayload) => {
 							invariants: [],
 							fault_handling: [],
 						});
+			// 后端 contract_check_result 格式 -> 前端 ContractCheckResult 格式适配
+			const rawCCR = raw.contract_check_result as Record<string, unknown> | undefined;
+			const sectionDefs: Array<{
+				key: "preconditions" | "postconditions" | "invariants" | "fault_handling";
+				title: string;
+			}> = [
+				{ key: "preconditions", title: "Preconditions" },
+				{ key: "postconditions", title: "Postconditions" },
+				{ key: "invariants", title: "Invariants" },
+				{ key: "fault_handling", title: "Fault Handling" },
+			];
+			const ccrSections = rawCCR
+				? sectionDefs
+						.map((def) => {
+							const items = (rawCCR[def.key] as Array<Record<string, unknown>>) ?? [];
+							return {
+								key: def.key,
+								title: def.title,
+								items: items.map((it) => ({
+									id: (it.id as string) ?? "",
+									expression: (it.expression as string) ?? "",
+									description: (it.description as string) ?? "",
+									passed: Boolean(it.passed),
+									failure_reason: (it.failure_reason as string) ?? "",
+									assert_code: (it.assert_code as string) ?? "",
+								})),
+							};
+						})
+						.filter((s) => s.items.length > 0)
+				: [];
+			const allItems = ccrSections.flatMap((s) => s.items);
+			const ccrPassed = rawCCR ? Boolean(rawCCR.passed) : false;
+			const contractCheckResult: ContractCheckResultType = rawCCR
+				? {
+						component: (rawCCR.component as string) ?? contract.component,
+						sections: ccrSections,
+						passed_count: allItems.filter((i) => i.passed).length,
+						total_count: allItems.length,
+						overall_passed: ccrPassed,
+						generated_assert_code: (rawCCR.assert_code as string) ?? "",
+					}
+				: {
+						component: "",
+						sections: [],
+						passed_count: 0,
+						total_count: 0,
+						overall_passed: false,
+						generated_assert_code: "",
+					};
 			const res: GenerateResult = {
 				contract,
 				code: (raw.code as string) ?? (raw.final_code as string) ?? "",
@@ -256,15 +314,7 @@ const onTerminalComplete = (payload?: StreamCompletePayload) => {
 					[],
 				traceability: (raw.traceability as Record<string, number[]>) ?? {},
 				repair_history: (raw.repair_history as RepairIteration[]) ?? [],
-				contract_check_result:
-					(raw.contract_check_result as ContractCheckResultType) ?? {
-						component: "",
-						sections: [],
-						passed_count: 0,
-						total_count: 0,
-						overall_passed: false,
-						generated_assert_code: "",
-					},
+				contract_check_result: contractCheckResult,
 				simulation_result:
 					(raw.simulation_result as SimulationResult) ??
 					(raw.simulation as SimulationResult),
@@ -308,6 +358,9 @@ const onGenerate = async () => {
 	activeTab.value = "result";
 	activeTag.value = null;
 	decisions.value = [];
+	currentStageIdx.value = -1; // 重置 pipeline 阶段进度条
+	repairRound.value = null; // 重置修复轮次指示
+	repairRemaining.value = null;
 
 	// 所有模式均只在此处的显式用户动作后启动；输入变化只更新表单。
 	// 先清空旧日志，避免上一轮残留。
@@ -370,6 +423,9 @@ const onReset = () => {
 	verifyResult.value = null;
 	verifying.value = false;
 	decisions.value = [];
+	currentStageIdx.value = -1;
+	repairRound.value = null;
+	repairRemaining.value = null;
 	terminalRef.value?.stop?.();
 	terminalRef.value?.clear?.();
 };
@@ -392,6 +448,11 @@ const onInjectFault = async (
 		if (res) simResult.value = res;
 	} catch (err) {
 		console.error("[Generate] 故障仿真失败：", err);
+		toast({
+			title: t("generate.toast.generateFailed"),
+			description: String(err instanceof Error ? err.message : err),
+			variant: "destructive",
+		});
 	} finally {
 		simulating.value = false;
 	}
@@ -435,6 +496,175 @@ const violationStats = computed(() => {
 		total: list.length,
 	};
 });
+
+/* ========================================================================
+ * Pipeline 8 阶段进度条（对标 Microsoft DevUI / maishac pipeline 可视化）
+ *
+ * 阶段顺序：需求解析 → 架构设计 → 契约生成 → 代码生成 → MISRA修复 → 仿真
+ *           → 形式化验证 → 报告
+ * 状态推断：AgentTerminal 每推一条日志时 emit("stage", ...)，优先取后端 V1
+ *           消息的 stage 字段，缺省回退到 agent 名（REQ-Parser/CON-Gen/...）。
+ *           currentStageIdx 单调推进，不回退；done 时全部置为已完成。
+ * ====================================================================== */
+const pipelineStages = [
+	{ key: "req", icon: FileText },
+	{ key: "arch", icon: Boxes },
+	{ key: "con", icon: ScrollText },
+	{ key: "code", icon: Code2 },
+	{ key: "repair", icon: Wrench },
+	{ key: "sim", icon: Activity },
+	{ key: "verify", icon: ShieldCheck },
+	{ key: "report", icon: ClipboardCheck },
+] as const;
+
+/** 当前推进到的阶段下标（-1 表示尚未开始任何阶段） */
+const currentStageIdx = ref<number>(-1);
+
+/** MISRA 修复轮次指示（P0-3）：后端 misra 阶段事件带 round_number /
+ *  remaining_violations 时更新，在进度条下方显示"第 N 轮 / 剩余 N 违规"。 */
+const repairRound = ref<number | null>(null);
+const repairRemaining = ref<number | null>(null);
+
+/** AgentTerminal 透传修复轮次信息时更新（仅 generating 期间） */
+const onTerminalRepair = (payload: {
+	round_number?: number;
+	remaining_violations?: number;
+}) => {
+	if (status.value !== "generating") return;
+	if (payload.round_number !== undefined) repairRound.value = payload.round_number;
+	if (payload.remaining_violations !== undefined)
+		repairRemaining.value = payload.remaining_violations;
+};
+
+/** 后端规范 stage 枚举 → 8 阶段下标（P0-2：前端直接读 event.stage，不再靠日志猜） */
+const STAGE_ENUM_TO_INDEX: Record<string, number> = {
+	requirement: 0,
+	architecture: 1,
+	contract: 2,
+	code: 3,
+	misra: 4,
+	simulation: 5,
+	verify: 6,
+	report: 7,
+	// 兼容旧 agent 名/历史 stage 值（repair/llr/verification/evidence）
+	repair: 4,
+	llr: 0,
+	verification: 6,
+	evidence: 7,
+};
+
+/** 把后端 stage 字段或 agent 名映射到 0~7 的阶段下标。
+ *  优先精确匹配规范枚举（P0-2），缺省回退到 agent 子串匹配以兼容旧通道。 */
+const mapStageToIndex = (raw: string): number => {
+	const s = (raw || "").toLowerCase().trim();
+	if (!s) return -1;
+	if (s in STAGE_ENUM_TO_INDEX) return STAGE_ENUM_TO_INDEX[s];
+	if (s.includes("req") || s.includes("parser") || s.includes("parse")) return 0;
+	if (s.includes("arch") || s.includes("design")) return 1;
+	if (s.includes("con") || s.includes("contract")) return 2;
+	if (s.includes("code")) return 3;
+	if (s.includes("repair") || s.includes("misra") || s.includes("cppcheck")) return 4;
+	if (
+		s.includes("sim") ||
+		s.includes("gcc") ||
+		s.includes("harness") ||
+		s.includes("test")
+	)
+		return 5;
+	if (
+		s.includes("verify") ||
+		s.includes("z3") ||
+		s.includes("cbmc") ||
+		s.includes("formal")
+	)
+		return 6;
+	if (
+		s.includes("report") ||
+		s.includes("complete") ||
+		s.includes("done") ||
+		s.includes("terminal")
+	)
+		return 7;
+	return -1;
+};
+
+/** AgentTerminal 透传阶段标识时推进进度条（仅 generating 期间） */
+const onTerminalStage = (raw: string) => {
+	if (status.value !== "generating") return;
+	const idx = mapStageToIndex(raw);
+	if (idx > currentStageIdx.value) currentStageIdx.value = idx;
+};
+
+/** 每阶段渲染状态：done / active / pending */
+const stageStates = computed<Array<"done" | "active" | "pending">>(() => {
+	return pipelineStages.map((_, i) => {
+		if (status.value === "done") return "done";
+		if (status.value === "idle" || status.value === "error") return "pending";
+		// generating
+		if (i < currentStageIdx.value) return "done";
+		if (i === currentStageIdx.value) return "active";
+		return "pending";
+	});
+});
+
+/* ========================================================================
+ * MISRA 违规展示优化（对标 SonarQube issue 列表）
+ * 规则号 + 严重程度颜色标签(Mandatory红/Required黄/Advisory蓝) + 文件:行号
+ * + 自动修复状态 badge。自动修复判定：规则出现在任一修复轮的 violations_fixed，
+ *   或 message 文本含 "auto-repaired"（mock 数据约定）。
+ * ====================================================================== */
+const fixedRules = computed<Set<string>>(() => {
+	const set = new Set<string>();
+	for (const h of result.value?.repair_history ?? []) {
+		for (const r of h.violations_fixed ?? []) set.add(r);
+	}
+	return set;
+});
+
+const isAutoFixed = (v: MisraViolation): boolean =>
+	fixedRules.value.has(v.rule) ||
+	/auto.?repair/i.test(v.message ?? "");
+
+/** 严重程度(MISRA category) → 颜色 tag class */
+const categoryTagClass = (category: string): string => {
+	const c = (category || "").toLowerCase();
+	if (c.includes("mandatory")) return "sev-mandatory";
+	if (c.includes("required")) return "sev-required";
+	return "sev-advisory";
+};
+
+/* ========================================================================
+ * P0-1: MISRA 违规 inline diff（对标 SonarQube issue 内联 diff）
+ *
+ * 每条违规项加"查看修复"按钮，点击折叠展开 MonacoDiffEditor（只读并排
+ * before/after）。后端/mock 未提供逐条 before/after 时，按违规 rule 匹配
+ * repair_history 中修复了该规则的轮次，用该轮 before_code/after_code 构造。
+ * ====================================================================== */
+
+/** 当前展开 inline diff 的违规下标（null = 全部收起，一次只展开一条） */
+const expandedViolationIdx = ref<number | null>(null);
+
+const toggleViolationDiff = (idx: number) => {
+	expandedViolationIdx.value = expandedViolationIdx.value === idx ? null : idx;
+};
+
+/** rule → 修复了该规则的那一轮迭代（用于构造 before/after diff） */
+const ruleToRepairRound = computed<Map<string, RepairIteration>>(() => {
+	const map = new Map<string, RepairIteration>();
+	for (const iter of result.value?.repair_history ?? []) {
+		for (const rule of iter.violations_fixed ?? []) map.set(rule, iter);
+	}
+	return map;
+});
+
+/** 取某违规的 before/after 代码对；未被自动修复时返回 null（按钮禁用） */
+const getViolationDiff = (
+	v: MisraViolation,
+): { before: string; after: string } | null => {
+	const iter = ruleToRepairRound.value.get(v.rule);
+	if (!iter) return null;
+	return { before: iter.before_code, after: iter.after_code };
+};
 
 /** 复制按钮反馈状态 */
 const copiedCode = ref<boolean>(false);
@@ -560,23 +790,6 @@ const copyToClipboard = async (
 	}
 };
 
-/** 下载文本文件工具函数 */
-const downloadTextFile = (
-	filename: string,
-	content: string,
-	mime = "text/plain",
-) => {
-	const blob = new Blob([content], { type: `${mime};charset=utf-8` });
-	const url = URL.createObjectURL(blob);
-	const a = document.createElement("a");
-	a.href = url;
-	a.download = filename;
-	document.body.appendChild(a);
-	a.click();
-	document.body.removeChild(a);
-	URL.revokeObjectURL(url);
-};
-
 /** 复制 C 代码 */
 const onCopyCode = () => {
 	if (!result.value) return;
@@ -602,8 +815,11 @@ onMounted(() => {
 	if (query.from === "scade") {
 		scadeExpanded.value = false;
 	}
-	if (query.task_id && typeof query.task_id === "string") {
-		void loadTaskFromId(query.task_id);
+	const routeTaskId =
+		(typeof route.params?.taskId === "string" ? route.params.taskId : "") ||
+		(typeof query.task_id === "string" ? query.task_id : "");
+	if (routeTaskId) {
+		void loadTaskFromId(routeTaskId);
 	}
 	void loadHITLStatus();
 });
@@ -631,8 +847,9 @@ async function loadTaskFromId(taskId: string): Promise<void> {
 			decisions.value = [];
 			terminalRef.value?.clear?.();
 		} else {
-			// 已完成任务：跳转到回放页（/records/:taskId），由 Generate.vue 处理
-			router.replace(`/records/${taskId}`);
+			// 已完成任务：加载需求文本并显示结果摘要
+			status.value = "done";
+			activeTab.value = "result";
 		}
 	} catch (err) {
 		console.warn("[Generate] 加载任务失败:", err);
@@ -757,6 +974,30 @@ watch(
             <span v-else class="status-indicator status-idle">{{ $t('generate.agent.statusIdle') }}</span>
           </div>
           <div class="col-body">
+            <!-- Pipeline 8 阶段进度条（对标 Microsoft DevUI）：已完成绿勾/进行中蓝旋转/未开始灰 -->
+            <div v-if="status !== 'idle'" class="pipeline-steps" aria-label="pipeline progress">
+              <div
+                v-for="(stage, i) in pipelineStages"
+                :key="stage.key"
+                class="pipeline-step"
+                :class="stageStates[i]"
+              >
+                <div class="pipeline-step-icon">
+                  <Check v-if="stageStates[i] === 'done'" class="w-3 h-3" />
+                  <Loader2 v-else-if="stageStates[i] === 'active'" class="w-3 h-3 animate-spin" />
+                  <component v-else :is="stage.icon" class="w-3 h-3" />
+                </div>
+                <span class="pipeline-step-label">{{ $t(`generate.pipeline.stage.${stage.key}`) }}</span>
+              </div>
+            </div>
+            <!-- P0-3: 修复轮次指示（仅在 MISRA 修复阶段进行中显示） -->
+            <div
+              v-if="status === 'generating' && currentStageIdx === 4 && repairRound !== null"
+              class="repair-round-badge"
+            >
+              <Wrench class="w-3 h-3" />
+              <span>{{ $t('generate.repairRound.label', { round: repairRound, remaining: repairRemaining ?? 0 }) }}</span>
+            </div>
             <div v-if="status !== 'idle'" class="terminal-wrapper">
               <AgentTerminal
                 ref="terminalRef"
@@ -766,6 +1007,8 @@ watch(
                 :subscribe-task-id="subscribeTaskId"
                 channel-mode="v1"
                 @complete="onTerminalComplete"
+                @stage="onTerminalStage"
+                @repair="onTerminalRepair"
               />
             </div>
             <div v-else class="empty-state">
@@ -805,7 +1048,7 @@ watch(
               <Tabs v-model="activeTab" class="result-tabs">
                 <TabsList class="tabs-list">
                   <TabsTrigger value="result">{{ $t("generate.tab.code") }}</TabsTrigger>
-                  <TabsTrigger value="repair">{{ $t("generate.tab.repair") }} <span class="tab-count">{{ result.repair_history.length }}</span></TabsTrigger>
+                  <TabsTrigger value="repair">{{ $t("generate.tab.repair") }} <span class="tab-count" :class="violationStats.total > 0 ? 'fail' : 'ok'">{{ violationStats.total }}</span></TabsTrigger>
                   <TabsTrigger value="contract">{{ $t("generate.tab.contract") }} <span class="tab-count" :class="result.contract_check_result.overall_passed ? 'ok' : 'fail'">{{ result.contract_check_result.passed_count }}/{{ result.contract_check_result.total_count }}</span></TabsTrigger>
                   <TabsTrigger value="simulation">{{ $t("generate.tab.simulation") }} <span v-if="simResult" class="tab-count" :class="simResult.passed ? 'ok' : 'fail'">{{ simResult.passed ? '✓' : '✗' }}</span></TabsTrigger>
                   <TabsTrigger value="verify">{{ $t("generate.tab.verify") }}</TabsTrigger>
@@ -881,11 +1124,30 @@ watch(
                             <div v-for="(v, idx) in result.violations" :key="idx"
                                  class="violation-item"
                                  :class="v.severity === 'error' ? 'is-error' : 'is-warn'">
-                              <div class="flex items-center gap-1.5 mb-0.5">
+                              <div class="flex items-center gap-1.5 flex-wrap mb-0.5">
                                 <span class="font-mono font-medium violation-rule" :class="v.severity === 'error' ? 'is-error' : 'is-warn'">{{ v.rule }}</span>
-                                <span class="text-muted-foreground">@L{{ v.line }}</span>
+                                <span class="sev-tag" :class="categoryTagClass(v.category)">{{ v.category }}</span>
+                                <span class="violation-loc">{{ v.file }}:{{ v.line }}</span>
+                                <span v-if="isAutoFixed(v)" class="fix-badge auto-fixed">{{ $t('generate.misra.autoFixed') }}</span>
+                                <span v-else class="fix-badge manual">{{ $t('generate.misra.needsManual') }}</span>
+                                <button
+                                  v-if="getViolationDiff(v)"
+                                  type="button"
+                                  class="view-fix-btn"
+                                  @click="toggleViolationDiff(idx)"
+                                >
+                                  {{ expandedViolationIdx === idx ? $t('generate.misra.hideFix') : $t('generate.misra.viewFix') }}
+                                </button>
                               </div>
                               <div class="text-muted-foreground">{{ v.message }}</div>
+                              <div v-if="expandedViolationIdx === idx && getViolationDiff(v)" class="violation-diff">
+                                <MonacoDiffEditor
+                                  :before="getViolationDiff(v)!.before"
+                                  :after="getViolationDiff(v)!.after"
+                                  :filename="v.file || 'code.c'"
+                                  language="c"
+                                />
+                              </div>
                             </div>
                           </div>
                           <div v-else class="violation-empty">{{ $t("generate.misra.noViolations") }}</div>

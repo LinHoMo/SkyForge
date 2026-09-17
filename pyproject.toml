@@ -25,6 +25,12 @@ dependencies = [
     "slowapi>=0.1.9",
     "python-multipart>=0.0.9",
     "sqlalchemy>=2.0.0",
+    # 外部工具链（pip 可装）
+    # z3-solver: SMT 约束求解器，engine 内直接 import z3，放核心依赖
+    "z3-solver>=4.12",
+    # semgrep: 静态分析，已在 TOOLS_REQUIREMENTS 中声明为必需工具，
+    # 随 uv sync 安装，避免工具缺失时仅靠外部安装脚本
+    "semgrep>=1.60",
 ]
 
 [project.optional-dependencies]

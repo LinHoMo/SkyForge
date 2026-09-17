@@ -12,8 +12,8 @@ from typing import Any, Awaitable, Callable, Union
 
 from skyforge_engine.utils.log_util import logger
 
-LogHook = Callable[[str, str, str], Union[None, Awaitable[None]]]
-AsyncLogHook = Callable[[str, str, str], Awaitable[None]]
+LogHook = Callable[[str, str, str, dict[str, Any] | None], Union[None, Awaitable[None]]]
+AsyncLogHook = Callable[[str, str, str, dict[str, Any] | None], Awaitable[None]]
 
 
 def deprecated(reason: str = "") -> Callable:
@@ -68,7 +68,9 @@ def _installed_tool_version(command: str) -> str | None:
         return None
 
 
-async def _default_hook(agent_name: str, level: str, message: str) -> None:
+async def _default_hook(
+    agent_name: str, level: str, message: str, meta: dict[str, Any] | None = None
+) -> None:
     """默认日志 hook：输出到 logger。"""
     logger.info(f"[Pipeline] {agent_name}[{level}]: {message}")
 
@@ -80,8 +82,10 @@ def _normalize_hook(log_hook: LogHook | None) -> AsyncLogHook:
     if inspect.iscoroutinefunction(log_hook):
         return log_hook
 
-    async def _wrapper(agent_name: str, level: str, message: str) -> None:
-        log_hook(agent_name, level, message)
+    async def _wrapper(
+        agent_name: str, level: str, message: str, meta: dict[str, Any] | None = None
+    ) -> None:
+        log_hook(agent_name, level, message, meta)
 
     return _wrapper
 
@@ -155,7 +159,7 @@ async def _log_llm_status(hook: AsyncLogHook) -> None:
             f"[LLM模式] 真实 LLM 已启用，已加载模型: {models}",
         )
         logger.info(
-            f"[Pipeline] ✅ 使用真实 LLM（USE_LLM=true），已加载模型: {models}"
+            f"[Pipeline] 使用真实 LLM（USE_LLM=true），已加载模型: {models}"
         )
     elif not use_llm_env:
         await hook(
@@ -164,7 +168,7 @@ async def _log_llm_status(hook: AsyncLogHook) -> None:
             "[降级] USE_LLM=false，Agent 将使用 Mock 模式（关键词匹配+模板拼接，非 AI 推理）",
         )
         logger.warning(
-            "[Pipeline] ⚠️ 使用 Mock 模式（USE_LLM=false）"
+            "[Pipeline] 使用 Mock 模式（USE_LLM=false）"
             "——这不是真实 AI 推理，仅作为降级方案"
         )
     else:
@@ -175,7 +179,7 @@ async def _log_llm_status(hook: AsyncLogHook) -> None:
             "请启动 Ollama / LM Studio 等本地 LLM 服务并加载模型以启用真实 LLM。",
         )
         logger.warning(
-            "[Pipeline] ⚠️ 使用 Mock 模式（本地 LLM 不可用）"
+            "[Pipeline] 使用 Mock 模式（本地 LLM 不可用）"
             "——这不是真实 AI 推理，仅作为降级方案。"
             "请启动 Ollama / LM Studio 等本地 LLM 服务并加载模型。"
         )

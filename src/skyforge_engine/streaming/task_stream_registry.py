@@ -101,12 +101,7 @@ class TaskStreamRegistry:
     async def add_subscriber(
         self, task_id: str, websocket: WebSocketProtocol, after_seq: int = 0
     ) -> bool:
-        """把订阅者 WS 加入 task 的订阅者集合，并回放历史日志。
-
-        Returns:
-            True 表示 task 存在（活跃或刚完成），订阅者已加入；
-            False 表示 task 不存在（无运行中的 pipeline），调用方应处理 fallback。
-        """
+        """把订阅者 WS 加入 task 的订阅者集合，并回放历史日志。"""
         async with self._lock:
             state = self._tasks.get(task_id)
             if state is None:

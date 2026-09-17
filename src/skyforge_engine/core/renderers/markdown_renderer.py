@@ -28,14 +28,7 @@ class MarkdownRenderer:
         return "markdown"
 
     def render(self, data: dict[str, Any]) -> str:
-        """渲染 Markdown 报告。
-
-        Args:
-            data: 报告数据字典（通常来自 ReportDataCollector.get_data）。
-
-        Returns:
-            完整 Markdown 报告字符串。
-        """
+        """渲染 Markdown 报告。"""
         lines: list[str] = []
 
         # 封面

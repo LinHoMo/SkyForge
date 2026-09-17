@@ -783,7 +783,7 @@ export async function getTaskDetail(
 	taskId: string,
 ): Promise<DashboardTaskRecord> {
 	return getJSON<DashboardTaskRecord>(
-		`/api/dashboard/tasks/${encodeURIComponent(taskId)}`,
+		`/api/v1/tasks/${encodeURIComponent(taskId)}`,
 	);
 }
 

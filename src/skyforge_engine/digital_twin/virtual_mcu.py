@@ -35,20 +35,7 @@ from skyforge_engine.utils.log_util import logger
 
 @dataclass
 class HILConfig:
-    """HIL（Hardware-in-the-Loop）硬件在环配置。
-
-    Attributes:
-        mode: 执行模式（VIRTUAL / SERIAL / JTAG_SWD）。
-        serial_port: 串口设备路径（如 COM3、/dev/ttyUSB0）。
-        baud_rate: 串口波特率。
-        serial_timeout: 串口读写超时（秒）。
-        jtag_device: JTAG/SWD 调试器类型（如 STLINK、JLINK、CMSIS-DAP）。
-        jtag_target: 目标 MCU 芯片型号（如 STM32F407）。
-        jtag_clock: JTAG/SWD 时钟频率（Hz）。
-        flash_timeout: 固件烧录超时（秒）。
-        run_timeout: HIL 运行超时（秒）。
-        firmware_path: 预编译固件路径（.elf / .bin），为空则尝试在线编译。
-    """
+    """HIL（Hardware-in-the-Loop）硬件在环配置。"""
 
     mode: HILMode = HILMode.VIRTUAL
     serial_port: str = ""  # 空值，由 from_settings() 根据平台填充默认值
@@ -288,15 +275,7 @@ int main(void) {{
 
 @dataclass
 class CompileResult:
-    """编译结果。
-
-    Attributes:
-        success: 是否编译成功。
-        executable_path: 可执行文件路径（失败时为空字符串）。
-        errors: 编译错误信息（成功时为空字符串）。
-        used_mock: 是否使用了 Python 模拟（GCC 不可用时为 True）。
-        source_path: test_harness.c 源文件路径（mock 模式为空字符串）。
-    """
+    """编译结果。"""
 
     success: bool = False
     executable_path: str = ""
@@ -310,20 +289,7 @@ class CompileResult:
 
 @dataclass
 class RunResult:
-    """运行结果。
-
-    Attributes:
-        success: 是否运行成功（进程正常退出，无断言失败）。
-        output_data: filter 输出数组（运行失败时为空数组）。
-        stderr: stderr 输出（含错误信息或断言失败信息）。
-        assertion_failed: 是否检测到断言失败 / core dump。
-        assertion_message: 断言失败消息（无失败时为空字符串）。
-        failed_step: 失败发生的步号（无失败时为 -1）。
-        duration: 运行耗时（秒）。
-        return_code: 进程返回码。
-        execution_mode: 实际执行模式（VIRTUAL / SERIAL / JTAG_SWD）。
-        hil_device_info: HIL 模式下的设备信息（无 HIL 时为空字符串）。
-    """
+    """运行结果。"""
 
     success: bool = False
     output_data: np.ndarray = field(
@@ -382,13 +348,7 @@ class VirtualMCU:
         hil_config: HILConfig | None = None,
         use_real_gcc: bool | None = None,
     ) -> None:
-        """初始化虚拟 MCU。
-
-        Args:
-            gcc_path: GCC 可执行文件路径或名称（默认 "gcc"）。
-            compile_timeout: 编译超时秒数（默认 10s）。
-            hil_config: HIL 硬件在环配置（None 时从全局 settings 构建）。
-        """
+        """初始化虚拟 MCU。"""
         self.gcc_path = gcc_path
         self.compile_timeout = compile_timeout
         # None preserves legacy callers that intentionally patch settings in
@@ -401,11 +361,7 @@ class VirtualMCU:
         self._adapter = self._create_adapter()
 
     def is_gcc_available(self) -> bool:
-        """检测系统是否安装了 GCC。
-
-        Returns:
-            True 表示 GCC 可用。
-        """
+        """检测系统是否安装了 GCC。"""
         if self._gcc_available is not None:
             return self._gcc_available
         try:
@@ -441,17 +397,7 @@ class VirtualMCU:
         assert_code: str = "",
         log_callback: LogCallback | None = None,
     ) -> CompileResult:
-        """编译 AI 生成的 C 代码 + 契约断言。
-
-        Args:
-            code: AI 生成的 C 代码字符串（必须含 double filter(double) 函数）。
-            assert_code: 由 contract_to_assert 生成的 C 断言代码（可选）。
-            log_callback: 终端日志回调 (agent, level, message)，用于 Patch 4
-                WebSocket 流式推送终端命令和输出。为 None 时不推送。
-
-        Returns:
-            CompileResult：包含 success / executable_path / errors / used_mock。
-        """
+        """编译 AI 生成的 C 代码 + 契约断言。"""
         # 若代码缺少 filter 函数，直接返回失败
         if "double filter" not in code and "filter(" not in code:
             logger.info("VirtualMCU:代码未定义 double filter(double) 函数，将在 test_harness 中自动添加 wrapper")
@@ -660,19 +606,7 @@ class VirtualMCU:
         used_mock: bool = False,
         log_callback: LogCallback | None = None,
     ) -> RunResult:
-        """运行编译好的可执行程序，输入传感器数据，返回 filter 输出。
-
-        Args:
-            executable_path: 可执行文件路径（compile() 返回的）。
-            input_data: 输入传感器数据数组。
-            timeout: 运行超时秒数（默认 30s）。
-            used_mock: 是否为 mock 模式（True 时用 Python 模拟 filter）。
-            log_callback: 终端日志回调 (agent, level, message)，用于 Patch 4
-                WebSocket 流式推送终端命令和输出。为 None 时不推送。
-
-        Returns:
-            RunResult：包含 success / output_data / stderr / assertion_failed 等。
-        """
+        """运行编译好的可执行程序，输入传感器数据，返回 filter 输出。"""
         if used_mock or not executable_path:
             if log_callback:
                 log_callback(
@@ -898,15 +832,7 @@ class VirtualMCU:
         )
 
     def _generate_test_harness(self, user_code: str, assert_code: str = "") -> str:
-        """生成 test_harness.c 源码（注入用户代码 + 契约断言）。
-
-        Args:
-            user_code: AI 生成的 C 代码（含 double filter(double) 函数）。
-            assert_code: 由 contract_to_assert 生成的断言代码（可选）。
-
-        Returns:
-            完整的 test_harness.c 源码字符串。
-        """
+        """生成 test_harness.c 源码（注入用户代码 + 契约断言）。"""
         # 清理用户代码：移除不存在的本地头文件引用
         import re
         cleaned_code = re.sub(r'#include\s+"[^"]+\.h"\s*\n?', '', user_code)
@@ -1025,13 +951,6 @@ class VirtualMCU:
 
         读取整数输入，调用用户函数，输出返回值。
         不注入契约断言（变量名不匹配会导致编译失败）。
-
-        Args:
-            user_code: AI 生成的 C 代码（已清理头文件引用）。
-            func_name: 用户代码中的主函数名。
-
-        Returns:
-            完整的 test_harness.c 源码字符串。
         """
         import re
 
@@ -1218,14 +1137,6 @@ int main(void) {{
 
         若配置了非 VIRTUAL 模式，使用对应 HIL 适配器执行；
         否则降级到现有 VIRTUAL 模式逻辑。
-
-        Args:
-            input_waveform: 输入波形数据列表。
-            fault_type: 故障类型（仅在 VIRTUAL 模式下使用）。
-            fault_params: 故障参数（仅在 VIRTUAL 模式下使用）。
-
-        Returns:
-            包含 output_waveform、method、status 的字典。
         """
         if self._adapter is not None:
             if asyncio.iscoroutinefunction(self._adapter.run):
@@ -1255,11 +1166,7 @@ int main(void) {{
         }
 
     def cleanup(self, compile_result: CompileResult) -> None:
-        """清理编译产物（临时目录）。
-
-        Args:
-            compile_result: compile() 返回的 CompileResult。
-        """
+        """清理编译产物（临时目录）。"""
         ctx = getattr(compile_result, "_tmpdir_ctx", None)
         if ctx is not None:
             try:

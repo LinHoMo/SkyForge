@@ -25,21 +25,12 @@ class ReportDataCollector:
         self._data: dict[str, Any] = {}
 
     def collect(self, stage_name: str, artifact: Any) -> None:
-        """收集单个阶段的产物。
-
-        Args:
-            stage_name: 阶段名称（如 "requirement", "contract", "final_code"）。
-            artifact: 阶段产物（任意类型）。
-        """
+        """收集单个阶段的产物。"""
         self._data[stage_name] = artifact
         logger.debug(f"ReportDataCollector: 收集阶段 {stage_name}")
 
     def get_data(self) -> dict[str, Any]:
-        """返回完整数据字典的副本。
-
-        Returns:
-            包含所有已收集阶段产物的字典。
-        """
+        """返回完整数据字典的副本。"""
         return self._data.copy()
 
     def clear(self) -> None:

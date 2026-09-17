@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { downloadTextFile } from "@/utils/download";
 import {
 	MOCK_MISRA_CPP_RULES,
 	MOCK_MISRA_RULES,
@@ -838,6 +839,266 @@ const naCount = computed(() => {
 	}
 	return count;
 });
+
+// ==================== P0-4: 完整合规报告 HTML 导出 ====================
+
+interface MisraViolationRow {
+	rule: string;
+	category: string;
+	severity: string;
+	file: string;
+	line: number;
+	message: string;
+	fixed: boolean;
+}
+
+const mockMisraViolations: MisraViolationRow[] = [
+	{
+		rule: "MISRA-C:2012 Dir 4.1",
+		category: "Required",
+		severity: "error",
+		file: "src/filter/lowpass.c",
+		line: 47,
+		message: "控制表达式必须为布尔类型",
+		fixed: true,
+	},
+	{
+		rule: "MISRA-C:2012 Rule 8.1",
+		category: "Required",
+		severity: "error",
+		file: "src/filter/lowpass.c",
+		line: 23,
+		message: "函数必须有原型声明",
+		fixed: true,
+	},
+	{
+		rule: "MISRA-C:2012 Rule 11.3",
+		category: "Required",
+		severity: "error",
+		file: "src/filter/filter_init.c",
+		line: 89,
+		message: "不允许在指向不同类型的指针之间进行转换",
+		fixed: false,
+	},
+	{
+		rule: "MISRA-C:2012 Rule 17.7",
+		category: "Advisory",
+		severity: "warn",
+		file: "src/filter/lowpass.c",
+		line: 112,
+		message: "函数返回值不可被忽略",
+		fixed: true,
+	},
+	{
+		rule: "MISRA-C:2012 Rule 18.1",
+		category: "Required",
+		severity: "error",
+		file: "src/filter/buffer.c",
+		line: 34,
+		message: "数组索引不得超出数组边界",
+		fixed: false,
+	},
+	{
+		rule: "MISRA-C:2012 Dir 4.5",
+		category: "Advisory",
+		severity: "warn",
+		file: "src/filter/lowpass.c",
+		line: 5,
+		message: "项目不得使用不可辨识的字面量",
+		fixed: true,
+	},
+];
+
+function escapeHtml(s: string): string {
+	return s
+		.replace(/&/g, "&amp;")
+		.replace(/</g, "&lt;")
+		.replace(/>/g, "&gt;")
+		.replace(/"/g, "&quot;");
+}
+
+function generateComplianceReportHTML(): string {
+	const now = new Date();
+	const dateStr = now.toLocaleDateString("zh-CN", {
+		year: "numeric",
+		month: "long",
+		day: "numeric",
+	});
+	const timeStr = now.toLocaleTimeString("zh-CN", {
+		hour: "2-digit",
+		minute: "2-digit",
+	});
+	const taskId = "SF-" + now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + String(now.getDate()).padStart(2, "0") + "-" + String(Math.floor(Math.random() * 9000) + 1000);
+
+	const totalViolations = mockMisraViolations.length;
+	const fixedViolations = mockMisraViolations.filter((v) => v.fixed).length;
+	const unfixedViolations = totalViolations - fixedViolations;
+	const complianceRate = Math.round(((fixedViolations + 0) / Math.max(totalViolations, 1)) * 100);
+
+	const formalPassed = formalZ3Checks.filter((c) => c.status === "passed").length;
+	const formalFailed = formalZ3Checks.filter((c) => c.status === "failed").length;
+	const formalTimeout = formalZ3Checks.filter((c) => c.status === "timeout").length;
+
+	const cbmcPassed = cbmcChecks.filter((c) => c.status === "passed").length;
+	const cbmcFailed = cbmcChecks.filter((c) => c.status === "failed").length;
+
+	const totalObjectives = coveredCount.value + partialCount.value + uncoveredCount.value + naCount.value;
+	const coveredPct = totalObjectives > 0 ? Math.round((coveredCount.value / totalObjectives) * 100) : 0;
+
+	const css = `
+		body { font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif; margin: 0; padding: 40px; color: #222; line-height: 1.6; }
+		h1 { font-size: 28px; border-bottom: 3px solid #1a8bdd; padding-bottom: 10px; }
+		h2 { font-size: 20px; color: #0b3555; border-left: 4px solid #1a8bdd; padding-left: 10px; margin-top: 36px; }
+		table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+		th { background: #f0f5fa; text-align: left; padding: 8px 10px; border: 1px solid #ddd; font-weight: 600; }
+		td { padding: 8px 10px; border: 1px solid #ddd; }
+		tr:nth-child(even) td { background: #fafbfc; }
+		.cover { text-align: center; padding-top: 120px; page-break-after: always; }
+		.cover h1 { font-size: 32px; border: none; }
+		.cover .subtitle { font-size: 18px; color: #555; margin-top: 8px; }
+		.cover .meta { margin-top: 80px; font-size: 14px; color: #666; }
+		.badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+		.badge.pass { background: #d4edda; color: #155724; }
+		.badge.fail { background: #f8d7da; color: #721c24; }
+		.badge.warn { background: #fff3cd; color: #856404; }
+		.badge.timeout { background: #e2e3e5; color: #383d41; }
+		.summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 16px 0; }
+		.summary-card { border: 1px solid #ddd; border-radius: 8px; padding: 14px; text-align: center; }
+		.summary-card .value { font-size: 28px; font-weight: 800; }
+		.summary-card .label { font-size: 12px; color: #666; margin-top: 4px; }
+		.footer { margin-top: 60px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee; padding-top: 12px; }
+		@media print { body { padding: 20px; } }
+	`;
+
+	// MISRA violations table rows
+	const misraRows = mockMisraViolations
+		.map(
+			(v) => `<tr>
+				<td>${escapeHtml(v.rule)}</td>
+				<td>${escapeHtml(v.category)}</td>
+				<td>${escapeHtml(v.severity)}</td>
+				<td>${escapeHtml(v.file)}:${v.line}</td>
+				<td>${escapeHtml(v.message)}</td>
+				<td><span class="badge ${v.fixed ? "pass" : "fail"}">${v.fixed ? "已修复" : "未修复"}</span></td>
+			</tr>`,
+		)
+		.join("\n");
+
+	// Formal verification rows (Z3 + CBMC combined)
+	const formalRows = [
+		...formalZ3Checks.map(
+			(c) =>
+				`<tr><td>${escapeHtml(c.name)}</td><td>${c.tool}</td><td><span class="badge ${c.status === "passed" ? "pass" : c.status === "failed" ? "fail" : "timeout"}">${c.status === "passed" ? "Valid" : c.status === "failed" ? "Fail" : "Timeout"}</span></td><td>${escapeHtml(c.counter_example ?? "—")}</td></tr>`,
+		),
+		...cbmcChecks.map(
+			(c) =>
+				`<tr><td>${escapeHtml(c.name)}</td><td>CBMC (bound=${c.bound})</td><td><span class="badge ${c.status === "passed" ? "pass" : c.status === "failed" ? "fail" : "timeout"}">${c.status === "passed" ? "Valid" : c.status === "failed" ? "Fail" : "Timeout"}</span></td><td>—</td></tr>`,
+		),
+	].join("\n");
+
+	return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<title>SkyForge 合规审计报告</title>
+<style>${css}</style>
+</head>
+<body>
+	<div class="cover">
+		<h1>SkyForge（天锻）</h1>
+		<div class="subtitle">AI 驱动的航空机载软件工程平台</div>
+		<h2 style="border:none; margin-top:40px;">合规审计完整报告</h2>
+		<div class="meta">
+			<p>版本：V1.0</p>
+			<p>任务 ID：${escapeHtml(taskId)}</p>
+			<p>生成日期：${dateStr} ${timeStr}</p>
+		</div>
+	</div>
+
+	<h1>1. 执行摘要</h1>
+	<div class="summary-grid">
+		<div class="summary-card">
+			<div class="value" style="color: #1a8bdd;">${complianceRate}%</div>
+			<div class="label">DO-178C 目标覆盖率</div>
+		</div>
+		<div class="summary-card">
+			<div class="value" style="color: #721c24;">${unfixedViolations}</div>
+			<div class="label">未修复 MISRA 违规</div>
+		</div>
+		<div class="summary-card">
+			<div class="value" style="color: #155724;">${formalPassed + cbmcPassed}</div>
+			<div class="label">形式化验证通过</div>
+		</div>
+		<div class="summary-card">
+			<div class="value" style="color: #856404;">${coveredPct}%</div>
+			<div class="label">目标已覆盖</div>
+		</div>
+	</div>
+	<p>本报告由 SkyForge 合规审计中心自动生成，涵盖 MISRA 编码规则检查、契约验证、形式化验证（Z3 / CBMC）及 DO-178C 目标覆盖矩阵。</p>
+	<p>契约验证：${contractPassed.value}/${contractTotal.value} 通过，${contractFailed.value} 失败，${contractPending.value} 待审。</p>
+
+	<h1>2. MISRA 违规汇总表</h1>
+	<p>共检出 ${totalViolations} 条违规，已修复 ${fixedViolations} 条，未修复 ${unfixedViolations} 条。</p>
+	<table>
+		<thead><tr><th>规则号</th><th>严重程度</th><th>级别</th><th>文件:行号</th><th>描述</th><th>修复状态</th></tr></thead>
+		<tbody>${misraRows}</tbody>
+	</table>
+
+	<h1>3. 形式化验证结果</h1>
+	<p>Z3 SMT 求解器通过 ${formalPassed} 项，失败 ${formalFailed} 项，超时 ${formalTimeout} 项。CBMC 通过 ${cbmcPassed} 项，失败 ${cbmcFailed} 项。</p>
+	<table>
+		<thead><tr><th>属性名</th><th>工具</th><th>验证状态</th><th>反例描述</th></tr></thead>
+		<tbody>${formalRows}</tbody>
+	</table>
+
+	<h1>4. 追溯矩阵摘要</h1>
+	<table>
+		<thead><tr><th>维度</th><th>数量</th><th>说明</th></tr></thead>
+		<tbody>
+			<tr><td>需求（REQ）</td><td>5</td><td>低空滤波器设计需求集</td></tr>
+			<tr><td>契约（CON）</td><td>4</td><td>前置/后置/不变式/故障处理契约分区</td></tr>
+			<tr><td>代码单元（CODE）</td><td>3</td><td>lowpass.c / filter_init.c / buffer.c</td></tr>
+			<tr><td>测试用例（TST）</td><td>8</td><td>边界测试 + 单元测试 + 形式化证明</td></tr>
+		</tbody>
+	</table>
+
+	<div class="footer">SkyForge Compliance Audit Report — 由 SkyForge 合规审计中心自动生成 — ${dateStr}</div>
+</body>
+</html>`;
+}
+
+const onExportFullReport = () => {
+	const html = generateComplianceReportHTML();
+	const filename = `skyforge-compliance-report-${new Date().toISOString().slice(0, 10)}.html`;
+	downloadTextFile(filename, html, "text/html");
+};
+
+const onGenerateReport = () => {
+	const lines: string[] = [];
+	lines.push("SkyForge DO-178C Compliance Report");
+	lines.push(`Generated: ${new Date().toISOString()}`);
+	lines.push("");
+	lines.push(`Contract: ${contractPassed.value}/${contractTotal.value} passed, ${contractFailed.value} failed, ${contractPending.value} pending`);
+	lines.push("");
+	lines.push("DO-178C Objectives Coverage:");
+	lines.push(`  Covered:   ${coveredCount.value}`);
+	lines.push(`  Partial:   ${partialCount.value}`);
+	lines.push(`  Uncovered: ${uncoveredCount.value}`);
+	lines.push(`  N/A:       ${naCount.value}`);
+	lines.push("");
+	lines.push("Objective Details:");
+	for (const obj of do178cObjectives) {
+		lines.push(`  ${obj.id} [Level ${obj.level}] ${obj.title}`);
+		for (const area of processAreas) {
+			const cov = obj.coverage[area];
+			lines.push(`    ${area}: ${cov}`);
+		}
+	}
+	downloadTextFile(
+		`do178c-report-${new Date().toISOString().slice(0, 10)}.txt`,
+		"﻿" + lines.join("\n"),
+	);
+};
 </script>
 
 <template>
@@ -1369,7 +1630,10 @@ const naCount = computed(() => {
 										{{ $t("compliance.do178c.description") }}
 									</CardDescription>
 								</div>
-								<Button>{{ $t("compliance.do178c.generateReport") }}</Button>
+								<div class="flex gap-2">
+									<Button @click="onGenerateReport">{{ $t("compliance.do178c.generateReport") }}</Button>
+									<Button variant="outline" @click="onExportFullReport">{{ $t("compliance.do178c.exportFullReport") }}</Button>
+								</div>
 							</div>
 						</CardHeader>
 						<CardContent>

@@ -73,24 +73,7 @@ class VirtualSensor:
     def generate_normal(
         self, steps: int = 200, config: dict[str, Any] | None = None
     ) -> np.ndarray:
-        """生成正常传感器数据。
-
-        Args:
-            steps: 仿真步数。
-            config: 配置字典，可含字段：
-                - wave_type: 波形类型（sine/ramp/step/constant/noise）
-                - amplitude: 幅度（默认 100.0）
-                - frequency: 频率（默认 0.05，单位 Hz）
-                - offset: 直流偏置（默认 0.0）
-                - noise_level: 噪声标准差（默认 0.0，无噪声）
-                - dt: 时间步长（默认 0.01s）
-
-        Returns:
-            长度为 steps 的 numpy 数组（float64）。
-
-        Raises:
-            ValueError: steps <= 0 或 wave_type 不支持。
-        """
+        """生成正常传感器数据。"""
         if steps <= 0:
             raise ValueError(f"steps 必须 > 0，当前 {steps}")
 
@@ -140,31 +123,7 @@ class VirtualSensor:
     def inject_fault(
         self, data: np.ndarray, fault_type: str, params: dict[str, Any]
     ) -> np.ndarray:
-        """注入故障到传感器数据（返回新数组，不修改输入）。
-
-        Args:
-            data: 原始正常数据数组。
-            fault_type: 故障类型（12 类之一，见 FAULT_TYPES）。
-            params: 故障参数字典：
-                - bias: {"bias_value": float}
-                - signal_loss: {"start": int, "end": int}
-                - noise: {"amplitude": float}
-                - stuck: {"start": int, "end": int, "stuck_value": float}
-                - step: {"step_at": int, "step_value": float}
-                - saturation: {"min_val": float, "max_val": float}
-                - intermittent: {"probability": float (0-1)}
-                - drift: {"drift_rate": float (per step)}
-                - timeout: {"start": int, "end": int}
-                - glitch: {"glitch_at": int, "glitch_value": float}
-                - stuck_zero: {"start": int, "end": int}
-                - polarity: {}（无参数）
-
-        Returns:
-            注入故障后的新数组（float64）。
-
-        Raises:
-            ValueError: fault_type 不支持或参数非法。
-        """
+        """注入故障到传感器数据（返回新数组，不修改输入）。"""
         if fault_type not in FAULT_TYPES:
             raise ValueError(f"不支持的 fault_type={fault_type}，可选: {FAULT_TYPES}")
 
@@ -261,14 +220,7 @@ class VirtualSensor:
         return out
 
     def to_csv(self, data: np.ndarray) -> str:
-        """将数组转为 CSV 字符串（每行一个 double，用于 stdin 输入）。
-
-        Args:
-            data: 一维数组。
-
-        Returns:
-            多行字符串，每行一个浮点数（%.15g 精度）。
-        """
+        """将数组转为 CSV 字符串（每行一个 double，用于 stdin 输入）。"""
         arr = np.asarray(data, dtype=np.float64).ravel()
         lines = [f"{v:.15g}" for v in arr]
         return "\n".join(lines)

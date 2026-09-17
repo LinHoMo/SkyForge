@@ -25,12 +25,7 @@ class LLMCache:
     """LLM 响应缓存，进程级内存字典 + TTL + 线程安全。"""
 
     def __init__(self, ttl: int = 3600, enabled: bool = True) -> None:
-        """初始化缓存。
-
-        Args:
-            ttl: 缓存有效期（秒），默认 3600s。
-            enabled: 是否启用缓存，默认 True。
-        """
+        """初始化缓存。"""
         self._ttl: int = ttl
         self._enabled: bool = enabled
         # key -> (value, expire_at_timestamp)
@@ -42,15 +37,7 @@ class LLMCache:
         return self._enabled
 
     def make_key(self, prompt: str, system_prompt: str = "") -> str:
-        """根据 prompt + system_prompt 生成 SHA256 缓存 key。
-
-        Args:
-            prompt: 用户提示词。
-            system_prompt: 系统提示词。
-
-        Returns:
-            SHA256 十六进制摘要字符串。
-        """
+        """根据 prompt + system_prompt 生成 SHA256 缓存 key。"""
         # 用 \x00 分隔避免 prompt/system_prompt 拼接歧义
         raw = f"{system_prompt}\x00{prompt}"
         return hashlib.sha256(raw.encode("utf-8")).hexdigest()
@@ -60,12 +47,6 @@ class LLMCache:
 
         命中且未过期时返回缓存值；未命中或已过期返回 None。
         命中/未命中均记录 loguru 日志。
-
-        Args:
-            key: 缓存 key（由 make_key 生成）。
-
-        Returns:
-            缓存的 LLM 响应文本，或 None。
         """
         if not self._enabled:
             return None
@@ -86,12 +67,7 @@ class LLMCache:
             return value
 
     def set(self, key: str, value: str) -> None:
-        """写入缓存。
-
-        Args:
-            key: 缓存 key（由 make_key 生成）。
-            value: LLM 响应文本。
-        """
+        """写入缓存。"""
         if not self._enabled:
             return
 

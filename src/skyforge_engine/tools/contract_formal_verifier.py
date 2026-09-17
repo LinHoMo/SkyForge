@@ -125,14 +125,7 @@ class Z3ContractVerifier:
         return self._z3_available
 
     def verify_consistency(self, contract: dict[str, Any]) -> tuple[bool, list[str], float]:
-        """验证契约约束一致性。
-
-        Args:
-            contract: 解析后的契约字典
-
-        Returns:
-            (is_consistent, contradictions, time_ms)
-        """
+        """验证契约约束一致性。"""
         if not self._z3_available:
             return True, [], 0.0
 
@@ -210,13 +203,6 @@ class Z3ContractVerifier:
         """生成边界测试用例。
 
         使用 Z3 求解器找到满足所有约束的边界值组合。
-
-        Args:
-            contract: 契约字典
-            max_cases: 最大测试用例数
-
-        Returns:
-            测试用例列表，每个包含 inputs 和 expected 字段
         """
         if not self._z3_available:
             return []
@@ -398,16 +384,7 @@ class CbmcContractVerifier:
         return self._cbmc_available
 
     def verify(self, code: str, contract: dict[str, Any], unwind: int = 10) -> tuple[bool, str, float]:
-        """使用 CBMC 验证代码是否满足契约。
-
-        Args:
-            code: C 代码
-            contract: 契约字典
-            unwind: 循环展开深度
-
-        Returns:
-            (verified, output, time_ms)
-        """
+        """使用 CBMC 验证代码是否满足契约。"""
         if not self._cbmc_available:
             return False, "CBMC 不可用", 0.0
 
@@ -577,15 +554,7 @@ class ContractFormalVerifier:
         """对契约执行完整的形式化验证。
 
         .. deprecated::
-            使用 ``ContractVerifier().verify(contract=contract_yaml, code=code)`` 替代。
-
-        Args:
-            contract_yaml: 契约 YAML 文本
-            code: 可选的 C 代码（用于 CBMC 验证）
-            max_test_cases: 最大测试用例数
-
-        Returns:
-            VerificationResult 包含完整验证结果
+        使用 ``ContractVerifier().verify(contract=contract_yaml, code=code)`` 替代。
         """
         warnings.warn(
             "ContractFormalVerifier is deprecated, use ContractVerifier instead",
@@ -628,13 +597,7 @@ class ContractFormalVerifier:
         """快速检查：仅执行 Z3 一致性验证。
 
         .. deprecated::
-            使用 ``ContractVerifier`` 替代。
-
-        Args:
-            contract_yaml: 契约 YAML 文本
-
-        Returns:
-            True 如果契约约束一致
+        使用 ``ContractVerifier`` 替代。
         """
         warnings.warn(
             "ContractFormalVerifier.quick_check is deprecated, use ContractVerifier instead",

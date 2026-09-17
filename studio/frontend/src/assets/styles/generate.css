@@ -520,6 +520,183 @@
   padding: 16px;
 }
 
+/* ===== Pipeline 8 阶段进度条（对标 Microsoft DevUI） ===== */
+.pipeline-steps {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  padding: 6px 2px 2px;
+  margin-bottom: 8px;
+  overflow-x: auto;
+}
+
+.pipeline-step {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+/* 步骤之间的连接线（图标中心对齐） */
+.pipeline-step::after {
+  content: "";
+  position: absolute;
+  top: 11px;
+  left: 50%;
+  width: 100%;
+  height: 2px;
+  background: hsl(var(--border));
+  z-index: 0;
+}
+
+.pipeline-step:last-child::after {
+  display: none;
+}
+
+.pipeline-step.done::after {
+  background: hsl(var(--success));
+}
+
+.pipeline-step-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid hsl(var(--border));
+  background: hsl(var(--muted));
+  color: hsl(var(--muted-foreground));
+  z-index: 1;
+  transition: all 0.2s ease;
+}
+
+.pipeline-step.done .pipeline-step-icon {
+  background: hsl(var(--success) / 0.15);
+  border-color: hsl(var(--success));
+  color: hsl(var(--success));
+}
+
+.pipeline-step.active .pipeline-step-icon {
+  background: hsl(var(--primary) / 0.15);
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.12);
+}
+
+.pipeline-step-label {
+  font-size: 9px;
+  line-height: 1.2;
+  color: hsl(var(--muted-foreground));
+  text-align: center;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pipeline-step.active .pipeline-step-label {
+  color: hsl(var(--primary));
+  font-weight: 600;
+}
+
+/* ===== MISRA 违规严重程度标签 / 修复状态 badge（对标 SonarQube issue） ===== */
+.sev-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 14px;
+}
+
+.sev-tag.sev-mandatory {
+  background: hsl(var(--destructive) / 0.12);
+  color: hsl(var(--destructive));
+}
+
+.sev-tag.sev-required {
+  background: hsl(var(--warning) / 0.15);
+  color: hsl(var(--warning));
+}
+
+.sev-tag.sev-advisory {
+  background: hsl(var(--info) / 0.12);
+  color: hsl(var(--info));
+}
+
+.violation-loc {
+  font-family: 'Consolas', monospace;
+  font-size: 10px;
+  color: hsl(var(--muted-foreground));
+}
+
+.fix-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 5px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 14px;
+}
+
+.fix-badge.auto-fixed {
+  background: hsl(var(--success) / 0.12);
+  color: hsl(var(--success));
+}
+
+.fix-badge.manual {
+  background: hsl(var(--warning) / 0.15);
+  color: hsl(var(--warning));
+}
+
+/* P0-1: 违规"查看修复"按钮 + 内联 diff 容器 */
+.view-fix-btn {
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 14px;
+  padding: 0 6px;
+  border-radius: 4px;
+  border: 1px solid hsl(var(--info) / 0.4);
+  background: transparent;
+  color: hsl(var(--info));
+  cursor: pointer;
+}
+
+.view-fix-btn:hover {
+  background: hsl(var(--info) / 0.12);
+}
+
+.violation-diff {
+  margin-top: 6px;
+  height: 220px;
+  border: 1px solid hsl(var(--border));
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+/* P0-3: 修复轮次指示徽章（进度条下方） */
+.repair-round-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 2px 0;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  width: fit-content;
+  background: hsl(var(--info) / 0.1);
+  color: hsl(var(--info));
+  border: 1px solid hsl(var(--info) / 0.3);
+}
+
 .error-state {
   padding: 14px;
   border-radius: 10px;

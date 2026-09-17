@@ -27,20 +27,7 @@ from skyforge_engine.utils.log_util import logger
 
 @dataclass
 class SimulationResult:
-    """仿真结果。
-
-    Attributes:
-        passed: 仿真是否通过（契约满足 + 进程正常退出）。
-        total_steps: 仿真步数。
-        fault_type: 注入的故障类型（无则 None）。
-        fault_params: 故障参数字典（无故障则为空字典）。
-        input_waveform: 输入波形（list[float]）。
-        output_waveform: 输出波形（list[float]）。
-        contract_violation: 契约违约信息（无则 None）。
-        statistics: 统计信息（min/max/mean/duration_ms）。
-        compilation: 编译信息（success/errors/used_mock）。
-        terminal_log: 终端日志（为 Patch 4 WebSocket 展示）。
-    """
+    """仿真结果。"""
 
     passed: bool = False
     total_steps: int = 0
@@ -108,18 +95,7 @@ class SimulationEngine:
         fault_params: dict[str, Any] | None = None,
         steps: int = 200,
     ) -> SimulationResult:
-        """运行一次完整仿真。
-
-        Args:
-            code: AI 生成的 C 代码字符串。
-            contract_yaml: .contract YAML 字符串。
-            fault_type: 故障类型（None 表示无故障）。
-            fault_params: 故障参数字典。
-            steps: 仿真步数。
-
-        Returns:
-            SimulationResult。
-        """
+        """运行一次完整仿真。"""
         log_lines: list[str] = []
         log_lines.append("===== 数字孪生仿真开始 =====")
         log_lines.append(
